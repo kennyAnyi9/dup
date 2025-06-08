@@ -10,6 +10,19 @@ export function ThemeSwitch() {
 
   useEffect(() => {
     function handleKeyPress(event: KeyboardEvent) {
+      // Don't trigger if user is typing in an input, textarea, or contenteditable element
+      const target = event.target as HTMLElement;
+      const isInputActive = target && (
+        target.tagName === 'INPUT' ||
+        target.tagName === 'TEXTAREA' ||
+        target.contentEditable === 'true' ||
+        target.closest('[contenteditable="true"]')
+      );
+
+      if (isInputActive) {
+        return;
+      }
+
       if (event.key === "L" || event.key === "l") {
         event.preventDefault();
         setTheme("light");

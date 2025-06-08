@@ -4,19 +4,12 @@ import { useAuth } from "@/hooks/use-auth";
 import { APP_NAME } from "@/lib/constants";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ThemeSwitch } from "@/components/theme/theme-switch";
-import { User, Settings, LogOut, Plus, FileText } from "lucide-react";
+import { UserDropdown } from "@/components/auth/user-dropdown";
+import { Plus } from "lucide-react";
 
 export function Header() {
-  const { user, isAuthenticated } = useAuth();
+  const { isAuthenticated } = useAuth();
 
   return (
     <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -70,63 +63,15 @@ export function Header() {
                   </Link>
                 </Button>
                 
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="relative h-9 w-9 rounded-full">
-                      <Avatar className="h-9 w-9">
-                        <AvatarImage src={user?.image || ""} alt={user?.name || ""} />
-                        <AvatarFallback>
-                          {user?.name?.[0]?.toUpperCase() || user?.email?.[0]?.toUpperCase() || "U"}
-                        </AvatarFallback>
-                      </Avatar>
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent className="w-56" align="end" forceMount>
-                    <div className="flex items-center justify-start gap-2 p-2">
-                      <div className="flex flex-col space-y-1 leading-none">
-                        {user?.name && (
-                          <p className="font-medium">{user.name}</p>
-                        )}
-                        {user?.email && (
-                          <p className="w-[200px] truncate text-sm text-muted-foreground">
-                            {user.email}
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem asChild>
-                      <Link href="/dashboard" className="cursor-pointer">
-                        <FileText className="mr-2 h-4 w-4" />
-                        My Pastes
-                      </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                      <Link href="/settings" className="cursor-pointer">
-                        <Settings className="mr-2 h-4 w-4" />
-                        Settings
-                      </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem 
-                      className="cursor-pointer text-red-600 focus:text-red-600"
-                      onClick={() => {
-                        // TODO: Implement signOut
-                      }}
-                    >
-                      <LogOut className="mr-2 h-4 w-4" />
-                      Sign out
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                <UserDropdown />
               </>
             ) : (
               <div className="flex items-center space-x-2">
                 <Button variant="ghost" asChild>
-                  <Link href="/sign-in">Sign In</Link>
+                  <Link href="/login">Sign In</Link>
                 </Button>
                 <Button asChild>
-                  <Link href="/sign-up">Sign Up</Link>
+                  <Link href="/register">Sign Up</Link>
                 </Button>
               </div>
             )}
