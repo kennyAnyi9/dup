@@ -1,4 +1,4 @@
-import { boolean, pgTable, text, timestamp } from "drizzle-orm/pg-core";
+import { boolean, pgTable, text, timestamp, integer } from "drizzle-orm/pg-core";
 
 export const user = pgTable("user", {
   id: text("id").primaryKey(),
@@ -48,4 +48,21 @@ export const verification = pgTable("verification", {
   expiresAt: timestamp("expires_at").notNull(),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const paste = pgTable("paste", {
+  id: text("id").primaryKey(),
+  slug: text("slug").notNull().unique(),
+  title: text("title"),
+  content: text("content").notNull(),
+  language: text("language").default("plain").notNull(),
+  visibility: text("visibility").default("public").notNull(), // public, unlisted, private
+  password: text("password"), // for password-protected pastes
+  burnAfterRead: boolean("burn_after_read").default(false).notNull(),
+  views: integer("views").default(0).notNull(),
+  expiresAt: timestamp("expires_at"),
+  userId: text("user_id").references(() => user.id, { onDelete: "cascade" }), // null for anonymous
+  isDeleted: boolean("is_deleted").default(false).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });

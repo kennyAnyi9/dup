@@ -8,6 +8,13 @@
       "when": 1749361210763,
       "tag": "0000_wealthy_inhumans",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1749363464462,
+      "tag": "0001_youthful_starfox",
+      "breakpoints": true
     }
   ]
 }
