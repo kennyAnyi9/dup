@@ -59,6 +59,7 @@ export const paste = pgTable("paste", {
   visibility: text("visibility").default("public").notNull(), // public, unlisted, private
   password: text("password"), // for password-protected pastes
   burnAfterRead: boolean("burn_after_read").default(false).notNull(),
+  burnAfterReadViews: integer("burn_after_read_views").default(1), // how many views before burn
   views: integer("views").default(0).notNull(),
   expiresAt: timestamp("expires_at"),
   userId: text("user_id").references(() => user.id, { onDelete: "cascade" }), // null for anonymous

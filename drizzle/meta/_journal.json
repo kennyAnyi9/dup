@@ -15,6 +15,13 @@
       "when": 1749363464462,
       "tag": "0001_youthful_starfox",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1749367138452,
+      "tag": "0002_goofy_agent_zero",
+      "breakpoints": true
     }
   ]
 }

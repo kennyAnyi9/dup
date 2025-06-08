@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useKeyboardShortcuts } from "@/hooks/use-keyboard-shortcuts";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -24,6 +25,20 @@ interface PasswordDialogProps {
 export function PasswordDialog({ open, onSubmit, error, isLoading }: PasswordDialogProps) {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+
+  // Keyboard shortcuts
+  useKeyboardShortcuts([
+    {
+      key: 'Enter',
+      callback: (e) => {
+        if (open && password.trim() && !isLoading) {
+          e.preventDefault();
+          handleSubmit(e);
+        }
+      },
+      description: 'Submit password',
+    },
+  ]);
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();

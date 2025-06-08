@@ -3,6 +3,7 @@ import { AuthProvider } from "@/components/auth/auth-provider";
 import { Toaster } from "@/components/ui/sonner";
 import { Header } from "@/components/common/header";
 import { Footer } from "@/components/common/footer";
+import { CommandPalette } from "@/components/ui/command-palette";
 import { APP_NAME } from "@/lib/constants";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
@@ -51,6 +52,7 @@ export default function RootLayout({
               {children}
             </main>
             <Footer />
+            <CommandPalette />
             <Toaster />
           </AuthProvider>
         </ThemeProvider>

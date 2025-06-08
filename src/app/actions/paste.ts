@@ -19,12 +19,15 @@ import {
   createPasteSchema,
   getPasteSchema,
   deletePasteSchema,
+  checkUrlAvailabilitySchema,
   type CreatePasteResult,
   type GetPasteResult,
   type DeletePasteResult,
+  type CheckUrlAvailabilityResult,
   type CreatePasteInput,
   type GetPasteInput,
   type DeletePasteInput,
+  type CheckUrlAvailabilityInput,
 } from "@/types/paste";
 import bcrypt from "bcryptjs";
 
@@ -105,26 +108,47 @@ export async function createPaste(input: CreatePasteInput): Promise<CreatePasteR
     // Calculate expiry date
     const expiresAt = calculateExpiryDate(validatedInput.expiresIn, isAuthenticated);
 
-    // Generate unique slug
+    // Generate or validate slug
     let slug: string;
-    let attempts = 0;
-    do {
-      slug = generateSlug();
-      attempts++;
+    
+    if (validatedInput.customUrl && validatedInput.customUrl.trim()) {
+      // Use custom URL if provided and not empty
+      slug = validatedInput.customUrl.trim();
       
-      // Check if slug already exists
+      // Check if custom slug already exists
       const existing = await db
         .select({ id: paste.id })
         .from(paste)
         .where(eq(paste.slug, slug))
         .limit(1);
       
-      if (existing.length === 0) break;
-      
-      if (attempts > 10) {
-        throw new Error("Failed to generate unique slug");
+      if (existing.length > 0) {
+        return {
+          success: false,
+          error: "Custom URL is already taken",
+        };
       }
-    } while (true);
+    } else {
+      // Generate unique slug
+      let attempts = 0;
+      do {
+        slug = generateSlug();
+        attempts++;
+        
+        // Check if slug already exists
+        const existing = await db
+          .select({ id: paste.id })
+          .from(paste)
+          .where(eq(paste.slug, slug))
+          .limit(1);
+        
+        if (existing.length === 0) break;
+        
+        if (attempts > 10) {
+          throw new Error("Failed to generate unique slug");
+        }
+      } while (true);
+    }
 
     // Create paste
     const newPaste = await db
@@ -138,6 +162,7 @@ export async function createPaste(input: CreatePasteInput): Promise<CreatePasteR
         visibility: validatedInput.visibility,
         password: hashedPassword,
         burnAfterRead: validatedInput.burnAfterRead,
+        burnAfterReadViews: validatedInput.burnAfterRead ? (validatedInput.burnAfterReadViews || 1) : null,
         expiresAt,
         userId: user?.id || null,
       })
@@ -235,26 +260,47 @@ export async function getPaste(input: GetPasteInput): Promise<GetPasteResult> {
       }
     }
 
-    // Increment view count (don't count owner's views)
-    if (!user || foundPaste.userId !== user.id) {
-      await db
-        .update(paste)
-        .set({
-          views: foundPaste.views + 1,
-          updatedAt: new Date(),
-        })
-        .where(eq(paste.id, foundPaste.id));
-    }
-
-    // Handle burn after read
-    if (foundPaste.burnAfterRead && (!user || foundPaste.userId !== user.id)) {
-      await db
-        .update(paste)
-        .set({
-          isDeleted: true,
-          updatedAt: new Date(),
-        })
-        .where(eq(paste.id, foundPaste.id));
+    // Determine if we should increment view count (don't count owner's views)
+    const shouldIncrementViews = !user || foundPaste.userId !== user.id;
+    let newViewCount = foundPaste.views;
+    
+    if (shouldIncrementViews) {
+      newViewCount = foundPaste.views + 1;
+      
+      // Handle burn after read before incrementing
+      if (foundPaste.burnAfterRead) {
+        const burnViews = foundPaste.burnAfterReadViews || 1;
+        
+        if (newViewCount >= burnViews) {
+          // Delete the paste after this view
+          await db
+            .update(paste)
+            .set({
+              views: newViewCount,
+              isDeleted: true,
+              updatedAt: new Date(),
+            })
+            .where(eq(paste.id, foundPaste.id));
+        } else {
+          // Just increment view count
+          await db
+            .update(paste)
+            .set({
+              views: newViewCount,
+              updatedAt: new Date(),
+            })
+            .where(eq(paste.id, foundPaste.id));
+        }
+      } else {
+        // Regular view count increment
+        await db
+          .update(paste)
+          .set({
+            views: newViewCount,
+            updatedAt: new Date(),
+          })
+          .where(eq(paste.id, foundPaste.id));
+      }
     }
 
     return {
@@ -267,7 +313,8 @@ export async function getPaste(input: GetPasteInput): Promise<GetPasteResult> {
         language: foundPaste.language,
         visibility: foundPaste.visibility,
         burnAfterRead: foundPaste.burnAfterRead,
-        views: foundPaste.views + ((!user || foundPaste.userId !== user.id) ? 1 : 0), // Include the increment we just made
+        burnAfterReadViews: foundPaste.burnAfterReadViews || undefined,
+        views: newViewCount,
         expiresAt: foundPaste.expiresAt || undefined,
         userId: foundPaste.userId || undefined,
         createdAt: foundPaste.createdAt,
@@ -513,5 +560,33 @@ export async function getRecentPublicPastes(limit: number = 10) {
   } catch (error) {
     console.error("Get recent public pastes error:", error);
     return [];
+  }
+}
+
+export async function checkUrlAvailability(input: CheckUrlAvailabilityInput): Promise<CheckUrlAvailabilityResult> {
+  try {
+    const validatedInput = checkUrlAvailabilitySchema.parse(input);
+    
+    // Check if URL is available
+    const existingPaste = await db
+      .select({ id: paste.id })
+      .from(paste)
+      .where(
+        and(
+          eq(paste.slug, validatedInput.url),
+          eq(paste.isDeleted, false)
+        )
+      )
+      .limit(1);
+
+    return {
+      available: existingPaste.length === 0,
+    };
+  } catch (error) {
+    console.error("Check URL availability error:", error);
+    return {
+      available: false,
+      error: error instanceof Error ? error.message : "Failed to check URL availability",
+    };
   }
 }

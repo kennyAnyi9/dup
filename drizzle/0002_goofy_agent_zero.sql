@@ -1,0 +1,1 @@
+ALTER TABLE "paste" ADD COLUMN "burn_after_read_views" integer DEFAULT 1;

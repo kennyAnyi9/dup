@@ -12,6 +12,10 @@ export const createPasteSchema = z.object({
   ]).default(PASTE_VISIBILITY.PUBLIC),
   password: z.string().optional(),
   burnAfterRead: z.boolean().default(false),
+  burnAfterReadViews: z.number().min(1).max(100).optional(),
+  customUrl: z.string().optional().refine((val) => !val || (val.length >= 3 && val.length <= 50 && /^[a-zA-Z0-9-_]+$/.test(val)), {
+    message: "Custom URL must be 3-50 characters and contain only letters, numbers, hyphens, and underscores"
+  }),
   expiresIn: z.enum(["30m", "1h", "1d", "7d", "30d", "never"]).default("never"),
 });
 
@@ -24,9 +28,14 @@ export const deletePasteSchema = z.object({
   id: z.string().min(1),
 });
 
+export const checkUrlAvailabilitySchema = z.object({
+  url: z.string().min(3).max(50),
+});
+
 export type CreatePasteInput = z.infer<typeof createPasteSchema>;
 export type GetPasteInput = z.infer<typeof getPasteSchema>;
 export type DeletePasteInput = z.infer<typeof deletePasteSchema>;
+export type CheckUrlAvailabilityInput = z.infer<typeof checkUrlAvailabilitySchema>;
 
 export interface PasteResult {
   id: string;
@@ -36,6 +45,7 @@ export interface PasteResult {
   language: string;
   visibility: string;
   burnAfterRead: boolean;
+  burnAfterReadViews?: number;
   views: number;
   expiresAt?: Date;
   userId?: string;
@@ -70,4 +80,9 @@ export interface RateLimitResult {
   limit?: number;
   remaining?: number;
   reset?: number;
+}
+
+export interface CheckUrlAvailabilityResult {
+  available: boolean;
+  error?: string;
 }
