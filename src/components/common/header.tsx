@@ -1,19 +1,19 @@
 "use client";
 
+import { UserDropdown } from "@/components/auth/user-dropdown";
+import { ThemeSwitch } from "@/components/theme/theme-switch";
+import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
 import { APP_NAME } from "@/lib/constants";
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import { ThemeSwitch } from "@/components/theme/theme-switch";
-import { UserDropdown } from "@/components/auth/user-dropdown";
 import { Plus } from "lucide-react";
+import Link from "next/link";
 
 export function Header() {
   const { isAuthenticated } = useAuth();
 
   return (
-    <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+    <header className="bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between">
           <div className="flex items-center space-x-8">
             <Link href="/" className="flex items-center space-x-2">
@@ -26,22 +26,22 @@ export function Header() {
             </Link>
 
             <nav className="hidden md:flex items-center space-x-6">
-              <Link 
-                href="/" 
+              <Link
+                href="/"
                 className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
               >
                 Home
               </Link>
               {isAuthenticated && (
                 <>
-                  <Link 
-                    href="/dashboard" 
+                  <Link
+                    href="/dashboard"
                     className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
                   >
                     My Pastes
                   </Link>
-                  <Link 
-                    href="/new" 
+                  <Link
+                    href="/new"
                     className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
                   >
                     New Paste
@@ -53,7 +53,7 @@ export function Header() {
 
           <div className="flex items-center space-x-4">
             <ThemeSwitch />
-            
+
             {isAuthenticated ? (
               <>
                 <Button asChild size="sm" className="hidden sm:flex">
@@ -62,7 +62,7 @@ export function Header() {
                     New Paste
                   </Link>
                 </Button>
-                
+
                 <UserDropdown />
               </>
             ) : (

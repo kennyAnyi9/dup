@@ -3,10 +3,10 @@ import { getPaste } from "@/app/actions/paste";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { slug: string } }
+  { params }: { params: Promise<{ slug: string }> }
 ) {
   try {
-    const { slug } = params;
+    const { slug } = await params;
     const url = new URL(request.url);
     const password = url.searchParams.get("password");
 

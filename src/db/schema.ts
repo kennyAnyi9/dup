@@ -1,4 +1,4 @@
-import { boolean, pgTable, text, timestamp, integer } from "drizzle-orm/pg-core";
+import { boolean, pgTable, text, timestamp, integer, index } from "drizzle-orm/pg-core";
 
 export const user = pgTable("user", {
   id: text("id").primaryKey(),
@@ -21,6 +21,12 @@ export const session = pgTable("session", {
   userId: text("user_id")
     .notNull()
     .references(() => user.id, { onDelete: "cascade" }),
+}, (table) => {
+  return {
+    // Auth performance indexes
+    userIdIdx: index("idx_session_user_id").on(table.userId),
+    expiresAtIdx: index("idx_session_expires_at").on(table.expiresAt),
+  };
 });
 
 export const account = pgTable("account", {
@@ -66,4 +72,17 @@ export const paste = pgTable("paste", {
   isDeleted: boolean("is_deleted").default(false).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => {
+  return {
+    // Performance indexes for common queries
+    userIdIdx: index("idx_paste_user_id").on(table.userId),
+    createdAtIdx: index("idx_paste_created_at").on(table.createdAt.desc()),
+    visibilityIdx: index("idx_paste_visibility").on(table.visibility),
+    expiresAtIdx: index("idx_paste_expires_at").on(table.expiresAt),
+    isDeletedIdx: index("idx_paste_is_deleted").on(table.isDeleted),
+    // Composite index for dashboard queries (user's pastes ordered by date)
+    userCreatedIdx: index("idx_paste_user_created").on(table.userId, table.createdAt.desc()),
+    // Composite index for public paste queries
+    publicCreatedIdx: index("idx_paste_public_created").on(table.visibility, table.isDeleted, table.createdAt.desc()),
+  };
 });

@@ -21,113 +21,21 @@ export default async function Home() {
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-8">
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1  gap-8">
         {/* Main Content - CTA Section */}
         <div className="lg:col-span-2 space-y-8">
           {/* Hero Section */}
-          <div className="text-center lg:text-left space-y-4">
-            <h1 className="text-4xl lg:text-5xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
-              Share Code & Text Instantly
+          <div className="relative mx-auto flex w-full max-w-lg flex-col items-center px-4 text-center">
+            <h1 className="mt-5 text-center font-display text-4xl font-medium  sm:text-5xl sm:leading-[1.15] animate-slide-up-fade [--offset:20px] [animation-duration:1s] [animation-fill-mode:both] motion-reduce:animate-fade-in [animation-delay:100ms]">
+              Ready to share?
             </h1>
-            <p className="text-xl text-muted-foreground max-w-2xl">
-              Fast, secure, and simple pastebin service. Share your code
-              snippets, configuration files, or any text with the world or keep
-              them private.
+            <p className="mt-5 text-pretty text-base text-muted-foreground text-center sm:text-xl animate-slide-up-fade [--offset:10px] [animation-delay:200ms] [animation-duration:1s] [animation-fill-mode:both] motion-reduce:animate-fade-in">
+              Click below to create your paste in seconds
             </p>
           </div>
 
           {/* CTA Card */}
           <HomeClient />
-
-          {/* Features Comparison */}
-          <div className="space-y-6">
-            <div className="text-center">
-              <h2 className="text-2xl font-bold mb-2">Why Sign Up?</h2>
-              <p className="text-muted-foreground">
-                Unlock powerful features with a free account
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Anonymous Features */}
-              <Card>
-                <CardHeader>
-                  <div className="flex items-center gap-2">
-                    <Users className="h-5 w-5" />
-                    <h3 className="font-semibold">Anonymous User</h3>
-                    <Badge variant="secondary">Free</Badge>
-                  </div>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <div className="flex items-center gap-2 text-sm">
-                    <FileText className="h-4 w-4 text-muted-foreground" />
-                    <span>500 character limit</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-sm">
-                    <Clock className="h-4 w-4 text-muted-foreground" />
-                    <span>30 minute expiry</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-sm">
-                    <Globe className="h-4 w-4 text-muted-foreground" />
-                    <span>Public & unlisted pastes only</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-sm">
-                    <Zap className="h-4 w-4 text-muted-foreground" />
-                    <span>5 pastes per minute</span>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Authenticated Features */}
-              <Card className="border-primary/50 bg-primary/5">
-                <CardHeader>
-                  <div className="flex items-center gap-2">
-                    <Shield className="h-5 w-5 text-primary" />
-                    <h3 className="font-semibold">Registered User</h3>
-                    <Badge>Free</Badge>
-                  </div>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <div className="flex items-center gap-2 text-sm">
-                    <FileText className="h-4 w-4 text-primary" />
-                    <span className="font-medium">5,000 character limit</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-sm">
-                    <Clock className="h-4 w-4 text-primary" />
-                    <span className="font-medium">
-                      Up to 30 days or never expire
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2 text-sm">
-                    <Lock className="h-4 w-4 text-primary" />
-                    <span className="font-medium">
-                      Private pastes & password protection
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2 text-sm">
-                    <Zap className="h-4 w-4 text-primary" />
-                    <span className="font-medium">20 pastes per minute</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-sm">
-                    <FileText className="h-4 w-4 text-primary" />
-                    <span className="font-medium">
-                      Paste management dashboard
-                    </span>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-
-            <div className="text-center">
-              <Link
-                href="/register"
-                className="inline-flex items-center gap-2 bg-primary text-primary-foreground hover:bg-primary/90 px-6 py-3 rounded-lg font-medium transition-colors"
-              >
-                <Shield className="h-4 w-4" />
-                Create Free Account
-              </Link>
-            </div>
-          </div>
         </div>
 
         {/* Sidebar - Recent Public Pastes */}
@@ -215,6 +123,93 @@ export default async function Home() {
               </div>
             </div>
           </div>
+        </div>
+      </div>
+      {/* Features Comparison */}
+      <div className="space-y-6">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold mb-2">Why Sign Up?</h2>
+          <p className="text-muted-foreground">
+            Unlock powerful features with a free account
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Anonymous Features */}
+          <Card>
+            <CardHeader>
+              <div className="flex items-center gap-2">
+                <Users className="h-5 w-5" />
+                <h3 className="font-semibold">Anonymous User</h3>
+                <Badge variant="secondary">Free</Badge>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <div className="flex items-center gap-2 text-sm">
+                <FileText className="h-4 w-4 text-muted-foreground" />
+                <span>500 character limit</span>
+              </div>
+              <div className="flex items-center gap-2 text-sm">
+                <Clock className="h-4 w-4 text-muted-foreground" />
+                <span>30 minute expiry</span>
+              </div>
+              <div className="flex items-center gap-2 text-sm">
+                <Globe className="h-4 w-4 text-muted-foreground" />
+                <span>Public & unlisted pastes only</span>
+              </div>
+              <div className="flex items-center gap-2 text-sm">
+                <Zap className="h-4 w-4 text-muted-foreground" />
+                <span>5 pastes per minute</span>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Authenticated Features */}
+          <Card className="border-primary/50 bg-primary/5">
+            <CardHeader>
+              <div className="flex items-center gap-2">
+                <Shield className="h-5 w-5 text-primary" />
+                <h3 className="font-semibold">Registered User</h3>
+                <Badge>Free</Badge>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <div className="flex items-center gap-2 text-sm">
+                <FileText className="h-4 w-4 text-primary" />
+                <span className="font-medium">5,000 character limit</span>
+              </div>
+              <div className="flex items-center gap-2 text-sm">
+                <Clock className="h-4 w-4 text-primary" />
+                <span className="font-medium">
+                  Up to 30 days or never expire
+                </span>
+              </div>
+              <div className="flex items-center gap-2 text-sm">
+                <Lock className="h-4 w-4 text-primary" />
+                <span className="font-medium">
+                  Private pastes & password protection
+                </span>
+              </div>
+              <div className="flex items-center gap-2 text-sm">
+                <Zap className="h-4 w-4 text-primary" />
+                <span className="font-medium">20 pastes per minute</span>
+              </div>
+              <div className="flex items-center gap-2 text-sm">
+                <FileText className="h-4 w-4 text-primary" />
+                <span className="font-medium">Paste management dashboard</span>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        <div className="text-center">
+          <Link
+            href="/register"
+            className="inline-flex items-center gap-2 bg-primary text-primary-foreground hover:bg-primary/90 px-6 py-3 rounded-lg font-medium transition-colors"
+          >
+            <Shield className="h-4 w-4" />
+            Create Free Account
+          </Link>
         </div>
       </div>
     </div>
