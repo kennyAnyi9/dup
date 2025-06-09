@@ -56,6 +56,13 @@ export function PublicPasteClient({ slug }: PublicPasteClientProps) {
         setPaste(result.paste);
         setShowPasswordDialog(false);
         setPasswordError(null);
+        
+        // Show burn after read notification
+        if (result.burnedAfterRead) {
+          toast.warning("This paste has been deleted after being viewed!", {
+            duration: 5000,
+          });
+        }
       } else if (result.requiresPassword) {
         setShowPasswordDialog(true);
         setPasswordError(result.error || null);

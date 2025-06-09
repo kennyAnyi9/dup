@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -17,6 +18,7 @@ import { toast } from "sonner";
 
 export function UserDropdown() {
   const { user } = useAuth();
+  const router = useRouter();
   const [isSigningOut, setIsSigningOut] = useState(false);
 
   async function handleSignOut() {
@@ -24,6 +26,8 @@ export function UserDropdown() {
       setIsSigningOut(true);
       await signOut();
       toast.success("Signed out successfully");
+      // Redirect to login page after successful sign out
+      router.push("/login");
     } catch (error) {
       toast.error("Failed to sign out");
       console.error("Sign out error:", error);

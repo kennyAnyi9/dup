@@ -68,6 +68,7 @@ export interface GetPasteResult {
   paste?: PasteResult;
   error?: string;
   requiresPassword?: boolean;
+  burnedAfterRead?: boolean;
 }
 
 export interface DeletePasteResult {

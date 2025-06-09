@@ -282,44 +282,53 @@ export async function getPaste(input: GetPasteInput): Promise<GetPasteResult> {
     // Determine if we should increment view count (don't count owner's views)
     const shouldIncrementViews = !user || foundPaste.userId !== user.id;
     let newViewCount = foundPaste.views;
+    let shouldDelete = false;
     
     if (shouldIncrementViews) {
       newViewCount = foundPaste.views + 1;
       
-      // Handle burn after read before incrementing
+      // Handle burn after read logic
       if (foundPaste.burnAfterRead) {
         const burnViews = foundPaste.burnAfterReadViews || 1;
         
+        // Check if we've reached the burn threshold
         if (newViewCount >= burnViews) {
-          // Delete the paste after this view
-          await db
-            .update(paste)
-            .set({
-              views: newViewCount,
-              isDeleted: true,
-              updatedAt: new Date(),
-            })
-            .where(eq(paste.id, foundPaste.id));
-        } else {
-          // Just increment view count
-          await db
-            .update(paste)
-            .set({
-              views: newViewCount,
-              updatedAt: new Date(),
-            })
-            .where(eq(paste.id, foundPaste.id));
+          shouldDelete = true;
         }
-      } else {
-        // Regular view count increment
-        await db
-          .update(paste)
-          .set({
-            views: newViewCount,
-            updatedAt: new Date(),
-          })
-          .where(eq(paste.id, foundPaste.id));
       }
+      
+      // Update the database with the new view count
+      await db
+        .update(paste)
+        .set({
+          views: newViewCount,
+          ...(shouldDelete && { isDeleted: true }),
+          updatedAt: new Date(),
+        })
+        .where(eq(paste.id, foundPaste.id));
+    }
+
+    // If paste was deleted due to burn after read, show special message
+    if (shouldDelete) {
+      return {
+        success: true,
+        paste: {
+          id: foundPaste.id,
+          slug: foundPaste.slug,
+          title: foundPaste.title || undefined,
+          content: foundPaste.content,
+          language: foundPaste.language,
+          visibility: foundPaste.visibility,
+          burnAfterRead: foundPaste.burnAfterRead,
+          burnAfterReadViews: foundPaste.burnAfterReadViews || undefined,
+          views: newViewCount,
+          expiresAt: foundPaste.expiresAt || undefined,
+          userId: foundPaste.userId || undefined,
+          createdAt: foundPaste.createdAt,
+          updatedAt: foundPaste.updatedAt,
+        },
+        burnedAfterRead: true,
+      };
     }
 
     return {
