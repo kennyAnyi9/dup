@@ -1,6 +1,6 @@
 "use server";
 
-import { eq, and, desc, count, like, or, sql } from "drizzle-orm";
+import { eq, and, desc, count, like, or, sql, isNull, gt } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { nanoid } from "nanoid";
@@ -14,6 +14,13 @@ import {
   EXPIRY_ANONYMOUS,
   APP_URL,
 } from "@/lib/constants";
+import {
+  cached,
+  CACHE_KEYS,
+  CACHE_TTL,
+  generateCacheKey,
+  deleteFromCache,
+} from "@/lib/cache";
 import {
   createPasteSchema,
   getPasteSchema,
@@ -174,6 +181,19 @@ export async function createPaste(input: CreatePasteInput): Promise<CreatePasteR
     const url = `${APP_URL}/${createdPaste.slug}`;
 
     revalidatePath("/dashboard");
+    
+    // Invalidate caches
+    if (validatedInput.visibility === "public") {
+      // Invalidate recent public pastes cache for all limits
+      deleteFromCache(generateCacheKey(CACHE_KEYS.RECENT_PUBLIC_PASTES, "8"));
+      deleteFromCache(generateCacheKey(CACHE_KEYS.RECENT_PUBLIC_PASTES, "10"));
+      deleteFromCache(generateCacheKey(CACHE_KEYS.RECENT_PUBLIC_PASTES, "12"));
+    }
+    
+    // Invalidate user stats cache
+    if (user) {
+      deleteFromCache(generateCacheKey(CACHE_KEYS.PASTE_COUNT, user.id));
+    }
 
     return {
       success: true,
@@ -391,6 +411,17 @@ export async function deletePaste(input: DeletePasteInput): Promise<DeletePasteR
       .where(eq(paste.id, validatedInput.id));
 
     revalidatePath("/dashboard");
+    
+    // Invalidate caches
+    if (foundPaste.visibility === "public") {
+      // Invalidate recent public pastes cache
+      deleteFromCache(generateCacheKey(CACHE_KEYS.RECENT_PUBLIC_PASTES, "8"));
+      deleteFromCache(generateCacheKey(CACHE_KEYS.RECENT_PUBLIC_PASTES, "10"));
+      deleteFromCache(generateCacheKey(CACHE_KEYS.RECENT_PUBLIC_PASTES, "12"));
+    }
+    
+    // Invalidate user stats cache
+    deleteFromCache(generateCacheKey(CACHE_KEYS.PASTE_COUNT, user.id));
 
     return {
       success: true,
@@ -512,20 +543,28 @@ export async function getUserStats() {
       return null;
     }
 
-    const statsResult = await db
-      .select({
-        totalPastes: count(),
-        totalViews: sql<number>`COALESCE(SUM(${paste.views}), 0)`,
-      })
-      .from(paste)
-      .where(
-        and(
-          eq(paste.userId, user.id),
-          eq(paste.isDeleted, false)
-        )
-      );
+    const cacheKey = generateCacheKey(CACHE_KEYS.PASTE_COUNT, user.id);
+    
+    return await cached(
+      cacheKey,
+      async () => {
+        const statsResult = await db
+          .select({
+            totalPastes: count(),
+            totalViews: sql<number>`COALESCE(SUM(${paste.views}), 0)`,
+          })
+          .from(paste)
+          .where(
+            and(
+              eq(paste.userId, user.id),
+              eq(paste.isDeleted, false)
+            )
+          );
 
-    return statsResult[0] || { totalPastes: 0, totalViews: 0 };
+        return statsResult[0] || { totalPastes: 0, totalViews: 0 };
+      },
+      { ttl: CACHE_TTL.PASTE_COUNT }
+    );
   } catch (error) {
     console.error("Get user stats error:", error);
     return { totalPastes: 0, totalViews: 0 };
@@ -533,29 +572,40 @@ export async function getUserStats() {
 }
 
 export async function getRecentPublicPastes(limit: number = 10) {
+  const cacheKey = generateCacheKey(CACHE_KEYS.RECENT_PUBLIC_PASTES, limit.toString());
+  
   try {
-    const recentPastes = await db
-      .select({
-        id: paste.id,
-        slug: paste.slug,
-        title: paste.title,
-        language: paste.language,
-        views: paste.views,
-        createdAt: paste.createdAt,
-      })
-      .from(paste)
-      .where(
-        and(
-          eq(paste.visibility, "public"),
-          eq(paste.isDeleted, false),
-          // Only show non-expired pastes
-          paste.expiresAt === null || paste.expiresAt > new Date()
-        )
-      )
-      .orderBy(paste.createdAt)
-      .limit(limit);
+    return await cached(
+      cacheKey,
+      async () => {
+        const recentPastes = await db
+          .select({
+            id: paste.id,
+            slug: paste.slug,
+            title: paste.title,
+            language: paste.language,
+            views: paste.views,
+            createdAt: paste.createdAt,
+          })
+          .from(paste)
+          .where(
+            and(
+              eq(paste.visibility, "public"),
+              eq(paste.isDeleted, false),
+              // Only show non-expired pastes
+              or(
+                isNull(paste.expiresAt),
+                gt(paste.expiresAt, new Date())
+              )
+            )
+          )
+          .orderBy(desc(paste.createdAt))
+          .limit(limit);
 
-    return recentPastes;
+        return recentPastes;
+      },
+      { ttl: CACHE_TTL.RECENT_PUBLIC_PASTES }
+    );
   } catch (error) {
     console.error("Get recent public pastes error:", error);
     return [];
