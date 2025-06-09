@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { signIn } from "@/hooks/use-auth";
-import { Github, Chrome } from "lucide-react";
+import { authClient } from "@/lib/auth-client";
+import { Chrome, Github } from "lucide-react";
+import { useState } from "react";
 import { toast } from "sonner";
 
 interface SocialLoginButtonsProps {
@@ -17,24 +17,13 @@ export function SocialLoginButtons({ className }: SocialLoginButtonsProps) {
   async function handleGoogleSignIn() {
     try {
       setGoogleLoading(true);
-      const result = await signIn.social({
+      await authClient.signIn.social({
         provider: "google",
         callbackURL: "/dashboard",
       });
-      
-      if (result.error) {
-        toast.error(result.error.message || "Failed to sign in with Google");
-        return;
-      }
-      
-      // Social sign-in usually redirects automatically, but just in case
-      if (result.data) {
-        window.location.href = "/dashboard";
-      }
     } catch (error: any) {
       toast.error(error?.message || "Failed to sign in with Google");
       console.error("Google sign in error:", error);
-    } finally {
       setGoogleLoading(false);
     }
   }
@@ -42,24 +31,13 @@ export function SocialLoginButtons({ className }: SocialLoginButtonsProps) {
   async function handleGithubSignIn() {
     try {
       setGithubLoading(true);
-      const result = await signIn.social({
+      await authClient.signIn.social({
         provider: "github",
         callbackURL: "/dashboard",
       });
-      
-      if (result.error) {
-        toast.error(result.error.message || "Failed to sign in with GitHub");
-        return;
-      }
-      
-      // Social sign-in usually redirects automatically, but just in case
-      if (result.data) {
-        window.location.href = "/dashboard";
-      }
     } catch (error: any) {
       toast.error(error?.message || "Failed to sign in with GitHub");
       console.error("GitHub sign in error:", error);
-    } finally {
       setGithubLoading(false);
     }
   }

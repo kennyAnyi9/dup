@@ -68,7 +68,9 @@ export function PasteCard({ paste }: PasteCardProps) {
 
   const isExpired = paste.expiresAt && new Date() > paste.expiresAt;
   const previewContent = paste.content.slice(0, 200);
-  const pasteUrl = `${window.location.origin}/${paste.slug}`;
+  const pasteUrl = typeof window !== 'undefined' 
+    ? `${window.location.origin}/${paste.slug}` 
+    : `/${paste.slug}`;
 
   function getVisibilityInfo(visibility: string) {
     switch (visibility) {

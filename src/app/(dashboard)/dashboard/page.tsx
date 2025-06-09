@@ -39,7 +39,7 @@ interface SearchParams {
 }
 
 interface DashboardPageProps {
-  searchParams: SearchParams;
+  searchParams: Promise<SearchParams>;
 }
 
 export default async function DashboardPage({ searchParams }: DashboardPageProps) {
@@ -49,10 +49,11 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
   }
 
   // Parse search params
-  const page = parseInt(searchParams.page || "1", 10);
-  const search = searchParams.search || "";
-  const filter = searchParams.filter || "all";
-  const sort = searchParams.sort || "newest";
+  const params = await searchParams;
+  const page = parseInt(params.page || "1", 10);
+  const search = params.search || "";
+  const filter = params.filter || "all";
+  const sort = params.sort || "newest";
 
   return (
     <div className="flex h-screen">
