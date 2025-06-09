@@ -1,4 +1,4 @@
-import { Slot as SlotPrimitive } from "radix-ui";
+import { Slot as SlotPrimitive } from "@radix-ui/react-slot";
 import React from "react";
 
 const Slot = SlotPrimitive.Slot;

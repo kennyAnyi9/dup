@@ -374,7 +374,7 @@ export async function deletePaste(input: DeletePasteInput): Promise<DeletePasteR
 
     // Find paste and verify ownership
     const pasteData = await db
-      .select({ id: paste.id, userId: paste.userId })
+      .select({ id: paste.id, userId: paste.userId, visibility: paste.visibility })
       .from(paste)
       .where(
         and(

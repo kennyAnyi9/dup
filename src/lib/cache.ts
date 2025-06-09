@@ -47,8 +47,8 @@ export async function getFromCache<T>(
 
   try {
     const cached = await redis.get(key);
-    if (cached) {
-      return typeof cached === "string" ? JSON.parse(cached) : (cached as T);
+    if (cached !== null && cached !== undefined) {
+      return JSON.parse(cached as string);
     }
     return null;
   } catch (error) {
