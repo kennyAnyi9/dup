@@ -21,8 +21,9 @@ export function SocialLoginButtons({ className }: SocialLoginButtonsProps) {
         provider: "google",
         callbackURL: "/dashboard",
       });
-    } catch (error: any) {
-      toast.error(error?.message || "Failed to sign in with Google");
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Failed to sign in with Google";
+      toast.error(message);
       console.error("Google sign in error:", error);
       setGoogleLoading(false);
     }
@@ -35,8 +36,9 @@ export function SocialLoginButtons({ className }: SocialLoginButtonsProps) {
         provider: "github",
         callbackURL: "/dashboard",
       });
-    } catch (error: any) {
-      toast.error(error?.message || "Failed to sign in with GitHub");
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Failed to sign in with GitHub";
+      toast.error(message);
       console.error("GitHub sign in error:", error);
       setGithubLoading(false);
     }

@@ -72,9 +72,8 @@ interface PasteSettingsFormProps {
 }
 
 // Mock update function - you'll need to implement this server action
-async function updatePasteSettings(pasteId: string, settings: PasteSettingsInput) {
+async function updatePasteSettings(_pasteId: string, _settings: PasteSettingsInput) {
   // This should be implemented as a server action
-  console.log("Updating paste settings:", pasteId, settings);
   return { success: true };
 }
 

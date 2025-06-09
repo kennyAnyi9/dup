@@ -82,8 +82,9 @@ export default function RegisterPage() {
       toast.success("Account created successfully! Welcome aboard!");
       // Redirect to dashboard after successful registration
       window.location.href = "/dashboard";
-    } catch (error: any) {
-      toast.error(error?.message || "Failed to create account. Please try again.");
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Failed to create account. Please try again.";
+      toast.error(message);
       console.error("Registration error:", error);
     } finally {
       setIsLoading(false);

@@ -13,12 +13,14 @@ export async function GET() {
       hasSession: !!session,
       session: session || null
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Auth API error:", error);
+    const message = error instanceof Error ? error.message : "Unknown error";
+    const stack = error instanceof Error ? error.stack : undefined;
     return NextResponse.json({ 
       success: false,
-      error: error.message,
-      stack: error.stack
+      error: message,
+      stack
     }, { status: 500 });
   }
 }

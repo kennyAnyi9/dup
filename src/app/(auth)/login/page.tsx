@@ -69,8 +69,9 @@ export default function LoginPage() {
       toast.success("Welcome back!");
       // Redirect to dashboard after successful login
       window.location.href = "/dashboard";
-    } catch (error: any) {
-      toast.error(error?.message || "Invalid email or password");
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Invalid email or password";
+      toast.error(message);
       console.error("Login error:", error);
     } finally {
       setIsLoading(false);

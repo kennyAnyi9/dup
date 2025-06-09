@@ -35,7 +35,7 @@ import {
   PASTE_VISIBILITY,
   SUPPORTED_LANGUAGES,
 } from "@/lib/constants";
-import { createPasteSchema } from "@/types/paste";
+import { createPasteSchema, type CreatePasteInput } from "@/types/paste";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   Eye,
@@ -91,7 +91,7 @@ export function PasteFormModal({
   const watchedVisibility = form.watch("visibility") || PASTE_VISIBILITY.PUBLIC;
   const watchedBurnAfterRead = form.watch("burnAfterRead") || false;
 
-  const onSubmit = (data: any) => {
+  const onSubmit = (data: CreatePasteInput) => {
     startTransition(async () => {
       try {
         const result = await createPaste(data);

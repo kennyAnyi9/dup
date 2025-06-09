@@ -1,28 +1,37 @@
-import Link from "next/link";
-import { PasteForm } from "@/components/paste/paste-form";
 import { getRecentPublicPastes } from "@/app/actions/paste";
+import { HomeClient } from "@/components/home/home-client";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { 
-  Shield, 
-  Clock, 
-  FileText, 
-  Eye, 
+import { formatDistanceToNow } from "date-fns";
+import {
+  Clock,
+  Eye,
+  FileText,
+  Globe,
+  Lock,
+  Shield,
   Users,
   Zap,
-  Lock,
-  Globe
 } from "lucide-react";
-import { formatDistanceToNow } from "date-fns";
+import Link from "next/link";
+
+interface RecentPaste {
+  id: string;
+  slug: string;
+  title: string | null;
+  language: string;
+  views: number;
+  createdAt: Date;
+}
 
 export default async function Home() {
   const recentPastes = await getRecentPublicPastes(8);
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="max-w-6xl mx-auto px-4 py-8">
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Main Content - Paste Form */}
+        {/* Main Content - CTA Section */}
         <div className="lg:col-span-2 space-y-8">
           {/* Hero Section */}
           <div className="text-center lg:text-left space-y-4">
@@ -30,13 +39,14 @@ export default async function Home() {
               Share Code & Text Instantly
             </h1>
             <p className="text-xl text-muted-foreground max-w-2xl">
-              Fast, secure, and simple pastebin service. Share your code snippets, 
-              configuration files, or any text with the world or keep them private.
+              Fast, secure, and simple pastebin service. Share your code
+              snippets, configuration files, or any text with the world or keep
+              them private.
             </p>
           </div>
 
-          {/* Paste Form */}
-          <PasteForm />
+          {/* CTA Card */}
+          <HomeClient />
 
           {/* Features Comparison */}
           <div className="space-y-6">
@@ -93,11 +103,15 @@ export default async function Home() {
                   </div>
                   <div className="flex items-center gap-2 text-sm">
                     <Clock className="h-4 w-4 text-primary" />
-                    <span className="font-medium">Up to 30 days or never expire</span>
+                    <span className="font-medium">
+                      Up to 30 days or never expire
+                    </span>
                   </div>
                   <div className="flex items-center gap-2 text-sm">
                     <Lock className="h-4 w-4 text-primary" />
-                    <span className="font-medium">Private pastes & password protection</span>
+                    <span className="font-medium">
+                      Private pastes & password protection
+                    </span>
                   </div>
                   <div className="flex items-center gap-2 text-sm">
                     <Zap className="h-4 w-4 text-primary" />
@@ -105,14 +119,16 @@ export default async function Home() {
                   </div>
                   <div className="flex items-center gap-2 text-sm">
                     <FileText className="h-4 w-4 text-primary" />
-                    <span className="font-medium">Paste management dashboard</span>
+                    <span className="font-medium">
+                      Paste management dashboard
+                    </span>
                   </div>
                 </CardContent>
               </Card>
             </div>
 
             <div className="text-center">
-              <Link 
+              <Link
                 href="/register"
                 className="inline-flex items-center gap-2 bg-primary text-primary-foreground hover:bg-primary/90 px-6 py-3 rounded-lg font-medium transition-colors"
               >
@@ -130,15 +146,18 @@ export default async function Home() {
               <Eye className="h-5 w-5" />
               Recent Public Pastes
             </h2>
-            
+
             {recentPastes.length > 0 ? (
               <div className="space-y-3">
                 {recentPastes.map((paste) => (
-                  <Card key={paste.id} className="hover:bg-muted/50 transition-colors">
+                  <Card
+                    key={paste.id}
+                    className="hover:bg-muted/50 transition-colors"
+                  >
                     <CardContent className="p-4">
                       <div className="space-y-2">
                         <div className="flex items-center justify-between">
-                          <Link 
+                          <Link
                             href={`/${paste.slug}`}
                             className="font-medium text-primary hover:underline truncate"
                           >
@@ -148,9 +167,13 @@ export default async function Home() {
                             {paste.language}
                           </Badge>
                         </div>
-                        
+
                         <div className="flex items-center justify-between text-xs text-muted-foreground">
-                          <span>{formatDistanceToNow(paste.createdAt, { addSuffix: true })}</span>
+                          <span>
+                            {formatDistanceToNow(paste.createdAt, {
+                              addSuffix: true,
+                            })}
+                          </span>
                           <div className="flex items-center gap-1">
                             <Eye className="h-3 w-3" />
                             <span>{paste.views}</span>

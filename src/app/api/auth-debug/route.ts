@@ -13,12 +13,14 @@ export async function GET() {
         databaseUrl: process.env.DATABASE_URL ? "Set" : "Not set",
       }
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Auth import error:", error);
+    const message = error instanceof Error ? error.message : "Unknown error";
+    const stack = error instanceof Error ? error.stack : undefined;
     return NextResponse.json({ 
       error: "Auth import failed",
-      message: error.message,
-      stack: error.stack 
+      message,
+      stack 
     }, { status: 500 });
   }
 }
