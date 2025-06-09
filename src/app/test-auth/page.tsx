@@ -2,8 +2,15 @@
 
 import { useEffect, useState } from "react";
 
+interface AuthStatus {
+  success: boolean;
+  status?: number;
+  data?: unknown;
+  error?: unknown;
+}
+
 export default function TestAuthPage() {
-  const [authStatus, setAuthStatus] = useState<any>(null);
+  const [authStatus, setAuthStatus] = useState<AuthStatus | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {

@@ -36,7 +36,6 @@ import {
   ExternalLink,
   MoreHorizontal,
   Trash2,
-  Edit,
   AlertTriangle,
   Check,
   Loader2,
@@ -279,7 +278,7 @@ export function PasteCard({ paste }: PasteCardProps) {
               Delete Paste
             </AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete "{paste.title || `Paste ${paste.slug}`}"? 
+              Are you sure you want to delete &quot;{paste.title || `Paste ${paste.slug}`}&quot;? 
               This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>

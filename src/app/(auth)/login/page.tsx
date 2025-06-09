@@ -191,7 +191,7 @@ export default function LoginPage() {
         </Form>
 
         <div className="text-center text-sm">
-          <span className="text-muted-foreground">Don't have an account? </span>
+          <span className="text-muted-foreground">Don&apos;t have an account? </span>
           <Button variant="link" size="sm" asChild className="p-0">
             <Link href="/register">Sign up</Link>
           </Button>

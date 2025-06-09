@@ -18,10 +18,8 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination";
 import { 
-  FileText, 
   Plus, 
   Search,
-  Loader2,
   FolderOpen,
 } from "lucide-react";
 import Link from "next/link";
@@ -94,7 +92,6 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
               {/* Content */}
               <Suspense fallback={<PastesLoading />}>
                 <PastesContent
-                  userId={user.id}
                   page={page}
                   search={search}
                   filter={filter}
@@ -125,13 +122,11 @@ async function DashboardSidebar({ user }: { user: { id: string; name?: string; e
 }
 
 async function PastesContent({
-  userId,
   page,
   search,
   filter,
   sort,
 }: {
-  userId: string;
   page: number;
   search: string;
   filter: "all" | "public" | "private" | "unlisted";

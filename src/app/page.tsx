@@ -16,15 +16,6 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 
-interface RecentPaste {
-  id: string;
-  slug: string;
-  title: string | null;
-  language: string;
-  views: number;
-  createdAt: Date;
-}
-
 export default async function Home() {
   const recentPastes = await getRecentPublicPastes(8);
 

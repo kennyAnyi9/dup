@@ -227,7 +227,7 @@ export function SearchFilters({
           
           {search && (
             <Badge variant="secondary" className="gap-1">
-              Search: "{search}"
+              Search: &quot;{search}&quot;
               <Button
                 variant="ghost"
                 size="sm"

@@ -12,7 +12,6 @@ import {
   CHAR_LIMIT_ANONYMOUS,
   CHAR_LIMIT_AUTHENTICATED,
   EXPIRY_ANONYMOUS,
-  EXPIRY_AUTHENTICATED,
   APP_URL,
 } from "@/lib/constants";
 import {
