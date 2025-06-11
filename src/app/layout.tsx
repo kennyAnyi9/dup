@@ -1,7 +1,7 @@
-import { AuthProvider } from "@/components/auth/auth-provider";
-import { Footer } from "@/components/common/footer";
-import { Header } from "@/components/common/header";
-import { PasteModalProvider } from "@/components/paste/paste-modal-provider";
+import { AuthProvider } from "@/app/(auth)/_components/auth-provider";
+import { ConditionalFooter } from "@/components/common/conditional-footer";
+import { ConditionalHeader } from "@/components/common/conditional-header";
+import { PasteModalProvider } from "@/components/shared/paste/paste-modal-provider";
 import { ThemeProvider } from "@/components/theme/provider";
 import { CommandPalette } from "@/components/ui/command-palette";
 import { Toaster } from "@/components/ui/sonner";
@@ -50,10 +50,10 @@ export default function RootLayout({
         >
           <AuthProvider>
             <PasteModalProvider>
-              <Header />
+              <ConditionalHeader />
 
               <main className="flex-1">{children}</main>
-              <Footer />
+              <ConditionalFooter />
               <CommandPalette />
               <Toaster />
             </PasteModalProvider>

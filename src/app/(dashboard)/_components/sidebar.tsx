@@ -1,7 +1,9 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import Image from "next/image";
+import { usePathname, useRouter } from "next/navigation";
 import { formatDistanceToNow } from "date-fns";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -9,7 +11,9 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { SidebarNewPasteButton } from "@/components/dashboard/sidebar-new-paste-button";
+import { SidebarNewPasteButton } from "./sidebar-new-paste-button";
+import { signOut } from "@/hooks/use-auth";
+import { toast } from "sonner";
 import {
   BarChart3,
   FileText,
@@ -18,7 +22,7 @@ import {
   Globe,
   Eye,
   Clock,
-  TrendingUp,
+  LogOut,
 } from "lucide-react";
 
 interface SidebarProps {
@@ -44,6 +48,22 @@ interface SidebarProps {
 
 export function Sidebar({ user, stats, recentPublicPastes }: SidebarProps) {
   const pathname = usePathname();
+  const router = useRouter();
+  const [isSigningOut, setIsSigningOut] = useState(false);
+
+  async function handleSignOut() {
+    try {
+      setIsSigningOut(true);
+      await signOut();
+      toast.success("Signed out successfully");
+      router.push("/login");
+    } catch (error) {
+      toast.error("Failed to sign out");
+      console.error("Sign out error:", error);
+    } finally {
+      setIsSigningOut(false);
+    }
+  }
 
   const navigationItems = [
     {
@@ -86,6 +106,19 @@ export function Sidebar({ user, stats, recentPublicPastes }: SidebarProps) {
   return (
     <div className="w-80 border-r bg-muted/30">
       <div className="flex h-full flex-col">
+        {/* Logo */}
+        <div className="p-6 pb-0">
+          <Link href="/" className="flex justify-center mb-6">
+            <Image 
+              src="/dup-dark2.png" 
+              alt="Dup"
+              width={200}
+              height={56}
+              className="h-14 w-auto"
+            />
+          </Link>
+        </div>
+
         {/* User Info */}
         <div className="p-6">
           <div className="flex items-center gap-3 mb-4">
@@ -206,12 +239,17 @@ export function Sidebar({ user, stats, recentPublicPastes }: SidebarProps) {
           </ScrollArea>
         </div>
 
-        {/* Footer */}
+        {/* Logout Button */}
         <div className="p-4 border-t">
-          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-            <TrendingUp className="h-3 w-3" />
-            <span>Powered by Dup</span>
-          </div>
+          <Button 
+            variant="outline" 
+            className="w-full justify-start text-red-600 hover:text-red-600 hover:bg-red-50 border-red-200"
+            onClick={handleSignOut}
+            disabled={isSigningOut}
+          >
+            <LogOut className="mr-2 h-4 w-4" />
+            {isSigningOut ? "Signing out..." : "Sign out"}
+          </Button>
         </div>
       </div>
     </div>

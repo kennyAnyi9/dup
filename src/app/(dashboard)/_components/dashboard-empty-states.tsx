@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Search, FolderOpen } from "lucide-react";
-import { usePasteModal } from "@/components/paste/paste-modal-provider";
+import { usePasteModal } from "@/components/shared/paste/paste-modal-provider";
 import { useRouter } from "next/navigation";
 
 interface EmptyStateProps {

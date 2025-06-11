@@ -1,5 +1,5 @@
 import { getRecentPublicPastes } from "@/app/actions/paste";
-import { HomeClient } from "@/components/home/home-client";
+import { HomeClient } from "./_components/home-client";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Panel, Pattern } from "@/components/ui/panel";

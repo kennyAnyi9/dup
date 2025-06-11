@@ -1,4 +1,4 @@
-import { PublicPasteClient } from "@/components/paste/public-paste-client";
+import { PublicPasteClient } from "@/components/shared/paste/public-paste-client";
 
 interface PastePageProps {
   params: Promise<{ slug: string }>;

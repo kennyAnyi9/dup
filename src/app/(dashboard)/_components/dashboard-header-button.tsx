@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { usePasteModal } from "@/components/paste/paste-modal-provider";
+import { usePasteModal } from "@/components/shared/paste/paste-modal-provider";
 
 export function DashboardHeaderButton() {
   const { openModal } = usePasteModal();

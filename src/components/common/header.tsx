@@ -1,15 +1,13 @@
 "use client";
 
-import { UserDropdown } from "@/components/auth/user-dropdown";
-import { HeaderNewPasteButton } from "@/components/common/header-new-paste-button";
 import { ThemeSwitch } from "@/components/theme/theme-switch";
 import { Button } from "@/components/ui/button";
 import { Panel } from "@/components/ui/panel";
 import { useAuth } from "@/hooks/use-auth";
 import { APP_NAME } from "@/lib/constants";
-import { ClipboardList } from "lucide-react";
 import { motion } from "motion/react";
 import Link from "next/link";
+import Image from "next/image";
 import { useEffect, useState } from "react";
 
 export function Header() {
@@ -51,9 +49,14 @@ export function Header() {
               <div className="px-4">
                 <div className="flex h-16 items-center justify-between">
                   <div className="flex items-center space-x-8">
-                    <Link href="/" className="flex items-center space-x-2">
-                      <ClipboardList className="h-4 w-4" />
-                      <span className="font-bold text-lg">{APP_NAME}</span>
+                    <Link href="/" className="flex items-center">
+                      <Image 
+                        src="/dup-dark2.png" 
+                        alt={APP_NAME}
+                        width={240}
+                        height={64}
+                        className="h-16 w-auto"
+                      />
                     </Link>
 
                     <nav className="hidden md:flex items-center space-x-6">
@@ -86,10 +89,9 @@ export function Header() {
                     <ThemeSwitch />
 
                     {isAuthenticated ? (
-                      <>
-                        <HeaderNewPasteButton />
-                        <UserDropdown />
-                      </>
+                      <Button variant="outline" size={"sm"} asChild>
+                        <Link href="/dashboard">Dashboard</Link>
+                      </Button>
                     ) : (
                       <div className="flex items-center space-x-2">
                         <Button variant="outline" size={"sm"} asChild>

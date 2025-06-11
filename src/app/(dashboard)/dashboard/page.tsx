@@ -3,12 +3,12 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth-server";
 import { getUserPastes, getUserStats, getRecentPublicPastes } from "@/app/actions/paste";
-import { Sidebar } from "@/components/dashboard/sidebar";
-import { SearchFilters } from "@/components/dashboard/search-filters";
-import { PasteCard } from "@/components/paste/paste-card";
-import { DashboardWrapper } from "@/components/dashboard/dashboard-wrapper";
-import { DashboardHeaderButton } from "@/components/dashboard/dashboard-header-button";
-import { EmptyState } from "@/components/dashboard/dashboard-empty-states";
+import { Sidebar } from "../_components/sidebar";
+import { SearchFilters } from "../_components/search-filters";
+import { PasteCard } from "@/components/shared/paste/paste-card";
+import { DashboardWrapper } from "../_components/dashboard-wrapper";
+import { DashboardHeaderButton } from "../_components/dashboard-header-button";
+import { EmptyState } from "../_components/dashboard-empty-states";
 import { Card } from "@/components/ui/card";
 import { 
   Pagination,

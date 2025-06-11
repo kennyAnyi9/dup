@@ -1,6 +1,6 @@
 "use client";
 
-import { usePasteModal } from "@/components/paste/paste-modal-provider";
+import { usePasteModal } from "@/components/shared/paste/paste-modal-provider";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Clock, Eye, FileText, Link2, Lock, Zap } from "lucide-react";
