@@ -1,9 +1,10 @@
-import { ThemeProvider } from "@/components/theme/provider";
 import { AuthProvider } from "@/components/auth/auth-provider";
-import { Toaster } from "@/components/ui/sonner";
-import { Header } from "@/components/common/header";
 import { Footer } from "@/components/common/footer";
+import { Header } from "@/components/common/header";
+import { PasteModalProvider } from "@/components/paste/paste-modal-provider";
+import { ThemeProvider } from "@/components/theme/provider";
 import { CommandPalette } from "@/components/ui/command-palette";
+import { Toaster } from "@/components/ui/sonner";
 import { APP_NAME } from "@/lib/constants";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
@@ -24,7 +25,8 @@ export const metadata: Metadata = {
     default: APP_NAME,
     template: `%s | ${APP_NAME}`,
   },
-  description: "Fast, secure, and simple pastebin service for sharing code and text snippets.",
+  description:
+    "Fast, secure, and simple pastebin service for sharing code and text snippets.",
   keywords: ["pastebin", "code sharing", "text sharing", "snippets"],
   authors: [{ name: APP_NAME }],
   creator: APP_NAME,
@@ -47,13 +49,14 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <AuthProvider>
-            <Header />
-            <main className="flex-1">
-              {children}
-            </main>
-            <Footer />
-            <CommandPalette />
-            <Toaster />
+            <PasteModalProvider>
+              <Header />
+
+              <main className="flex-1">{children}</main>
+              <Footer />
+              <CommandPalette />
+              <Toaster />
+            </PasteModalProvider>
           </AuthProvider>
         </ThemeProvider>
       </body>

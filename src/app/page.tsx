@@ -2,6 +2,7 @@ import { getRecentPublicPastes } from "@/app/actions/paste";
 import { HomeClient } from "@/components/home/home-client";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Panel, Pattern } from "@/components/ui/panel";
 import { Separator } from "@/components/ui/separator";
 import { formatDistanceToNow } from "date-fns";
 import {
@@ -20,110 +21,118 @@ export default async function Home() {
   const recentPastes = await getRecentPublicPastes(8);
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-8">
-      <div className="grid grid-cols-1  gap-8">
+    <div className="max-w-4xl mx-auto px-4">
+      <Pattern />
+      <div className="grid grid-cols-1">
         {/* Main Content - CTA Section */}
-        <div className="lg:col-span-2 space-y-8">
-          {/* Hero Section */}
-          <div className="relative mx-auto flex w-full max-w-lg flex-col items-center px-4 text-center">
-            <h1 className="mt-5 text-center font-display text-4xl font-medium  sm:text-5xl sm:leading-[1.15] animate-slide-up-fade [--offset:20px] [animation-duration:1s] [animation-fill-mode:both] motion-reduce:animate-fade-in [animation-delay:100ms]">
-              Ready to share?
-            </h1>
-            <p className="mt-5 text-pretty text-base text-muted-foreground text-center sm:text-xl animate-slide-up-fade [--offset:10px] [animation-delay:200ms] [animation-duration:1s] [animation-fill-mode:both] motion-reduce:animate-fade-in">
-              Click below to create your paste in seconds
-            </p>
-          </div>
+        <Panel>
+          <div className="lg:col-span-2 space-y-8  py-20">
+            {/* Hero Section */}
+            <div className="relative mx-auto flex w-full max-w-lg flex-col items-center px-4 text-center">
+              <h1 className="mt-5 text-center font-display text-4xl font-medium  sm:text-5xl sm:leading-[1.15] animate-slide-up-fade [--offset:20px] [animation-duration:1s] [animation-fill-mode:both] motion-reduce:animate-fade-in [animation-delay:100ms]">
+                The Pastebin Reimagined
+              </h1>
+              <p className="mt-5 text-pretty text-base text-muted-foreground text-center sm:text-xl animate-slide-up-fade [--offset:10px] [animation-delay:200ms] [animation-duration:1s] [animation-fill-mode:both] motion-reduce:animate-fade-in">
+                The modern pastebin for everyone. Beautiful syntax highlighting,
+                powerful privacy controls, zero complexity.
+              </p>
+            </div>
 
-          {/* CTA Card */}
-          <HomeClient />
-        </div>
+            {/* CTA Card */}
+            <HomeClient />
+          </div>
+        </Panel>
+        <Pattern />
 
         {/* Sidebar - Recent Public Pastes */}
-        <div className="space-y-6">
-          <div>
-            <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
-              <Eye className="h-5 w-5" />
-              Recent Public Pastes
-            </h2>
+        <Panel>
+          <div className="space-y-6">
+            <div>
+              <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
+                <Eye className="h-5 w-5" />
+                Recent Public Pastes
+              </h2>
 
-            {recentPastes.length > 0 ? (
-              <div className="space-y-3">
-                {recentPastes.map((paste) => (
-                  <Card
-                    key={paste.id}
-                    className="hover:bg-muted/50 transition-colors"
-                  >
-                    <CardContent className="p-4">
-                      <div className="space-y-2">
-                        <div className="flex items-center justify-between">
-                          <Link
-                            href={`/${paste.slug}`}
-                            className="font-medium text-primary hover:underline truncate"
-                          >
-                            {paste.title || `Paste ${paste.slug}`}
-                          </Link>
-                          <Badge variant="outline" className="text-xs">
-                            {paste.language}
-                          </Badge>
-                        </div>
+              {recentPastes.length > 0 ? (
+                <div className="space-y-3">
+                  {recentPastes.map((paste) => (
+                    <Card
+                      key={paste.id}
+                      className="hover:bg-muted/50 transition-colors"
+                    >
+                      <CardContent className="p-4">
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between">
+                            <Link
+                              href={`/${paste.slug}`}
+                              className="font-medium text-primary hover:underline truncate"
+                            >
+                              {paste.title || `Paste ${paste.slug}`}
+                            </Link>
+                            <Badge variant="outline" className="text-xs">
+                              {paste.language}
+                            </Badge>
+                          </div>
 
-                        <div className="flex items-center justify-between text-xs text-muted-foreground">
-                          <span>
-                            {formatDistanceToNow(paste.createdAt, {
-                              addSuffix: true,
-                            })}
-                          </span>
-                          <div className="flex items-center gap-1">
-                            <Eye className="h-3 w-3" />
-                            <span>{paste.views}</span>
+                          <div className="flex items-center justify-between text-xs text-muted-foreground">
+                            <span>
+                              {formatDistanceToNow(paste.createdAt, {
+                                addSuffix: true,
+                              })}
+                            </span>
+                            <div className="flex items-center gap-1">
+                              <Eye className="h-3 w-3" />
+                              <span>{paste.views}</span>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            ) : (
-              <Card>
-                <CardContent className="p-6 text-center">
-                  <FileText className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
-                  <p className="text-sm text-muted-foreground">
-                    No public pastes yet. Be the first to share!
-                  </p>
-                </CardContent>
-              </Card>
-            )}
-          </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              ) : (
+                <Card>
+                  <CardContent className="p-6 text-center">
+                    <FileText className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
+                    <p className="text-sm text-muted-foreground">
+                      No public pastes yet. Be the first to share!
+                    </p>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
 
-          <Separator />
+            <Separator />
 
-          {/* Quick Stats */}
-          <div>
-            <h3 className="font-semibold mb-3">Features</h3>
-            <div className="space-y-2 text-sm">
-              <div className="flex items-center gap-2">
-                <Zap className="h-4 w-4 text-primary" />
-                <span>Burn after read</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Lock className="h-4 w-4 text-primary" />
-                <span>Password protection</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <FileText className="h-4 w-4 text-primary" />
-                <span>Syntax highlighting</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Clock className="h-4 w-4 text-primary" />
-                <span>Custom expiry times</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Shield className="h-4 w-4 text-primary" />
-                <span>Rate limiting protection</span>
+            {/* Quick Stats */}
+            <div>
+              <h3 className="font-semibold mb-3">Features</h3>
+              <div className="space-y-2 text-sm">
+                <div className="flex items-center gap-2">
+                  <Zap className="h-4 w-4 text-primary" />
+                  <span>Burn after read</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Lock className="h-4 w-4 text-primary" />
+                  <span>Password protection</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <FileText className="h-4 w-4 text-primary" />
+                  <span>Syntax highlighting</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Clock className="h-4 w-4 text-primary" />
+                  <span>Custom expiry times</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Shield className="h-4 w-4 text-primary" />
+                  <span>Rate limiting protection</span>
+                </div>
               </div>
             </div>
           </div>
-        </div>
+        </Panel>
+        <Pattern />
       </div>
       {/* Features Comparison */}
       <div className="space-y-6">

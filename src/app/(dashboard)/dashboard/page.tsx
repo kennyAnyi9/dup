@@ -1,13 +1,15 @@
 import { Suspense } from "react";
-import { Metadata } from "next/metadata";
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth-server";
 import { getUserPastes, getUserStats, getRecentPublicPastes } from "@/app/actions/paste";
 import { Sidebar } from "@/components/dashboard/sidebar";
 import { SearchFilters } from "@/components/dashboard/search-filters";
 import { PasteCard } from "@/components/paste/paste-card";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { DashboardWrapper } from "@/components/dashboard/dashboard-wrapper";
+import { DashboardHeaderButton } from "@/components/dashboard/dashboard-header-button";
+import { EmptyState } from "@/components/dashboard/dashboard-empty-states";
+import { Card } from "@/components/ui/card";
 import { 
   Pagination,
   PaginationContent,
@@ -17,12 +19,6 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
-import { 
-  Plus, 
-  Search,
-  FolderOpen,
-} from "lucide-react";
-import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "Dashboard - Dup",
@@ -54,12 +50,13 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
   const sort = params.sort || "newest";
 
   return (
-    <div className="flex h-screen">
-      <Suspense fallback={<SidebarSkeleton />}>
-        <DashboardSidebar user={user} />
-      </Suspense>
-      
-      <div className="flex-1 flex flex-col overflow-hidden">
+    <DashboardWrapper>
+      <div className="flex h-screen">
+        <Suspense fallback={<SidebarSkeleton />}>
+          <DashboardSidebar user={user} />
+        </Suspense>
+        
+        <div className="flex-1 flex flex-col overflow-hidden">
         <div className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
           <div className="px-6 py-4">
             <div className="flex items-center justify-between">
@@ -69,12 +66,7 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
                   Manage and organize your code snippets
                 </p>
               </div>
-              <Button asChild>
-                <Link href="/" className="flex items-center gap-2">
-                  <Plus className="h-4 w-4" />
-                  New Paste
-                </Link>
-              </Button>
+              <DashboardHeaderButton />
             </div>
           </div>
         </div>
@@ -103,10 +95,11 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
         </div>
       </div>
     </div>
+    </DashboardWrapper>
   );
 }
 
-async function DashboardSidebar({ user }: { user: { id: string; name?: string; email: string; image?: string } }) {
+async function DashboardSidebar({ user }: { user: { id: string; name?: string | null; email: string; image?: string | null } }) {
   const [stats, recentPublicPastes] = await Promise.all([
     getUserStats(),
     getRecentPublicPastes(5),
@@ -259,42 +252,6 @@ function PaginationComponent({
   );
 }
 
-function EmptyState({ hasSearch }: { hasSearch: boolean }) {
-  if (hasSearch) {
-    return (
-      <Card>
-        <CardContent className="flex flex-col items-center justify-center py-12">
-          <Search className="h-12 w-12 text-muted-foreground mb-4" />
-          <h3 className="text-lg font-medium mb-2">No pastes found</h3>
-          <p className="text-muted-foreground text-center mb-4">
-            Try adjusting your search terms or filters
-          </p>
-          <Button variant="outline" onClick={() => window.location.href = "/dashboard"}>
-            Clear filters
-          </Button>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  return (
-    <Card>
-      <CardContent className="flex flex-col items-center justify-center py-12">
-        <FolderOpen className="h-12 w-12 text-muted-foreground mb-4" />
-        <h3 className="text-lg font-medium mb-2">No pastes yet</h3>
-        <p className="text-muted-foreground text-center mb-4">
-          Create your first paste to get started
-        </p>
-        <Button asChild>
-          <Link href="/" className="flex items-center gap-2">
-            <Plus className="h-4 w-4" />
-            Create New Paste
-          </Link>
-        </Button>
-      </CardContent>
-    </Card>
-  );
-}
 
 function SidebarSkeleton() {
   return (

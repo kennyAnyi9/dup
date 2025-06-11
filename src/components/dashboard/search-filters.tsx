@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useRef } from "react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -22,6 +22,7 @@ import {
   EyeOff,
   Loader2
 } from "lucide-react";
+import { useKeyboardShortcuts, isMac } from "@/hooks/use-keyboard-shortcuts";
 
 interface SearchFiltersProps {
   defaultSearch?: string;
@@ -38,10 +39,25 @@ export function SearchFilters({
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [isPending, startTransition] = useTransition();
+  const searchInputRef = useRef<HTMLInputElement>(null);
   
   const [search, setSearch] = useState(defaultSearch);
   const [filter, setFilter] = useState(defaultFilter);
   const [sort, setSort] = useState(defaultSort);
+
+  // Keyboard shortcuts
+  useKeyboardShortcuts([
+    {
+      key: 'k',
+      metaKey: isMac(),
+      ctrlKey: !isMac(),
+      callback: () => {
+        searchInputRef.current?.focus();
+        searchInputRef.current?.select();
+      },
+      description: 'Focus search'
+    }
+  ]);
 
   function updateFilters(newSearch?: string, newFilter?: string, newSort?: string) {
     const params = new URLSearchParams(searchParams);
@@ -142,16 +158,23 @@ export function SearchFilters({
   return (
     <div className="space-y-4">
       {/* Search and Quick Actions */}
-      <div className="flex flex-col sm:flex-row gap-4">
-        <form onSubmit={handleSearchSubmit} className="flex-1">
+      <div className="flex flex-col sm:flex-row sm:justify-between gap-3">
+        <form onSubmit={handleSearchSubmit} className="flex-1 max-w-md">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
-              placeholder="Search by title or content..."
+              ref={searchInputRef}
+              placeholder="Search pastes..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="pl-10 pr-10"
+              className="pl-10 pr-24"
             />
+            {!search && (
+              <kbd className="absolute right-3 top-1/2 -translate-y-1/2 hidden sm:inline-flex h-5 select-none items-center gap-1 rounded border bg-muted border-border px-1.5 font-mono text-[10px] font-medium text-muted-foreground">
+                <span className="text-xs">{isMac() ? '⌘' : 'Ctrl'}</span>
+                <span>K</span>
+              </kbd>
+            )}
             {search && (
               <Button
                 type="button"
@@ -166,46 +189,26 @@ export function SearchFilters({
           </div>
         </form>
 
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
           {/* Filter Dropdown */}
           <Select value={filter} onValueChange={handleFilterChange}>
-            <SelectTrigger className="w-[140px]">
+            <SelectTrigger className="min-w-[100px] flex-1 sm:flex-initial sm:w-[130px]">
               <div className="flex items-center gap-2">
                 {getFilterIcon(filter)}
                 <SelectValue />
               </div>
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">
-                <div className="flex items-center gap-2">
-                  <Filter className="h-3 w-3" />
-                  All Pastes
-                </div>
-              </SelectItem>
-              <SelectItem value="public">
-                <div className="flex items-center gap-2">
-                  <Globe className="h-3 w-3" />
-                  Public
-                </div>
-              </SelectItem>
-              <SelectItem value="unlisted">
-                <div className="flex items-center gap-2">
-                  <EyeOff className="h-3 w-3" />
-                  Unlisted
-                </div>
-              </SelectItem>
-              <SelectItem value="private">
-                <div className="flex items-center gap-2">
-                  <Lock className="h-3 w-3" />
-                  Private
-                </div>
-              </SelectItem>
+              <SelectItem value="all">All Pastes</SelectItem>
+              <SelectItem value="public">Public</SelectItem>
+              <SelectItem value="unlisted">Unlisted</SelectItem>
+              <SelectItem value="private">Private</SelectItem>
             </SelectContent>
           </Select>
 
           {/* Sort Dropdown */}
           <Select value={sort} onValueChange={handleSortChange}>
-            <SelectTrigger className="w-[120px]">
+            <SelectTrigger className="min-w-[90px] flex-1 sm:flex-initial sm:w-[110px]">
               <div className="flex items-center gap-2">
                 <SortAsc className="h-3 w-3" />
                 <SelectValue />

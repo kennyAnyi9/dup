@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { 
-  Copy, 
+  Clipboard, 
   Check, 
   Download, 
   ExternalLink,
@@ -152,7 +152,6 @@ export function PasteViewer({ content, language, title, slug }: PasteViewerProps
                 id="line-numbers"
                 checked={showLineNumbers}
                 onCheckedChange={setShowLineNumbers}
-                size="sm"
               />
               <Label htmlFor="line-numbers" className="text-xs flex items-center gap-1">
                 <Hash className="h-3 w-3" />
@@ -165,7 +164,6 @@ export function PasteViewer({ content, language, title, slug }: PasteViewerProps
                 id="wrap-text"
                 checked={wrapText}
                 onCheckedChange={setWrapText}
-                size="sm"
               />
               <Label htmlFor="wrap-text" className="text-xs flex items-center gap-1">
                 <WrapText className="h-3 w-3" />
@@ -182,11 +180,10 @@ export function PasteViewer({ content, language, title, slug }: PasteViewerProps
               onClick={copyToClipboard}
               className="text-xs"
             >
-              {copied ? (
-                <Check className="h-3 w-3" />
-              ) : (
-                <Copy className="h-3 w-3" />
-              )}
+              <div className="relative h-3 w-3">
+                <Clipboard className={`h-3 w-3 absolute transition-all duration-300 ${copied ? 'scale-0 opacity-0' : 'scale-100 opacity-100'}`} />
+                <Check className={`h-3 w-3 absolute transition-all duration-300 ${copied ? 'scale-100 opacity-100' : 'scale-0 opacity-0'}`} />
+              </div>
               <span className="hidden sm:inline ml-1">
                 {copied ? "Copied!" : "Copy"}
               </span>

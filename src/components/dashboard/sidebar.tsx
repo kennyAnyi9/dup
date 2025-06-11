@@ -9,8 +9,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { SidebarNewPasteButton } from "@/components/dashboard/sidebar-new-paste-button";
 import {
-  Plus,
   BarChart3,
   FileText,
   Home,
@@ -24,9 +24,9 @@ import {
 interface SidebarProps {
   user: {
     id: string;
-    name?: string;
+    name?: string | null;
     email: string;
-    image?: string;
+    image?: string | null;
   };
   stats: {
     totalPastes: number;
@@ -90,9 +90,9 @@ export function Sidebar({ user, stats, recentPublicPastes }: SidebarProps) {
         <div className="p-6">
           <div className="flex items-center gap-3 mb-4">
             <Avatar className="h-10 w-10">
-              <AvatarImage src={user.image} alt={user.name || user.email} />
+              <AvatarImage src={user.image || undefined} alt={user.name || user.email} />
               <AvatarFallback>
-                {getUserInitials(user.name, user.email)}
+                {getUserInitials(user.name || undefined, user.email)}
               </AvatarFallback>
             </Avatar>
             <div className="flex-1 min-w-0">
@@ -122,12 +122,7 @@ export function Sidebar({ user, stats, recentPublicPastes }: SidebarProps) {
           </div>
 
           {/* Create Paste Button */}
-          <Button asChild className="w-full">
-            <Link href="/" className="flex items-center gap-2">
-              <Plus className="h-4 w-4" />
-              Create New Paste
-            </Link>
-          </Button>
+          <SidebarNewPasteButton />
         </div>
 
         <Separator />

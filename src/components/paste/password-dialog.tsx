@@ -33,7 +33,7 @@ export function PasswordDialog({ open, onSubmit, error, isLoading }: PasswordDia
       callback: (e) => {
         if (open && password.trim() && !isLoading) {
           e.preventDefault();
-          handleSubmit(e);
+          onSubmit(password.trim());
         }
       },
       description: 'Submit password',
