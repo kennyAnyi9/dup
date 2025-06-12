@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { PasteViewer } from "@/components/paste/paste-viewer";
-import { PasswordDialog } from "@/components/paste/password-dialog";
+import { PasteViewer } from "./paste-viewer";
+import { PasswordDialog } from "./password-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -56,6 +56,13 @@ export function PublicPasteClient({ slug }: PublicPasteClientProps) {
         setPaste(result.paste);
         setShowPasswordDialog(false);
         setPasswordError(null);
+        
+        // Show burn after read notification
+        if (result.burnedAfterRead) {
+          toast.warning("This paste has been deleted after being viewed!", {
+            duration: 5000,
+          });
+        }
       } else if (result.requiresPassword) {
         setShowPasswordDialog(true);
         setPasswordError(result.error || null);

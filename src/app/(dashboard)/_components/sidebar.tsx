@@ -1,7 +1,9 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { Logo } from "@/components/common/logo";
 import { formatDistanceToNow } from "date-fns";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -9,8 +11,10 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { SidebarNewPasteButton } from "./sidebar-new-paste-button";
+import { signOut } from "@/hooks/use-auth";
+import { toast } from "sonner";
 import {
-  Plus,
   BarChart3,
   FileText,
   Home,
@@ -18,15 +22,15 @@ import {
   Globe,
   Eye,
   Clock,
-  TrendingUp,
+  LogOut,
 } from "lucide-react";
 
 interface SidebarProps {
   user: {
     id: string;
-    name?: string;
+    name?: string | null;
     email: string;
-    image?: string;
+    image?: string | null;
   };
   stats: {
     totalPastes: number;
@@ -44,6 +48,22 @@ interface SidebarProps {
 
 export function Sidebar({ user, stats, recentPublicPastes }: SidebarProps) {
   const pathname = usePathname();
+  const router = useRouter();
+  const [isSigningOut, setIsSigningOut] = useState(false);
+
+  async function handleSignOut() {
+    try {
+      setIsSigningOut(true);
+      await signOut();
+      toast.success("Signed out successfully");
+      router.push("/login");
+    } catch (error) {
+      toast.error("Failed to sign out");
+      console.error("Sign out error:", error);
+    } finally {
+      setIsSigningOut(false);
+    }
+  }
 
   const navigationItems = [
     {
@@ -86,13 +106,24 @@ export function Sidebar({ user, stats, recentPublicPastes }: SidebarProps) {
   return (
     <div className="w-80 border-r bg-muted/30">
       <div className="flex h-full flex-col">
+        {/* Logo */}
+        <div className="p-6 pb-0">
+          <Link href="/" className="flex justify-center mb-6">
+            <Logo 
+              width={200}
+              height={56}
+              className="h-14 w-auto"
+            />
+          </Link>
+        </div>
+
         {/* User Info */}
         <div className="p-6">
           <div className="flex items-center gap-3 mb-4">
             <Avatar className="h-10 w-10">
-              <AvatarImage src={user.image} alt={user.name || user.email} />
+              <AvatarImage src={user.image || undefined} alt={user.name || user.email} />
               <AvatarFallback>
-                {getUserInitials(user.name, user.email)}
+                {getUserInitials(user.name || undefined, user.email)}
               </AvatarFallback>
             </Avatar>
             <div className="flex-1 min-w-0">
@@ -122,12 +153,7 @@ export function Sidebar({ user, stats, recentPublicPastes }: SidebarProps) {
           </div>
 
           {/* Create Paste Button */}
-          <Button asChild className="w-full">
-            <Link href="/" className="flex items-center gap-2">
-              <Plus className="h-4 w-4" />
-              Create New Paste
-            </Link>
-          </Button>
+          <SidebarNewPasteButton />
         </div>
 
         <Separator />
@@ -172,7 +198,7 @@ export function Sidebar({ user, stats, recentPublicPastes }: SidebarProps) {
                   <Card key={paste.id} className="p-3 hover:bg-muted/50 transition-colors">
                     <div className="space-y-1">
                       <Link
-                        href={`/${paste.slug}`}
+                        href={`/p/${paste.slug}`}
                         className="block text-sm font-medium hover:underline line-clamp-1"
                       >
                         {paste.title || `Paste ${paste.slug}`}
@@ -211,12 +237,17 @@ export function Sidebar({ user, stats, recentPublicPastes }: SidebarProps) {
           </ScrollArea>
         </div>
 
-        {/* Footer */}
+        {/* Logout Button */}
         <div className="p-4 border-t">
-          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-            <TrendingUp className="h-3 w-3" />
-            <span>Powered by Dup</span>
-          </div>
+          <Button 
+            variant="outline" 
+            className="w-full justify-start text-red-600 hover:text-red-600 hover:bg-red-50 border-red-200"
+            onClick={handleSignOut}
+            disabled={isSigningOut}
+          >
+            <LogOut className="mr-2 h-4 w-4" />
+            {isSigningOut ? "Signing out..." : "Sign out"}
+          </Button>
         </div>
       </div>
     </div>

@@ -32,10 +32,23 @@ export const checkUrlAvailabilitySchema = z.object({
   url: z.string().min(3).max(50),
 });
 
+export const updatePasteSettingsSchema = z.object({
+  id: z.string().min(1),
+  visibility: z.enum([
+    PASTE_VISIBILITY.PUBLIC,
+    PASTE_VISIBILITY.UNLISTED,
+    PASTE_VISIBILITY.PRIVATE,
+  ]).optional(),
+  password: z.string().optional(),
+  removePassword: z.boolean().default(false),
+  expiresIn: z.enum(["1h", "1d", "7d", "30d", "never", "remove"]).optional(),
+});
+
 export type CreatePasteInput = z.infer<typeof createPasteSchema>;
 export type GetPasteInput = z.infer<typeof getPasteSchema>;
 export type DeletePasteInput = z.infer<typeof deletePasteSchema>;
 export type CheckUrlAvailabilityInput = z.infer<typeof checkUrlAvailabilitySchema>;
+export type UpdatePasteSettingsInput = z.infer<typeof updatePasteSettingsSchema>;
 
 export interface PasteResult {
   id: string;
@@ -68,6 +81,7 @@ export interface GetPasteResult {
   paste?: PasteResult;
   error?: string;
   requiresPassword?: boolean;
+  burnedAfterRead?: boolean;
 }
 
 export interface DeletePasteResult {
@@ -84,5 +98,10 @@ export interface RateLimitResult {
 
 export interface CheckUrlAvailabilityResult {
   available: boolean;
+  error?: string;
+}
+
+export interface UpdatePasteSettingsResult {
+  success: boolean;
   error?: string;
 }

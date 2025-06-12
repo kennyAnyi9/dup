@@ -26,14 +26,17 @@ import {
   getPasteSchema,
   deletePasteSchema,
   checkUrlAvailabilitySchema,
+  updatePasteSettingsSchema,
   type CreatePasteResult,
   type GetPasteResult,
   type DeletePasteResult,
   type CheckUrlAvailabilityResult,
+  type UpdatePasteSettingsResult,
   type CreatePasteInput,
   type GetPasteInput,
   type DeletePasteInput,
   type CheckUrlAvailabilityInput,
+  type UpdatePasteSettingsInput,
 } from "@/types/paste";
 import bcrypt from "bcryptjs";
 
@@ -282,44 +285,55 @@ export async function getPaste(input: GetPasteInput): Promise<GetPasteResult> {
     // Determine if we should increment view count (don't count owner's views)
     const shouldIncrementViews = !user || foundPaste.userId !== user.id;
     let newViewCount = foundPaste.views;
+    let shouldDelete = false;
     
     if (shouldIncrementViews) {
-      newViewCount = foundPaste.views + 1;
-      
-      // Handle burn after read before incrementing
-      if (foundPaste.burnAfterRead) {
-        const burnViews = foundPaste.burnAfterReadViews || 1;
-        
-        if (newViewCount >= burnViews) {
-          // Delete the paste after this view
-          await db
-            .update(paste)
-            .set({
-              views: newViewCount,
-              isDeleted: true,
-              updatedAt: new Date(),
-            })
-            .where(eq(paste.id, foundPaste.id));
-        } else {
-          // Just increment view count
-          await db
-            .update(paste)
-            .set({
-              views: newViewCount,
-              updatedAt: new Date(),
-            })
-            .where(eq(paste.id, foundPaste.id));
-        }
-      } else {
-        // Regular view count increment
-        await db
-          .update(paste)
-          .set({
-            views: newViewCount,
-            updatedAt: new Date(),
-          })
-          .where(eq(paste.id, foundPaste.id));
+      // Perform atomic update with conditional logic using SQL
+      const updateResult = await db
+        .update(paste)
+        .set({
+          views: sql`${paste.views} + 1`,
+          isDeleted: sql`CASE 
+            WHEN ${paste.burnAfterRead} = true AND (${paste.views} + 1) >= COALESCE(${paste.burnAfterReadViews}, 1) 
+            THEN true 
+            ELSE ${paste.isDeleted} 
+          END`,
+          updatedAt: new Date(),
+        })
+        .where(eq(paste.id, foundPaste.id))
+        .returning({
+          views: paste.views,
+          isDeleted: paste.isDeleted,
+        });
+
+      // Get the actual updated values from the database
+      if (updateResult.length > 0) {
+        newViewCount = updateResult[0].views;
+        shouldDelete = updateResult[0].isDeleted && !foundPaste.isDeleted; // Only true if it was just deleted
       }
+    }
+
+    // If paste was deleted due to burn after read, show special message
+    if (shouldDelete) {
+      return {
+        success: true,
+        paste: {
+          id: foundPaste.id,
+          slug: foundPaste.slug,
+          title: foundPaste.title || undefined,
+          content: foundPaste.content,
+          language: foundPaste.language,
+          visibility: foundPaste.visibility,
+          burnAfterRead: foundPaste.burnAfterRead,
+          burnAfterReadViews: foundPaste.burnAfterReadViews || undefined,
+          views: newViewCount,
+          expiresAt: foundPaste.expiresAt || undefined,
+          userId: foundPaste.userId || undefined,
+          createdAt: foundPaste.createdAt,
+          updatedAt: foundPaste.updatedAt,
+        },
+        burnedAfterRead: true,
+      };
     }
 
     return {
@@ -578,37 +592,195 @@ export async function getRecentPublicPastes(limit: number = 10) {
     return await cached(
       cacheKey,
       async () => {
-        const recentPastes = await db
-          .select({
-            id: paste.id,
-            slug: paste.slug,
-            title: paste.title,
-            language: paste.language,
-            views: paste.views,
-            createdAt: paste.createdAt,
-          })
-          .from(paste)
-          .where(
-            and(
-              eq(paste.visibility, "public"),
-              eq(paste.isDeleted, false),
-              // Only show non-expired pastes
-              or(
-                isNull(paste.expiresAt),
-                gt(paste.expiresAt, new Date())
+        // Get total count and recent pastes in parallel
+        const [recentPastes, totalCountResult] = await Promise.all([
+          db
+            .select({
+              id: paste.id,
+              slug: paste.slug,
+              title: paste.title,
+              language: paste.language,
+              views: paste.views,
+              createdAt: paste.createdAt,
+            })
+            .from(paste)
+            .where(
+              and(
+                eq(paste.visibility, "public"),
+                eq(paste.isDeleted, false),
+                // Only show non-expired pastes
+                or(
+                  isNull(paste.expiresAt),
+                  gt(paste.expiresAt, new Date())
+                )
               )
             )
-          )
-          .orderBy(desc(paste.createdAt))
-          .limit(limit);
+            .orderBy(desc(paste.createdAt))
+            .limit(limit),
+          
+          db
+            .select({ count: count() })
+            .from(paste)
+            .where(
+              and(
+                eq(paste.visibility, "public"),
+                eq(paste.isDeleted, false),
+                // Only show non-expired pastes
+                or(
+                  isNull(paste.expiresAt),
+                  gt(paste.expiresAt, new Date())
+                )
+              )
+            )
+        ]);
 
-        return recentPastes;
+        return {
+          pastes: recentPastes,
+          total: totalCountResult[0]?.count || 0
+        };
       },
       { ttl: CACHE_TTL.RECENT_PUBLIC_PASTES }
     );
   } catch (error) {
     console.error("Get recent public pastes error:", error);
-    return [];
+    return { pastes: [], total: 0 };
+  }
+}
+
+export async function updatePasteSettings(input: UpdatePasteSettingsInput): Promise<UpdatePasteSettingsResult> {
+  try {
+    const validatedInput = updatePasteSettingsSchema.parse(input);
+    
+    // Get current user
+    const user = await getCurrentUser();
+    if (!user) {
+      return {
+        success: false,
+        error: "Authentication required",
+      };
+    }
+
+    // Check rate limit
+    const rateLimit = await checkRateLimit(user.id, "UPDATE_PASTE");
+    if (!rateLimit.success) {
+      return {
+        success: false,
+        error: `Rate limit exceeded. Try again in ${Math.ceil((rateLimit.reset! - Date.now()) / 1000)} seconds.`,
+      };
+    }
+
+    // Find the paste and verify ownership
+    const existingPaste = await db
+      .select({
+        id: paste.id,
+        userId: paste.userId,
+        password: paste.password,
+        expiresAt: paste.expiresAt,
+      })
+      .from(paste)
+      .where(
+        and(
+          eq(paste.id, validatedInput.id),
+          eq(paste.isDeleted, false)
+        )
+      )
+      .limit(1);
+
+    if (existingPaste.length === 0) {
+      return {
+        success: false,
+        error: "Paste not found",
+      };
+    }
+
+    const foundPaste = existingPaste[0];
+
+    // Verify ownership
+    if (foundPaste.userId !== user.id) {
+      return {
+        success: false,
+        error: "Permission denied",
+      };
+    }
+
+    // Prepare update data
+    const updateData: {
+      updatedAt: Date;
+      visibility?: string;
+      password?: string | null;
+      expiresAt?: Date | null;
+    } = {
+      updatedAt: new Date(),
+    };
+
+    // Handle visibility update
+    if (validatedInput.visibility) {
+      updateData.visibility = validatedInput.visibility;
+    }
+
+    // Handle password update
+    if (validatedInput.removePassword) {
+      updateData.password = null;
+    } else if (validatedInput.password && validatedInput.password.trim() !== "") {
+      // Hash the new password
+      const saltRounds = 12;
+      updateData.password = await bcrypt.hash(validatedInput.password.trim(), saltRounds);
+    }
+
+    // Handle expiry update
+    if (validatedInput.expiresIn) {
+      if (validatedInput.expiresIn === "remove") {
+        updateData.expiresAt = null;
+      } else if (validatedInput.expiresIn === "never") {
+        updateData.expiresAt = null;
+      } else {
+        // Calculate new expiry date
+        const now = new Date();
+        switch (validatedInput.expiresIn) {
+          case "1h":
+            updateData.expiresAt = new Date(now.getTime() + 60 * 60 * 1000);
+            break;
+          case "1d":
+            updateData.expiresAt = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+            break;
+          case "7d":
+            updateData.expiresAt = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+            break;
+          case "30d":
+            updateData.expiresAt = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+            break;
+        }
+      }
+    }
+
+    // Update the paste
+    await db
+      .update(paste)
+      .set(updateData)
+      .where(eq(paste.id, validatedInput.id));
+
+    // Invalidate cache for user pastes
+    const userPastesCacheKey = generateCacheKey(CACHE_KEYS.USER_PASTES, user.id);
+    await deleteFromCache(userPastesCacheKey);
+
+    // If visibility changed to public, invalidate recent public pastes cache
+    if (validatedInput.visibility === "public") {
+      const publicCacheKey = generateCacheKey(CACHE_KEYS.RECENT_PUBLIC_PASTES, "8");
+      await deleteFromCache(publicCacheKey);
+    }
+
+    // Revalidate paths
+    revalidatePath("/dashboard");
+
+    return {
+      success: true,
+    };
+  } catch (error) {
+    console.error("Update paste settings error:", error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Failed to update paste settings",
+    };
   }
 }
 

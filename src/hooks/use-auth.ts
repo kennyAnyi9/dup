@@ -7,7 +7,6 @@ export const {
   signIn,
   signOut,
   signUp,
-  useUser,
 } = authClient;
 
 export function useAuth() {

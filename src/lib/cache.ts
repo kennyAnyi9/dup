@@ -48,11 +48,42 @@ export async function getFromCache<T>(
   try {
     const cached = await redis.get(key);
     if (cached !== null && cached !== undefined) {
-      return JSON.parse(cached as string);
+      // If cached is already an object, return it directly
+      if (typeof cached === 'object') {
+        return cached as T;
+      }
+      
+      // If cached is a primitive type (number, boolean), return it directly
+      if (typeof cached === 'number' || typeof cached === 'boolean') {
+        return cached as T;
+      }
+      
+      // If cached is a string, check if it's JSON or primitive
+      if (typeof cached === 'string') {
+        // If string is empty or doesn't look like JSON, return as-is
+        if (cached === '' || (!cached.startsWith('{') && !cached.startsWith('[') && !cached.startsWith('"'))) {
+          return cached as T;
+        }
+        // Try to parse as JSON, fallback to string if parsing fails
+        try {
+          return JSON.parse(cached);
+        } catch {
+          return cached as T;
+        }
+      }
+      
+      // For any other primitive types, return directly
+      return cached as T;
     }
     return null;
   } catch (error) {
     console.warn(`Cache get failed for key ${key}:`, error);
+    // Clear the corrupted cache entry
+    try {
+      await redis.del(key);
+    } catch (deleteError) {
+      console.warn(`Failed to delete corrupted cache key ${key}:`, deleteError);
+    }
     return null;
   }
 }
@@ -71,7 +102,15 @@ export async function setInCache<T>(
 
   try {
     const ttl = options.ttl || 300; // Default 5 minutes
-    const serialized = JSON.stringify(data);
+    
+    // Ensure we can serialize the data
+    let serialized: string;
+    try {
+      serialized = JSON.stringify(data);
+    } catch (serializeError) {
+      console.warn(`Failed to serialize data for cache key ${key}:`, serializeError);
+      return false;
+    }
     
     await redis.setex(key, ttl, serialized);
     return true;

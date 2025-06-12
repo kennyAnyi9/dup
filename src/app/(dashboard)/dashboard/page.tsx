@@ -1,13 +1,23 @@
 import { Suspense } from "react";
-import { Metadata } from "next/metadata";
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth-server";
-import { getUserPastes, getUserStats, getRecentPublicPastes } from "@/app/actions/paste";
-import { Sidebar } from "@/components/dashboard/sidebar";
-import { SearchFilters } from "@/components/dashboard/search-filters";
-import { PasteCard } from "@/components/paste/paste-card";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { getUserPastes, getRecentPublicPastes } from "@/app/actions/paste";
+import { SearchFilters } from "../_components/search-filters";
+import { PasteTable } from "@/components/shared/paste/paste-table";
+import { DashboardHeaderButton } from "../_components/dashboard-header-button";
+import { EmptyState } from "../_components/dashboard-empty-states";
+import { DashboardSidebar } from "../_components/dashboard-sidebar";
+import { DashboardProfileDropdown } from "../_components/dashboard-profile-dropdown";
+import { Logo } from "@/components/common/logo";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { 
   Pagination,
   PaginationContent,
@@ -17,11 +27,6 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
-import { 
-  Plus, 
-  Search,
-  FolderOpen,
-} from "lucide-react";
 import Link from "next/link";
 
 export const metadata: Metadata = {
@@ -53,35 +58,59 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
   const filter = params.filter || "all";
   const sort = params.sort || "newest";
 
+  // Fetch recent public pastes for sidebar
+  const recentPublicPastesData = await getRecentPublicPastes(5);
+
   return (
-    <div className="flex h-screen">
-      <Suspense fallback={<SidebarSkeleton />}>
-        <DashboardSidebar user={user} />
-      </Suspense>
-      
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <div className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-          <div className="px-6 py-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <h1 className="text-2xl font-bold">My Pastes</h1>
-                <p className="text-muted-foreground">
-                  Manage and organize your code snippets
-                </p>
+    <div className="container relative mx-auto flex h-screen w-full flex-col items-center gap-6 p-4 overflow-hidden">
+      {/* Header */}
+      <header className="sticky top-2 z-50 w-full border-border">
+        <div className="w-full rounded-lg border border-border md:p-6 bg-background/70 px-3 py-3 backdrop-blur-lg md:px-6 md:py-3">
+          <div className="flex w-full items-center justify-between">
+            <div className="flex items-center">
+              <Link className="shrink-0" href="/">
+                <div className="rounded-lg border border-border overflow-hidden">
+                  <Logo width={40} height={40} className="h-10 w-10" />
+                </div>
+              </Link>
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-slash -rotate-12 mr-0.5 ml-2.5 h-4 w-4 text-muted-foreground">
+                <path d="M22 2 2 22"></path>
+              </svg>
+              <div className="w-40">
+                <span className="truncate text-sm font-medium">{user.name || user.email}</span>
               </div>
-              <Button asChild>
-                <Link href="/" className="flex items-center gap-2">
-                  <Plus className="h-4 w-4" />
-                  New Paste
-                </Link>
-              </Button>
+            </div>
+            <div className="flex items-center gap-4">
+              <Link 
+                href="/changelog" 
+                className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+              >
+                Changelog
+              </Link>
+              <DashboardProfileDropdown user={user} />
             </div>
           </div>
         </div>
+      </header>
 
-        <div className="flex-1 overflow-auto">
-          <div className="p-6">
-            <div className="space-y-6">
+      {/* Main Content */}
+      <main className="z-10 flex w-full flex-1 flex-col items-start overflow-hidden min-w-0">
+        <div className="flex w-full flex-1 flex-col gap-4 lg:flex-row lg:gap-6 overflow-hidden min-w-0">
+          {/* Sidebar */}
+          <DashboardSidebar recentPublicPastes={recentPublicPastesData.pastes} totalPublicPastes={recentPublicPastesData.total} />
+          
+          {/* Main Content Area */}
+          <div className="basis-4/5 rounded-lg border border-border px-3 py-4 backdrop-blur-[2px] md:p-6 relative overflow-hidden min-w-0">
+            <div className="flex flex-col gap-3 h-full">
+              {/* Page Header */}
+              <div className="col-span-full flex items-start justify-between gap-1">
+                <div className="flex min-w-0 flex-col gap-1">
+                  <h1 className="font-cal text-3xl">My Pastes</h1>
+                  <p className="text-muted-foreground">Manage and organize your code snippets.</p>
+                </div>
+                <DashboardHeaderButton />
+              </div>
+
               {/* Search and Filters */}
               <SearchFilters
                 defaultSearch={search}
@@ -90,36 +119,24 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
               />
 
               {/* Content */}
-              <Suspense fallback={<PastesLoading />}>
-                <PastesContent
-                  page={page}
-                  search={search}
-                  filter={filter}
-                  sort={sort}
-                />
-              </Suspense>
+              <div className="flex-1 overflow-hidden">
+                <Suspense fallback={<PastesLoading />}>
+                  <PastesContent
+                    page={page}
+                    search={search}
+                    filter={filter}
+                    sort={sort}
+                  />
+                </Suspense>
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      </main>
     </div>
   );
 }
 
-async function DashboardSidebar({ user }: { user: { id: string; name?: string; email: string; image?: string } }) {
-  const [stats, recentPublicPastes] = await Promise.all([
-    getUserStats(),
-    getRecentPublicPastes(5),
-  ]);
-
-  return (
-    <Sidebar 
-      user={user} 
-      stats={stats || { totalPastes: 0, totalViews: 0 }} 
-      recentPublicPastes={recentPublicPastes} 
-    />
-  );
-}
 
 async function PastesContent({
   page,
@@ -132,7 +149,7 @@ async function PastesContent({
   filter: "all" | "public" | "private" | "unlisted";
   sort: "newest" | "oldest" | "views";
 }) {
-  const result = await getUserPastes(page, 12, search, filter, sort);
+  const result = await getUserPastes(page, 10, search, filter, sort);
   const { pastes, pagination } = result;
 
   if (pastes.length === 0) {
@@ -140,9 +157,9 @@ async function PastesContent({
   }
 
   return (
-    <div className="space-y-6">
+    <div className="flex flex-col h-full space-y-3">
       {/* Results Summary */}
-      <div className="flex items-center justify-between text-sm text-muted-foreground">
+      <div className="flex items-center justify-between text-sm text-muted-foreground shrink-0">
         <div>
           Showing {pastes.length} of {pagination.total} pastes
           {search && ` for "${search}"`}
@@ -150,19 +167,16 @@ async function PastesContent({
         </div>
       </div>
 
-      {/* Pastes Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {pastes.map((paste) => (
-          <PasteCard 
-            key={paste.id} 
-            paste={paste}
-          />
-        ))}
+      {/* Pastes Table */}
+      <div className="flex-1 overflow-auto">
+        <PasteTable pastes={pastes} />
       </div>
 
       {/* Pagination */}
       {pagination.totalPages > 1 && (
-        <PaginationComponent pagination={pagination} />
+        <div className="shrink-0 pt-2 border-t border-border">
+          <PaginationComponent pagination={pagination} />
+        </div>
       )}
     </div>
   );
@@ -183,7 +197,7 @@ function PaginationComponent({
   // Generate page numbers to show
   const getPageNumbers = () => {
     const pages: (number | string)[] = [];
-    const showPages = 5; // Number of page buttons to show
+    const showPages = 7; // Number of page buttons to show
     
     if (totalPages <= showPages) {
       // Show all pages if total pages is small
@@ -194,16 +208,20 @@ function PaginationComponent({
       // Show smart pagination with ellipsis
       if (page <= 3) {
         // Show first few pages
-        for (let i = 1; i <= 4; i++) {
+        for (let i = 1; i <= 5; i++) {
           pages.push(i);
         }
-        pages.push("...");
-        pages.push(totalPages);
+        if (totalPages > 6) {
+          pages.push("...");
+          pages.push(totalPages);
+        }
       } else if (page >= totalPages - 2) {
         // Show last few pages
         pages.push(1);
-        pages.push("...");
-        for (let i = totalPages - 3; i <= totalPages; i++) {
+        if (totalPages > 6) {
+          pages.push("...");
+        }
+        for (let i = Math.max(totalPages - 4, 2); i <= totalPages; i++) {
           pages.push(i);
         }
       } else {
@@ -259,81 +277,70 @@ function PaginationComponent({
   );
 }
 
-function EmptyState({ hasSearch }: { hasSearch: boolean }) {
-  if (hasSearch) {
-    return (
-      <Card>
-        <CardContent className="flex flex-col items-center justify-center py-12">
-          <Search className="h-12 w-12 text-muted-foreground mb-4" />
-          <h3 className="text-lg font-medium mb-2">No pastes found</h3>
-          <p className="text-muted-foreground text-center mb-4">
-            Try adjusting your search terms or filters
-          </p>
-          <Button variant="outline" onClick={() => window.location.href = "/dashboard"}>
-            Clear filters
-          </Button>
-        </CardContent>
-      </Card>
-    );
-  }
 
-  return (
-    <Card>
-      <CardContent className="flex flex-col items-center justify-center py-12">
-        <FolderOpen className="h-12 w-12 text-muted-foreground mb-4" />
-        <h3 className="text-lg font-medium mb-2">No pastes yet</h3>
-        <p className="text-muted-foreground text-center mb-4">
-          Create your first paste to get started
-        </p>
-        <Button asChild>
-          <Link href="/" className="flex items-center gap-2">
-            <Plus className="h-4 w-4" />
-            Create New Paste
-          </Link>
-        </Button>
-      </CardContent>
-    </Card>
-  );
-}
-
-function SidebarSkeleton() {
-  return (
-    <div className="w-80 border-r bg-muted/30 p-6">
-      <div className="space-y-4">
-        <div className="flex items-center gap-3">
-          <div className="h-10 w-10 rounded-full bg-muted animate-pulse" />
-          <div className="space-y-2">
-            <div className="h-4 w-24 bg-muted animate-pulse rounded" />
-            <div className="h-3 w-32 bg-muted animate-pulse rounded" />
-          </div>
-        </div>
-        <div className="grid grid-cols-2 gap-3">
-          <div className="h-16 bg-muted animate-pulse rounded" />
-          <div className="h-16 bg-muted animate-pulse rounded" />
-        </div>
-        <div className="h-10 bg-muted animate-pulse rounded" />
-      </div>
-    </div>
-  );
-}
 
 function PastesLoading() {
   return (
-    <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {Array.from({ length: 6 }).map((_, i) => (
-          <Card key={i} className="p-4">
-            <div className="space-y-3">
-              <div className="h-4 bg-muted animate-pulse rounded" />
-              <div className="h-3 bg-muted animate-pulse rounded w-1/2" />
-              <div className="h-20 bg-muted animate-pulse rounded" />
-              <div className="flex gap-2">
-                <div className="h-6 w-16 bg-muted animate-pulse rounded" />
-                <div className="h-6 w-16 bg-muted animate-pulse rounded" />
-              </div>
-            </div>
-          </Card>
-        ))}
+    <div className="flex flex-col h-full space-y-3">
+      <div className="h-4 bg-muted animate-pulse rounded w-48 shrink-0" />
+      <div className="flex-1 overflow-hidden">
+        <div className="rounded-lg border border-border overflow-hidden">
+          <Table>
+            <TableHeader>
+              <TableRow className="hover:bg-transparent">
+                <TableHead className="w-8">
+                  <div className="h-4 w-4 bg-muted animate-pulse rounded" />
+                </TableHead>
+                <TableHead>
+                  <div className="h-4 bg-muted animate-pulse rounded w-20" />
+                </TableHead>
+                <TableHead>
+                  <div className="h-4 bg-muted animate-pulse rounded w-16" />
+                </TableHead>
+                <TableHead>
+                  <div className="h-4 bg-muted animate-pulse rounded w-12" />
+                </TableHead>
+                <TableHead>
+                  <div className="h-4 bg-muted animate-pulse rounded w-12" />
+                </TableHead>
+                <TableHead>
+                  <div className="h-4 bg-muted animate-pulse rounded w-16" />
+                </TableHead>
+                <TableHead className="w-12"></TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {Array.from({ length: 6 }).map((_, i) => (
+                <TableRow key={i}>
+                  <TableCell>
+                    <div className="h-4 w-4 bg-muted animate-pulse rounded" />
+                  </TableCell>
+                  <TableCell>
+                    <div className="space-y-1">
+                      <div className="h-4 bg-muted animate-pulse rounded w-32" />
+                      <div className="h-3 bg-muted animate-pulse rounded w-20" />
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="h-5 w-16 bg-muted animate-pulse rounded" />
+                  </TableCell>
+                  <TableCell>
+                    <div className="h-4 bg-muted animate-pulse rounded w-16" />
+                  </TableCell>
+                  <TableCell>
+                    <div className="h-4 bg-muted animate-pulse rounded w-8" />
+                  </TableCell>
+                  <TableCell>
+                    <div className="h-4 bg-muted animate-pulse rounded w-12" />
+                  </TableCell>
+                  <TableCell>
+                    <div className="h-8 w-8 bg-muted animate-pulse rounded" />
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
       </div>
     </div>
   );

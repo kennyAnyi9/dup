@@ -103,7 +103,7 @@ export function PasteFormModal({
           toast.success("Paste created successfully!");
           onOpenChange(false);
           form.reset();
-          router.push(`/${result.paste.slug}`);
+          router.push(`/p/${result.paste.slug}`);
         } else {
           toast.error(result.error || "Failed to create paste");
         }

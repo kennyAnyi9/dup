@@ -55,12 +55,14 @@ export default function TestAuthPage() {
   return (
     <div className="container mx-auto py-8">
       <h1 className="text-2xl font-bold mb-4">Auth API Test</h1>
-      <div className={`p-4 rounded ${authStatus.success ? "bg-green-100" : "bg-red-100"}`}>
-        <p>{authStatus.success ? "✅ Auth API accessible!" : "❌ Auth API failed!"}</p>
-        <pre className="mt-4 bg-gray-100 p-2 rounded text-sm overflow-auto">
-          {JSON.stringify(authStatus, null, 2)}
-        </pre>
-      </div>
+      {authStatus && (
+        <div className={`p-4 rounded ${authStatus.success ? "bg-green-100" : "bg-red-100"}`}>
+          <p>{authStatus.success ? "✅ Auth API accessible!" : "❌ Auth API failed!"}</p>
+          <pre className="mt-4 bg-gray-100 p-2 rounded text-sm overflow-auto">
+            {JSON.stringify(authStatus, null, 2)}
+          </pre>
+        </div>
+      )}
       
       <div className="mt-8">
         <h2 className="text-xl font-bold mb-4">Environment Check</h2>

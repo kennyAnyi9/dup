@@ -1,4 +1,4 @@
-import { redirect } from "next/navigation";
+import { PublicPasteClient } from "@/components/shared/paste/public-paste-client";
 
 interface PastePageProps {
   params: Promise<{ slug: string }>;
@@ -7,6 +7,5 @@ interface PastePageProps {
 export default async function PastePage({ params }: PastePageProps) {
   const { slug } = await params;
   
-  // Redirect old URLs to new /p/ namespace
-  redirect(`/p/${slug}`);
+  return <PublicPasteClient slug={slug} />;
 }
