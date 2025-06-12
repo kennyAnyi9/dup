@@ -102,7 +102,7 @@ export function PasteCard({ paste }: PasteCardProps) {
   async function handleCopyUrl() {
     try {
       // Calculate the URL at copy time to ensure we have the correct absolute URL
-      const pasteUrl = `${window.location.origin}/${paste.slug}`;
+      const pasteUrl = `${window.location.origin}/p/${paste.slug}`;
       await navigator.clipboard.writeText(pasteUrl);
       setCopied(true);
       toast.success("URL copied to clipboard!");
@@ -145,7 +145,7 @@ export function PasteCard({ paste }: PasteCardProps) {
           <div className="flex items-start justify-between gap-3 mb-3">
             <div className="flex-1 min-w-0">
               <Link
-                href={`/${paste.slug}`}
+                href={`/p/${paste.slug}`}
                 className="hover:text-primary transition-colors duration-200 block group-hover:text-primary"
               >
                 <h3 className="font-semibold text-sm truncate leading-tight">

@@ -4,11 +4,10 @@ import { ThemeSwitch } from "@/components/theme/theme-switch";
 import { Button } from "@/components/ui/button";
 import { Panel } from "@/components/ui/panel";
 import { useAuth } from "@/hooks/use-auth";
-import { APP_NAME } from "@/lib/constants";
 import { motion } from "motion/react";
-import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { Logo } from "./logo";
 
 export function Header() {
   const { isAuthenticated } = useAuth();
@@ -47,13 +46,7 @@ export function Header() {
                 <div className="flex h-16 items-center justify-between">
                   <div className="flex items-center space-x-8">
                     <Link href="/" className="flex items-center">
-                      <Image
-                        src="/dup-dark2.png"
-                        alt={APP_NAME}
-                        width={240}
-                        height={64}
-                        className="h-16 w-auto"
-                      />
+                      <Logo priority />
                     </Link>
 
                     <nav className="hidden md:flex items-center space-x-6">

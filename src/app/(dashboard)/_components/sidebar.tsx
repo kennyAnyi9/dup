@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
+import { Logo } from "@/components/common/logo";
 import { formatDistanceToNow } from "date-fns";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -109,9 +109,7 @@ export function Sidebar({ user, stats, recentPublicPastes }: SidebarProps) {
         {/* Logo */}
         <div className="p-6 pb-0">
           <Link href="/" className="flex justify-center mb-6">
-            <Image 
-              src="/dup-dark2.png" 
-              alt="Dup"
+            <Logo 
               width={200}
               height={56}
               className="h-14 w-auto"
@@ -200,7 +198,7 @@ export function Sidebar({ user, stats, recentPublicPastes }: SidebarProps) {
                   <Card key={paste.id} className="p-3 hover:bg-muted/50 transition-colors">
                     <div className="space-y-1">
                       <Link
-                        href={`/${paste.slug}`}
+                        href={`/p/${paste.slug}`}
                         className="block text-sm font-medium hover:underline line-clamp-1"
                       >
                         {paste.title || `Paste ${paste.slug}`}

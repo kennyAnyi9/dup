@@ -85,7 +85,7 @@ export function DashboardSidebar({ recentPublicPastes = [], totalPublicPastes = 
                 recentPublicPastes.map((paste, index) => (
                   <Link 
                     key={paste.id} 
-                    href={`/${paste.slug}`} 
+                    href={`/p/${paste.slug}`} 
                     className="block py-3 px-2 hover:bg-background/30 transition-all duration-200 border-l-2 border-transparent hover:border-accent-foreground/40 group"
                   >
                     <div className="flex items-center justify-between mb-1">

@@ -9,6 +9,7 @@ import { DashboardHeaderButton } from "../_components/dashboard-header-button";
 import { EmptyState } from "../_components/dashboard-empty-states";
 import { DashboardSidebar } from "../_components/dashboard-sidebar";
 import { DashboardProfileDropdown } from "../_components/dashboard-profile-dropdown";
+import { Logo } from "@/components/common/logo";
 import {
   Table,
   TableBody,
@@ -27,7 +28,6 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination";
 import Link from "next/link";
-import Image from "next/image";
 
 export const metadata: Metadata = {
   title: "Dashboard - Dup",
@@ -69,7 +69,9 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
           <div className="flex w-full items-center justify-between">
             <div className="flex items-center">
               <Link className="shrink-0" href="/">
-                <Image alt="Dup" width={40} height={40} className="rounded-lg border border-border" src="/dup-dark2.png" />
+                <div className="rounded-lg border border-border overflow-hidden">
+                  <Logo width={40} height={40} className="h-10 w-10" />
+                </div>
               </Link>
               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-slash -rotate-12 mr-0.5 ml-2.5 h-4 w-4 text-muted-foreground">
                 <path d="M22 2 2 22"></path>
@@ -78,32 +80,15 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
                 <span className="truncate text-sm font-medium">{user.name || user.email}</span>
               </div>
             </div>
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-4">
+              <Link 
+                href="/changelog" 
+                className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+              >
+                Changelog
+              </Link>
               <DashboardProfileDropdown user={user} />
             </div>
-          </div>
-          
-          {/* Sub Navigation */}
-          <div className="-mb-3">
-            <nav className="flex items-center overflow-x-auto">
-              <ul className="flex flex-row">
-                <li className="flex shrink-0 list-none border-primary border-b-2">
-                  <span className="rounded-md font-medium text-sm hover:text-primary text-primary px-4 pt-2 pb-3 relative">
-                    My Pastes
-                  </span>
-                </li>
-                <li className="flex shrink-0 list-none border-transparent border-b-2">
-                  <Link className="rounded-md font-medium text-muted-foreground text-sm hover:text-primary px-4 pt-2 pb-3 relative" href="/dashboard/analytics">
-                    Analytics
-                  </Link>
-                </li>
-                <li className="flex shrink-0 list-none border-transparent border-b-2">
-                  <Link className="rounded-md font-medium text-muted-foreground text-sm hover:text-primary px-4 pt-2 pb-3 relative" href="/dashboard/settings">
-                    Settings
-                  </Link>
-                </li>
-              </ul>
-            </nav>
           </div>
         </div>
       </header>

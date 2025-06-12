@@ -110,7 +110,7 @@ export function PasteTable({ pastes }: PasteTableProps) {
 
   async function handleCopyUrl(paste: PasteTableProps["pastes"][0]) {
     try {
-      const pasteUrl = `${window.location.origin}/${paste.slug}`;
+      const pasteUrl = `${window.location.origin}/p/${paste.slug}`;
       await navigator.clipboard.writeText(pasteUrl);
       setCopied(paste.id);
       toast.success("URL copied to clipboard!");
@@ -169,7 +169,7 @@ export function PasteTable({ pastes }: PasteTableProps) {
                   <TableCell>
                     <div className="flex flex-col gap-1 min-w-0">
                       <Link
-                        href={`/${paste.slug}`}
+                        href={`/p/${paste.slug}`}
                         className="font-medium text-sm hover:text-primary transition-colors truncate"
                       >
                         {paste.title || `Paste ${paste.slug}`}

@@ -114,7 +114,7 @@ export default async function Home() {
                 >
                   <div>
                     <Link
-                      href={`/${paste.slug}`}
+                      href={`/p/${paste.slug}`}
                       className="font-medium text-primary hover:underline truncate block"
                     >
                       {paste.title || `Paste ${paste.slug}`}
