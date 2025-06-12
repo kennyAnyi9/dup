@@ -6,8 +6,8 @@ import { Panel } from "@/components/ui/panel";
 import { useAuth } from "@/hooks/use-auth";
 import { APP_NAME } from "@/lib/constants";
 import { motion } from "motion/react";
-import Link from "next/link";
 import Image from "next/image";
+import Link from "next/link";
 import { useEffect, useState } from "react";
 
 export function Header() {
@@ -31,12 +31,9 @@ export function Header() {
 
   return (
     <header className="sticky top-0 z-40 w-full">
-      <div className="max-w-4xl mx-auto px-4">
-        <motion.div
-          layout
-          transition={{ duration: 0.3 }}
-        >
-          <Panel>
+      <div className="max-w-4xl mx-auto px-4 ">
+        <motion.div layout transition={{ duration: 0.3 }}>
+          <Panel className="p-1">
             <motion.nav
               className={`w-full overflow-hidden bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 transition-all duration-300 ${
                 isScrolled
@@ -50,8 +47,8 @@ export function Header() {
                 <div className="flex h-16 items-center justify-between">
                   <div className="flex items-center space-x-8">
                     <Link href="/" className="flex items-center">
-                      <Image 
-                        src="/dup-dark2.png" 
+                      <Image
+                        src="/dup-dark2.png"
                         alt={APP_NAME}
                         width={240}
                         height={64}

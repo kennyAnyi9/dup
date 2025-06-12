@@ -82,10 +82,10 @@
   --d-foreground: oklch(0.985 0 0);
 
   /* zinc-700 */
-  --d-primary: oklch(0.37 0.013 285.805);
+  --d-primary: oklch(0.922 0 0);
 
   /* zinc-50 */
-  --d-primary-foreground: oklch(0.985 0 0);
+  --d-primary-foreground: oklch(0.205 0 0);
 
   /* zinc-800 */
   --d-secondary: oklch(0.274 0.006 286.033);

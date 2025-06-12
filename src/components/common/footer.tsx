@@ -1,13 +1,16 @@
 import { APP_NAME } from "@/lib/constants";
 import Link from "next/link";
+import { Panel, PanelContent, Pattern } from "@/components/ui/panel";
 
 export function Footer() {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="max-w-6xl mx-auto border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="py-8">
+    <footer>
+      <div className="max-w-4xl mx-auto px-4">
+        <Pattern />
+        <Panel>
+          <PanelContent className="py-8">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             <div className="col-span-1 md:col-span-2">
               <div className="flex items-center space-x-2 mb-4">
@@ -113,7 +116,8 @@ export function Footer() {
               </div>
             </div>
           </div>
-        </div>
+        </PanelContent>
+      </Panel>
       </div>
     </footer>
   );

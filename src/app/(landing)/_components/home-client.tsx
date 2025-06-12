@@ -1,82 +1,19 @@
 "use client";
 
 import { usePasteModal } from "@/components/shared/paste/paste-modal-provider";
-import { Badge } from "@/components/ui/badge";
-import { Textarea } from "@/components/ui/textarea";
-import { Clock, Eye, FileText, Link2, Lock, Zap } from "lucide-react";
-import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
 
 export function HomeClient() {
   const { openModal } = usePasteModal();
-  const [ctaContent, setCtaContent] = useState("");
 
   return (
-    <>
-      {/* CTA div */}
-      <div className="relative overflow-hidden max-w-2xl mx-auto ">
-        <div className="relative p-8">
-          <div className="space-y-6">
-            <div
-              className="cursor-pointer"
-              onClick={() => openModal(ctaContent)}
-            >
-              <Textarea
-                placeholder="Click here to start pasting your content..."
-                className="min-h-[120px] resize-none cursor-pointer bg-background/50  hover:bg-background/80 transition-colors focus:cursor-text"
-                value={ctaContent}
-                onChange={(e) => setCtaContent(e.target.value)}
-                onFocus={() => openModal(ctaContent)}
-                readOnly
-              />
-            </div>
+    <div className="flex gap-4 justify-center">
+      <Button onClick={() => openModal("")}>Try it out</Button>
 
-            <div className="flex flex-wrap items-center gap-2 justify-center">
-              <Badge
-                variant="outline"
-                className="flex items-center gap-1.5 px-3 py-1"
-              >
-                <Zap className="h-3 w-3" />
-                Burn After Read
-              </Badge>
-              <Badge
-                variant="outline"
-                className="flex items-center gap-1.5 px-3 py-1"
-              >
-                <Lock className="h-3 w-3" />
-                Password Protection
-              </Badge>
-              <Badge
-                variant="outline"
-                className="flex items-center gap-1.5 px-3 py-1"
-              >
-                <FileText className="h-3 w-3" />
-                Syntax Highlighting
-              </Badge>
-              <Badge
-                variant="outline"
-                className="flex items-center gap-1.5 px-3 py-1"
-              >
-                <Clock className="h-3 w-3" />
-                Custom Expiry
-              </Badge>
-              <Badge
-                variant="outline"
-                className="flex items-center gap-1.5 px-3 py-1"
-              >
-                <Link2 className="h-3 w-3" />
-                Custom URLs
-              </Badge>
-              <Badge
-                variant="outline"
-                className="flex items-center gap-1.5 px-3 py-1"
-              >
-                <Eye className="h-3 w-3" />
-                Track Views
-              </Badge>
-            </div>
-          </div>
-        </div>
-      </div>
-    </>
+      <Button variant="outline" asChild>
+        <Link href="/register">Get Started</Link>
+      </Button>
+    </div>
   );
 }

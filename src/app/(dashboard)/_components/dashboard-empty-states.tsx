@@ -1,7 +1,6 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { Search, FolderOpen } from "lucide-react";
 import { usePasteModal } from "@/components/shared/paste/paste-modal-provider";
 import { useRouter } from "next/navigation";
@@ -16,36 +15,40 @@ export function EmptyState({ hasSearch }: EmptyStateProps) {
 
   if (hasSearch) {
     return (
-      <Card>
-        <CardContent className="flex flex-col items-center justify-center py-12">
-          <Search className="h-12 w-12 text-muted-foreground mb-4" />
-          <h3 className="text-lg font-medium mb-2">No pastes found</h3>
-          <p className="text-muted-foreground text-center mb-4">
-            Try adjusting your search terms or filters
-          </p>
+      <div className="col-span-full w-full rounded-lg border border-border border-dashed bg-background p-8">
+        <div className="flex flex-col items-center justify-center gap-4">
+          <div className="flex flex-col items-center justify-center gap-1">
+            <Search className="h-6 w-6" />
+            <p className="text-base text-foreground">No pastes found</p>
+            <p className="text-center text-muted-foreground">
+              Try adjusting your search terms or filters to find what you&apos;re looking for.
+            </p>
+          </div>
           <Button variant="outline" onClick={() => router.push("/dashboard")}>
             Clear filters
           </Button>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     );
   }
 
   return (
-    <Card>
-      <CardContent className="flex flex-col items-center justify-center py-12">
-        <FolderOpen className="h-12 w-12 text-muted-foreground mb-4" />
-        <h3 className="text-lg font-medium mb-2">No pastes yet</h3>
-        <p className="text-muted-foreground text-center mb-4">
-          Create your first paste to get started
-        </p>
+    <div className="col-span-full w-full rounded-lg border border-border border-dashed bg-background p-8">
+      <div className="flex flex-col items-center justify-center gap-4">
+        <div className="flex flex-col items-center justify-center gap-1">
+          <FolderOpen className="h-6 w-6" />
+          <p className="text-base text-foreground">No pastes yet</p>
+          <p className="text-center text-muted-foreground">
+            Create your first paste to get started organizing your code snippets.
+          </p>
+        </div>
         <Button onClick={() => openModal()} className="flex items-center gap-2">
           Create New Paste
           <kbd className="inline-flex h-4 select-none items-center gap-1 rounded border bg-muted border-border px-1.5 font-mono text-[10px] font-medium text-muted-foreground">
             N
           </kbd>
         </Button>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }

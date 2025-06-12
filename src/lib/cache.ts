@@ -52,12 +52,28 @@ export async function getFromCache<T>(
       if (typeof cached === 'object') {
         return cached as T;
       }
-      // If cached is a string, parse it
-      if (typeof cached === 'string') {
-        return JSON.parse(cached);
+      
+      // If cached is a primitive type (number, boolean), return it directly
+      if (typeof cached === 'number' || typeof cached === 'boolean') {
+        return cached as T;
       }
-      // For other types, try to parse as string
-      return JSON.parse(String(cached));
+      
+      // If cached is a string, check if it's JSON or primitive
+      if (typeof cached === 'string') {
+        // If string is empty or doesn't look like JSON, return as-is
+        if (cached === '' || (!cached.startsWith('{') && !cached.startsWith('[') && !cached.startsWith('"'))) {
+          return cached as T;
+        }
+        // Try to parse as JSON, fallback to string if parsing fails
+        try {
+          return JSON.parse(cached);
+        } catch {
+          return cached as T;
+        }
+      }
+      
+      // For any other primitive types, return directly
+      return cached as T;
     }
     return null;
   } catch (error) {

@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { updatePasteSettings } from "@/app/actions/paste";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
@@ -71,12 +72,6 @@ interface PasteSettingsFormProps {
   children: React.ReactNode;
 }
 
-// Mock update function - you'll need to implement this server action
-async function updatePasteSettings(pasteId: string, data: PasteSettingsInput) {
-  // This should be implemented as a server action
-  console.log("Updating paste", pasteId, "with data", data);
-  return { success: true };
-}
 
 export function PasteSettingsForm({ paste, currentUser, children }: PasteSettingsFormProps) {
   const [open, setOpen] = useState(false);
@@ -103,14 +98,21 @@ export function PasteSettingsForm({ paste, currentUser, children }: PasteSetting
   function onSubmit(data: PasteSettingsInput) {
     startTransition(async () => {
       try {
-        const result = await updatePasteSettings(paste.id, data);
+        const result = await updatePasteSettings({
+          id: paste.id,
+          visibility: data.visibility,
+          password: data.password,
+          removePassword: removePassword,
+          expiresIn: data.expiresIn,
+        });
         
         if (result.success) {
           toast.success("Settings updated successfully!");
           setOpen(false);
-          // You might want to refresh the page or update the UI here
+          // Refresh the page to show updated data
+          window.location.reload();
         } else {
-          toast.error("Failed to update settings");
+          toast.error(result.error || "Failed to update settings");
         }
       } catch (error) {
         toast.error("An unexpected error occurred");
