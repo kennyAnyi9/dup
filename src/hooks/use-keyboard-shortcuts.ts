@@ -39,7 +39,8 @@ export function useKeyboardShortcuts(shortcuts: KeyboardShortcut[]) {
 
         if (matchesKey && matchesMeta && matchesCtrl && matchesShift && matchesAlt) {
           // Special handling for certain shortcuts that should work even when typing
-          const alwaysActive = shortcut.key.toLowerCase() === 'escape';
+          const alwaysActive = shortcut.key.toLowerCase() === 'escape' || 
+                              (shortcut.key.toLowerCase() === 'k' && (shortcut.metaKey || shortcut.ctrlKey));
           
           if (!isTyping || alwaysActive) {
             if (shortcut.preventDefault !== false) {

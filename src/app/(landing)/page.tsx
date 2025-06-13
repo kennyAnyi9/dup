@@ -1,5 +1,6 @@
 import { getRecentPublicPastes } from "@/app/actions/paste";
 import { WarpBackground } from "@/components/magicui/warp-background";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import {
   Panel,
@@ -110,28 +111,48 @@ export default async function Home() {
               {recentPastes.map((paste) => (
                 <div
                   key={paste.id}
-                  className="grid grid-cols-4 gap-4 p-3 rounded-lg bg-accent hover:bg-muted/50 transition-colors"
+                  className="p-4 rounded-lg bg-accent hover:bg-muted/50 transition-colors"
                 >
-                  <div>
-                    <Link
-                      href={`/p/${paste.slug}`}
-                      className="font-medium text-primary hover:underline truncate block"
-                    >
-                      {paste.title || `Paste ${paste.slug}`}
-                    </Link>
-                  </div>
-                  <div>
-                    <Badge variant="outline" className="text-xs">
-                      {paste.language}
-                    </Badge>
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-1 text-sm">
-                      <Eye className="h-3.5 w-3.5 text-muted-foreground" />
-                      {paste.views}
+                  <div className="flex items-start gap-3 mb-3">
+                    {paste.user && (
+                      <Avatar className="h-8 w-8 shrink-0">
+                        <AvatarImage src={paste.user.image || undefined} alt={paste.user.name} />
+                        <AvatarFallback className="text-xs bg-muted">
+                          {paste.user.name.charAt(0).toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <Link
+                        href={`/p/${paste.slug}`}
+                        className="font-medium text-primary hover:underline line-clamp-1 block"
+                      >
+                        {paste.title || `Paste ${paste.slug}`}
+                      </Link>
+                      {paste.user && (
+                        <p className="text-sm text-muted-foreground">
+                          by {paste.user.name}
+                        </p>
+                      )}
                     </div>
                   </div>
-                  <div>
+                  
+                  {paste.description && (
+                    <p className="text-sm text-muted-foreground line-clamp-2 mb-3 leading-relaxed">
+                      {paste.description}
+                    </p>
+                  )}
+                  
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Badge variant="outline" className="text-xs">
+                        {paste.language}
+                      </Badge>
+                      <div className="flex items-center gap-1 text-sm">
+                        <Eye className="h-3.5 w-3.5 text-muted-foreground" />
+                        {paste.views}
+                      </div>
+                    </div>
                     <span className="text-sm text-muted-foreground">
                       {formatDistanceToNow(paste.createdAt, {
                         addSuffix: true,

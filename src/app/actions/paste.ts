@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { nanoid } from "nanoid";
 import { db } from "@/db";
-import { paste } from "@/db/schema";
+import { paste, user, tag, pasteTag } from "@/db/schema";
 import { getCurrentUser } from "@/lib/auth-server";
 import { checkRateLimit } from "@/lib/rate-limit";
 import {
@@ -160,12 +160,14 @@ export async function createPaste(input: CreatePasteInput): Promise<CreatePasteR
     }
 
     // Create paste
+    const pasteId = nanoid();
     const newPaste = await db
       .insert(paste)
       .values({
-        id: nanoid(),
+        id: pasteId,
         slug,
         title: validatedInput.title || null,
+        description: validatedInput.description || null,
         content: validatedInput.content,
         language: validatedInput.language,
         visibility: validatedInput.visibility,
@@ -181,6 +183,49 @@ export async function createPaste(input: CreatePasteInput): Promise<CreatePasteR
       });
 
     const createdPaste = newPaste[0];
+
+    // Handle tags if provided
+    if (validatedInput.tags && validatedInput.tags.length > 0) {
+      for (const tagName of validatedInput.tags) {
+        // Create a slug from the tag name
+        const tagSlug = tagName.toLowerCase().replace(/[^a-z0-9-_]/g, '-').replace(/-+/g, '-').trim();
+        const tagId = nanoid();
+
+        // Insert tag if it doesn't exist
+        const existingTag = await db
+          .select({ id: tag.id })
+          .from(tag)
+          .where(eq(tag.slug, tagSlug))
+          .limit(1);
+
+        let tagIdToUse: string;
+        
+        if (existingTag.length === 0) {
+          // Create new tag
+          const newTag = await db
+            .insert(tag)
+            .values({
+              id: tagId,
+              name: tagName,
+              slug: tagSlug,
+            })
+            .returning({ id: tag.id });
+          
+          tagIdToUse = newTag[0].id;
+        } else {
+          tagIdToUse = existingTag[0].id;
+        }
+
+        // Create paste-tag relationship
+        await db
+          .insert(pasteTag)
+          .values({
+            pasteId: pasteId,
+            tagId: tagIdToUse,
+          });
+      }
+    }
+
     const url = `${APP_URL}/${createdPaste.slug}`;
 
     revalidatePath("/dashboard");
@@ -476,6 +521,7 @@ export async function getUserPastes(
         whereConditions,
         or(
           like(paste.title, `%${search}%`),
+          like(paste.description, `%${search}%`),
           like(paste.content, `%${search}%`)
         )
       );
@@ -518,6 +564,7 @@ export async function getUserPastes(
         id: paste.id,
         slug: paste.slug,
         title: paste.title,
+        description: paste.description,
         content: paste.content,
         language: paste.language,
         visibility: paste.visibility,
@@ -525,6 +572,7 @@ export async function getUserPastes(
         createdAt: paste.createdAt,
         expiresAt: paste.expiresAt,
         burnAfterRead: paste.burnAfterRead,
+        burnAfterReadViews: paste.burnAfterReadViews,
         hasPassword: sql<boolean>`${paste.password} IS NOT NULL`,
       })
       .from(paste)
@@ -533,8 +581,39 @@ export async function getUserPastes(
       .limit(limit)
       .offset(offset);
 
+    // Fetch tags for each paste
+    const pastesWithTags = await Promise.all(
+      userPastes.map(async (pasteItem) => {
+        const pasteTags = await db
+          .select({
+            id: tag.id,
+            name: tag.name,
+            slug: tag.slug,
+            color: tag.color,
+          })
+          .from(pasteTag)
+          .innerJoin(tag, eq(pasteTag.tagId, tag.id))
+          .where(eq(pasteTag.pasteId, pasteItem.id));
+
+        return {
+          ...pasteItem,
+          tags: pasteTags,
+        };
+      })
+    );
+
+    // Add user information to each paste
+    const pastesWithUser = pastesWithTags.map(paste => ({
+      ...paste,
+      user: {
+        id: user.id,
+        name: user.name,
+        image: user.image || null,
+      },
+    }));
+
     return {
-      pastes: userPastes,
+      pastes: pastesWithUser,
       pagination: {
         page,
         limit,
@@ -599,11 +678,18 @@ export async function getRecentPublicPastes(limit: number = 10) {
               id: paste.id,
               slug: paste.slug,
               title: paste.title,
+              description: paste.description,
               language: paste.language,
               views: paste.views,
               createdAt: paste.createdAt,
+              user: {
+                id: user.id,
+                name: user.name,
+                image: user.image,
+              },
             })
             .from(paste)
+            .leftJoin(user, eq(paste.userId, user.id))
             .where(
               and(
                 eq(paste.visibility, "public"),
@@ -634,8 +720,29 @@ export async function getRecentPublicPastes(limit: number = 10) {
             )
         ]);
 
+        // Fetch tags for each paste
+        const pastesWithTags = await Promise.all(
+          recentPastes.map(async (pasteItem) => {
+            const pasteTags = await db
+              .select({
+                id: tag.id,
+                name: tag.name,
+                slug: tag.slug,
+                color: tag.color,
+              })
+              .from(pasteTag)
+              .innerJoin(tag, eq(pasteTag.tagId, tag.id))
+              .where(eq(pasteTag.pasteId, pasteItem.id));
+
+            return {
+              ...pasteItem,
+              tags: pasteTags,
+            };
+          })
+        );
+
         return {
-          pastes: recentPastes,
+          pastes: pastesWithTags,
           total: totalCountResult[0]?.count || 0
         };
       },

@@ -3,6 +3,7 @@ import { SUPPORTED_LANGUAGES, PASTE_VISIBILITY } from "@/lib/constants";
 
 export const createPasteSchema = z.object({
   title: z.string().max(100).optional(),
+  description: z.string().max(500).optional(),
   content: z.string().min(1, "Content is required"),
   language: z.enum(SUPPORTED_LANGUAGES).default("plain"),
   visibility: z.enum([
@@ -16,6 +17,7 @@ export const createPasteSchema = z.object({
   customUrl: z.string().optional().refine((val) => !val || (val.length >= 3 && val.length <= 50 && /^[a-zA-Z0-9-_]+$/.test(val)), {
     message: "Custom URL must be 3-50 characters and contain only letters, numbers, hyphens, and underscores"
   }),
+  tags: z.array(z.string().min(1).max(20)).max(5).optional(),
   expiresIn: z.enum(["30m", "1h", "1d", "7d", "30d", "never"]).default("never"),
 });
 
@@ -54,6 +56,7 @@ export interface PasteResult {
   id: string;
   slug: string;
   title?: string;
+  description?: string;
   content: string;
   language: string;
   visibility: string;

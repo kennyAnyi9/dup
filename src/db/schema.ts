@@ -1,4 +1,4 @@
-import { boolean, pgTable, text, timestamp, integer, index } from "drizzle-orm/pg-core";
+import { boolean, pgTable, text, timestamp, integer, index, primaryKey } from "drizzle-orm/pg-core";
 
 export const user = pgTable("user", {
   id: text("id").primaryKey(),
@@ -60,6 +60,7 @@ export const paste = pgTable("paste", {
   id: text("id").primaryKey(),
   slug: text("slug").notNull().unique(),
   title: text("title"),
+  description: text("description"), // optional paste description
   content: text("content").notNull(),
   language: text("language").default("plain").notNull(),
   visibility: text("visibility").default("public").notNull(), // public, unlisted, private
@@ -84,5 +85,37 @@ export const paste = pgTable("paste", {
     userCreatedIdx: index("idx_paste_user_created").on(table.userId, table.createdAt.desc()),
     // Composite index for public paste queries
     publicCreatedIdx: index("idx_paste_public_created").on(table.visibility, table.isDeleted, table.createdAt.desc()),
+  };
+});
+
+export const tag = pgTable("tag", {
+  id: text("id").primaryKey(),
+  name: text("name").notNull().unique(),
+  slug: text("slug").notNull().unique(), // URL-friendly version of name
+  color: text("color"), // Optional color for tag display
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => {
+  return {
+    // Performance indexes
+    nameIdx: index("idx_tag_name").on(table.name),
+    slugIdx: index("idx_tag_slug").on(table.slug),
+  };
+});
+
+export const pasteTag = pgTable("paste_tag", {
+  pasteId: text("paste_id")
+    .notNull()
+    .references(() => paste.id, { onDelete: "cascade" }),
+  tagId: text("tag_id")
+    .notNull()
+    .references(() => tag.id, { onDelete: "cascade" }),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => {
+  return {
+    pk: primaryKey({ columns: [table.pasteId, table.tagId] }),
+    // Performance indexes
+    pasteIdIdx: index("idx_paste_tag_paste_id").on(table.pasteId),
+    tagIdIdx: index("idx_paste_tag_tag_id").on(table.tagId),
   };
 });

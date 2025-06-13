@@ -44,10 +44,10 @@ export function DashboardSidebar({ recentPublicPastes = [], totalPublicPastes = 
   ];
 
   return (
-    <div className="basis-1/5 rounded-lg border border-border px-3 py-4 backdrop-blur-[2px] md:p-4 hidden max-h-full shrink-0 lg:block overflow-hidden bg-accent">
+    <div className="basis-1/5 rounded-lg border border-border px-3 py-4 backdrop-blur-[2px] md:p-4 hidden max-h-full shrink-0 lg:block overflow-hidden">
       <div className="flex flex-col gap-12 h-full">
         <div className="grid gap-2">
-          <p className="hidden px-3 font-medium text-accent-foreground text-lg lg:block">Navigation</p>
+          <p className="hidden px-3 font-medium text-foreground text-lg lg:block">Navigation</p>
           <ul className="grid gap-2">
             {navigationItems.map((item) => {
               const Icon = item.icon;
@@ -56,7 +56,7 @@ export function DashboardSidebar({ recentPublicPastes = [], totalPublicPastes = 
                 <li key={item.href} className="w-full">
                   <Link
                     href={item.href}
-                    className="group flex w-full items-center rounded-md px-3 py-1 transition-colors text-accent-foreground/70 hover:bg-background/50 hover:text-accent-foreground"
+                    className="group flex w-full items-center rounded-md px-3 py-1 transition-colors text-muted-foreground hover:bg-muted/50 hover:text-foreground"
                   >
                     <Icon className="mr-2 h-4 w-4" />
                     {item.label}
@@ -72,9 +72,9 @@ export function DashboardSidebar({ recentPublicPastes = [], totalPublicPastes = 
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
               <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
-              <p className="font-medium text-sm text-accent-foreground">Public Pastes</p>
+              <p className="font-medium text-sm text-foreground">Public Pastes</p>
             </div>
-            <div className="text-xs text-accent-foreground/50 font-mono">
+            <div className="text-xs text-muted-foreground font-mono">
               {recentPublicPastes.length}/{totalPublicPastes}
             </div>
           </div>
@@ -86,31 +86,31 @@ export function DashboardSidebar({ recentPublicPastes = [], totalPublicPastes = 
                   <Link 
                     key={paste.id} 
                     href={`/p/${paste.slug}`} 
-                    className="block py-3 px-2 hover:bg-background/30 transition-all duration-200 border-l-2 border-transparent hover:border-accent-foreground/40 group"
+                    className="block py-3 px-2 hover:bg-muted/50 transition-all duration-200 border-l-2 border-transparent hover:border-primary group"
                   >
                     <div className="flex items-center justify-between mb-1">
-                      <div className="text-accent-foreground font-medium truncate flex-1 mr-2 group-hover:text-background transition-colors">
+                      <div className="text-foreground font-medium truncate flex-1 mr-2 group-hover:text-primary transition-colors">
                         {paste.title || `untitled-${paste.slug.slice(-6)}`}
                       </div>
-                      <div className="text-accent-foreground/50 text-[10px] shrink-0">
+                      <div className="text-muted-foreground text-[10px] shrink-0">
                         {formatDistanceToNow(paste.createdAt, { addSuffix: true }).replace(' ago', '')}
                       </div>
                     </div>
                     
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <span className="text-accent-foreground/70 bg-accent-foreground/10 px-1.5 py-0.5 rounded text-[10px] font-semibold uppercase tracking-wide">
+                        <span className="text-muted-foreground bg-muted px-1.5 py-0.5 rounded text-[10px] font-semibold uppercase tracking-wide">
                           {paste.language}
                         </span>
                       </div>
-                      <div className="flex items-center gap-1 text-accent-foreground/50">
+                      <div className="flex items-center gap-1 text-muted-foreground">
                         <Eye className="h-2.5 w-2.5" />
                         <span className="text-[10px] font-medium">{paste.views}</span>
                       </div>
                     </div>
                     
                     {index < recentPublicPastes.length - 1 && (
-                      <div className="mt-3 border-b border-accent-foreground/10" />
+                      <div className="mt-3 border-b border-border" />
                     )}
                   </Link>
                 ))
@@ -118,15 +118,15 @@ export function DashboardSidebar({ recentPublicPastes = [], totalPublicPastes = 
                 <div className="text-center py-8 space-y-3">
                   <div className="flex justify-center">
                     <div className="relative">
-                      <Globe className="h-6 w-6 text-accent-foreground/30" />
-                      <div className="absolute -top-1 -right-1 w-2 h-2 bg-accent-foreground/20 rounded-full animate-ping" />
+                      <Globe className="h-6 w-6 text-muted-foreground" />
+                      <div className="absolute -top-1 -right-1 w-2 h-2 bg-muted rounded-full animate-ping" />
                     </div>
                   </div>
                   <div className="space-y-1">
-                    <p className="text-xs text-accent-foreground/60 font-medium">
+                    <p className="text-xs text-muted-foreground font-medium">
                       Waiting for activity
                     </p>
-                    <p className="text-[10px] text-accent-foreground/40 font-mono">
+                    <p className="text-[10px] text-muted-foreground/70 font-mono">
                       No public pastes yet
                     </p>
                   </div>

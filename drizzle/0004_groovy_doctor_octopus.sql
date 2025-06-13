@@ -1,0 +1,1 @@
+ALTER TABLE "paste" ADD COLUMN "description" text;

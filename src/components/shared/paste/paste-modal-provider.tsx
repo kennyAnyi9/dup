@@ -3,9 +3,20 @@
 import { createContext, useContext, useState, ReactNode } from "react";
 import { PasteFormModal } from "./paste-form-modal";
 
+interface EditingPaste {
+  id: string;
+  title: string | null;
+  description: string | null;
+  content: string;
+  language: string;
+  visibility: string;
+  tags?: Array<{ name: string }>;
+}
+
 interface PasteModalContextType {
   isOpen: boolean;
   openModal: (initialContent?: string) => void;
+  openEditModal: (paste: EditingPaste) => void;
   closeModal: () => void;
 }
 
@@ -26,24 +37,34 @@ interface PasteModalProviderProps {
 export function PasteModalProvider({ children }: PasteModalProviderProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [initialContent, setInitialContent] = useState("");
+  const [editingPaste, setEditingPaste] = useState<EditingPaste | null>(null);
 
   const openModal = (content = "") => {
     setInitialContent(content);
+    setEditingPaste(null);
+    setIsOpen(true);
+  };
+
+  const openEditModal = (paste: EditingPaste) => {
+    setEditingPaste(paste);
+    setInitialContent("");
     setIsOpen(true);
   };
 
   const closeModal = () => {
     setIsOpen(false);
     setInitialContent("");
+    setEditingPaste(null);
   };
 
   return (
-    <PasteModalContext.Provider value={{ isOpen, openModal, closeModal }}>
+    <PasteModalContext.Provider value={{ isOpen, openModal, openEditModal, closeModal }}>
       {children}
       <PasteFormModal
         open={isOpen}
         onOpenChange={setIsOpen}
         initialContent={initialContent}
+        editingPaste={editingPaste}
       />
     </PasteModalContext.Provider>
   );

@@ -1,13 +1,15 @@
 import { Suspense } from "react";
+import { PasteModalProvider } from "@/components/shared/paste/paste-modal-provider";
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth-server";
 import { getUserPastes, getRecentPublicPastes } from "@/app/actions/paste";
 import { SearchFilters } from "../_components/search-filters";
-import { PasteTable } from "@/components/shared/paste/paste-table";
+import { PastesContentWrapper } from "../_components/pastes-content-wrapper";
 import { DashboardHeaderButton } from "../_components/dashboard-header-button";
 import { EmptyState } from "../_components/dashboard-empty-states";
 import { DashboardSidebar } from "../_components/dashboard-sidebar";
+import { DashboardMobileSidebar } from "../_components/dashboard-mobile-sidebar";
 import { DashboardProfileDropdown } from "../_components/dashboard-profile-dropdown";
 import { Logo } from "@/components/common/logo";
 import {
@@ -62,12 +64,17 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
   const recentPublicPastesData = await getRecentPublicPastes(5);
 
   return (
-    <div className="container relative mx-auto flex h-screen w-full flex-col items-center gap-6 p-4 overflow-hidden">
+    <PasteModalProvider>
+      <div className="container relative mx-auto flex h-screen w-full flex-col items-center gap-6 p-4 overflow-hidden">
       {/* Header */}
       <header className="sticky top-2 z-50 w-full border-border">
         <div className="w-full rounded-lg border border-border md:p-6 bg-background/70 px-3 py-3 backdrop-blur-lg md:px-6 md:py-3">
           <div className="flex w-full items-center justify-between">
-            <div className="flex items-center">
+            <div className="flex items-center gap-3">
+              <DashboardMobileSidebar 
+                recentPublicPastes={recentPublicPastesData.pastes}
+                totalPublicPastes={recentPublicPastesData.total}
+              />
               <Link className="shrink-0" href="/">
                 <div className="rounded-lg border border-border overflow-hidden">
                   <Logo width={40} height={40} className="h-10 w-10" />
@@ -133,7 +140,8 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
           </div>
         </div>
       </main>
-    </div>
+      </div>
+    </PasteModalProvider>
   );
 }
 
@@ -169,7 +177,7 @@ async function PastesContent({
 
       {/* Pastes Table */}
       <div className="flex-1 overflow-auto">
-        <PasteTable pastes={pastes} />
+        <PastesContentWrapper pastes={pastes} />
       </div>
 
       {/* Pagination */}

@@ -11,6 +11,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -38,10 +39,12 @@ import {
   Eye,
   EyeOff,
   Globe,
-  Loader2,
+  Loader,
   Lock,
   MoreHorizontal,
+  Pencil,
   Shield,
+  Tag,
   Trash2,
   Zap,
 } from "lucide-react";
@@ -55,6 +58,7 @@ interface PasteTableProps {
     id: string;
     slug: string;
     title: string | null;
+    description: string | null;
     content: string;
     language: string;
     visibility: string;
@@ -62,11 +66,41 @@ interface PasteTableProps {
     createdAt: Date;
     expiresAt: Date | null;
     burnAfterRead: boolean;
+    burnAfterReadViews: number | null;
     hasPassword: boolean;
+    tags?: Array<{
+      id: string;
+      name: string;
+      slug: string;
+      color: string | null;
+    }>;
+    user?: {
+      id: string;
+      name: string;
+      image: string | null;
+    } | null;
   }>;
+  onEdit?: (paste: PasteTableProps["pastes"][0]) => void;
+  visibleColumns?: {
+    avatar: boolean;
+    language: boolean;
+    status: boolean;
+    views: boolean;
+    created: boolean;
+  };
 }
 
-export function PasteTable({ pastes }: PasteTableProps) {
+export function PasteTable({ 
+  pastes, 
+  onEdit, 
+  visibleColumns = {
+    avatar: true,
+    language: true,
+    status: true,
+    views: true,
+    created: true,
+  }
+}: PasteTableProps) {
   const router = useRouter();
   const [showDeleteDialog, setShowDeleteDialog] = useState<string | null>(null);
   const [copied, setCopied] = useState<string | null>(null);
@@ -148,11 +182,12 @@ export function PasteTable({ pastes }: PasteTableProps) {
               <TableHead className="w-8">
                 <input type="checkbox" className="rounded border-border" />
               </TableHead>
+              {visibleColumns.avatar && <TableHead className="w-10"></TableHead>}
               <TableHead>Title</TableHead>
-              <TableHead>Language</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Views</TableHead>
-              <TableHead>Created</TableHead>
+              {visibleColumns.language && <TableHead>Language</TableHead>}
+              {visibleColumns.status && <TableHead>Status</TableHead>}
+              {visibleColumns.views && <TableHead>Views</TableHead>}
+              {visibleColumns.created && <TableHead>Created</TableHead>}
               <TableHead className="w-12"></TableHead>
             </TableRow>
           </TableHeader>
@@ -166,6 +201,18 @@ export function PasteTable({ pastes }: PasteTableProps) {
                   <TableCell>
                     <input type="checkbox" className="rounded border-border" />
                   </TableCell>
+                  {visibleColumns.avatar && (
+                    <TableCell>
+                      {paste.user && (
+                        <Avatar className="h-8 w-8">
+                          <AvatarImage src={paste.user.image || undefined} alt={paste.user.name} />
+                          <AvatarFallback className="text-xs bg-muted">
+                            {paste.user.name.charAt(0).toUpperCase()}
+                          </AvatarFallback>
+                        </Avatar>
+                      )}
+                    </TableCell>
+                  )}
                   <TableCell>
                     <div className="flex flex-col gap-1 min-w-0">
                       <Link
@@ -174,6 +221,11 @@ export function PasteTable({ pastes }: PasteTableProps) {
                       >
                         {paste.title || `Paste ${paste.slug}`}
                       </Link>
+                      {paste.description && (
+                        <p className="text-xs text-muted-foreground line-clamp-1 mt-0.5">
+                          {paste.description}
+                        </p>
+                      )}
                       <div className="flex items-center gap-2">
                         {paste.hasPassword && (
                           <Badge
@@ -190,7 +242,7 @@ export function PasteTable({ pastes }: PasteTableProps) {
                             className="h-4 px-1.5 text-xs bg-orange-50 text-orange-700 border-orange-200 dark:bg-orange-900/30 dark:text-orange-400 dark:border-orange-700/50"
                           >
                             <Zap className="h-2.5 w-2.5 mr-0.5" />
-                            Burn
+                            Burn after {paste.burnAfterReadViews || 1} view{(paste.burnAfterReadViews || 1) !== 1 ? 's' : ''}
                           </Badge>
                         )}
                         {paste.expiresAt && !isExpired && (
@@ -212,33 +264,61 @@ export function PasteTable({ pastes }: PasteTableProps) {
                           </Badge>
                         )}
                       </div>
+                      {/* Tags */}
+                      {paste.tags && paste.tags.length > 0 && (
+                        <div className="flex flex-wrap items-center gap-1 mt-1">
+                          {paste.tags.slice(0, 3).map((tag) => (
+                            <Badge
+                              key={tag.id}
+                              variant="outline"
+                              className="h-4 px-1.5 text-xs bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-900/30 dark:text-purple-400 dark:border-purple-700/50"
+                            >
+                              <Tag className="h-2.5 w-2.5 mr-0.5" />
+                              {tag.name}
+                            </Badge>
+                          ))}
+                          {paste.tags.length > 3 && (
+                            <span className="text-xs text-muted-foreground">
+                              +{paste.tags.length - 3} more
+                            </span>
+                          )}
+                        </div>
+                      )}
                     </div>
                   </TableCell>
-                  <TableCell>
-                    <Badge
-                      variant="outline"
-                      className="h-5 px-2 text-xs font-medium bg-slate-50 text-slate-700 border-slate-200 dark:bg-slate-800/50 dark:text-slate-300 dark:border-slate-600/50"
-                    >
-                      {paste.language}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      <div className={`w-2 h-2 rounded-full ${visibilityInfo.dotColor}`} />
-                      <span className="text-sm">{visibilityInfo.label}</span>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-1 text-sm">
-                      <Eye className="h-3.5 w-3.5 text-muted-foreground" />
-                      {paste.views}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <span className="text-sm text-muted-foreground">
-                      {formatDistanceToNow(paste.createdAt, { addSuffix: true })}
-                    </span>
-                  </TableCell>
+                  {visibleColumns.language && (
+                    <TableCell>
+                      <Badge
+                        variant="outline"
+                        className="h-5 px-2 text-xs font-medium bg-slate-50 text-slate-700 border-slate-200 dark:bg-slate-800/50 dark:text-slate-300 dark:border-slate-600/50"
+                      >
+                        {paste.language}
+                      </Badge>
+                    </TableCell>
+                  )}
+                  {visibleColumns.status && (
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <div className={`w-2 h-2 rounded-full ${visibilityInfo.dotColor}`} />
+                        <span className="text-sm">{visibilityInfo.label}</span>
+                      </div>
+                    </TableCell>
+                  )}
+                  {visibleColumns.views && (
+                    <TableCell>
+                      <div className="flex items-center gap-1 text-sm">
+                        <Eye className="h-3.5 w-3.5 text-muted-foreground" />
+                        {paste.views}
+                      </div>
+                    </TableCell>
+                  )}
+                  {visibleColumns.created && (
+                    <TableCell>
+                      <span className="text-sm text-muted-foreground">
+                        {formatDistanceToNow(paste.createdAt, { addSuffix: true })}
+                      </span>
+                    </TableCell>
+                  )}
                   <TableCell>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
@@ -275,6 +355,12 @@ export function PasteTable({ pastes }: PasteTableProps) {
                           </div>
                           {copied === paste.id ? "Copied!" : "Copy URL"}
                         </DropdownMenuItem>
+                        {onEdit && (
+                          <DropdownMenuItem onClick={() => onEdit(paste)}>
+                            <Pencil className="h-4 w-4" />
+                            Edit Paste
+                          </DropdownMenuItem>
+                        )}
                         <DropdownMenuSeparator />
                         <DropdownMenuItem
                           onClick={() => setShowDeleteDialog(paste.id)}
@@ -314,7 +400,7 @@ export function PasteTable({ pastes }: PasteTableProps) {
             >
               {isPending ? (
                 <div className="flex items-center gap-2">
-                  <Loader2 className="h-3 w-3 animate-spin" />
+                  <Loader className="h-3 w-3 animate-spin" />
                   Deleting...
                 </div>
               ) : (
