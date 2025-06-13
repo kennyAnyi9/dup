@@ -20,7 +20,7 @@ import {
   Globe, 
   Lock, 
   EyeOff,
-  Loader2
+  Loader
 } from "lucide-react";
 import { useKeyboardShortcuts, isMac } from "@/hooks/use-keyboard-shortcuts";
 
@@ -286,7 +286,7 @@ export function SearchFilters({
       {/* Loading indicator */}
       {isPending && (
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <Loader2 className="h-3 w-3 animate-spin" />
+          <Loader className="h-3 w-3 animate-spin" />
           Updating results...
         </div>
       )}

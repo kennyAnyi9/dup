@@ -11,6 +11,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
@@ -31,10 +32,11 @@ import {
   Eye,
   EyeOff,
   Globe,
-  Loader2,
+  Loader,
   Lock,
   MoreHorizontal,
   Shield,
+  Tag,
   Trash2,
   Zap,
 } from "lucide-react";
@@ -48,6 +50,7 @@ interface PasteCardProps {
     id: string;
     slug: string;
     title: string | null;
+    description: string | null;
     content: string;
     language: string;
     visibility: string;
@@ -55,7 +58,19 @@ interface PasteCardProps {
     createdAt: Date;
     expiresAt: Date | null;
     burnAfterRead: boolean;
+    burnAfterReadViews: number | null;
     hasPassword: boolean;
+    tags?: Array<{
+      id: string;
+      name: string;
+      slug: string;
+      color: string | null;
+    }>;
+    user?: {
+      id: string;
+      name: string;
+      image: string | null;
+    } | null;
   };
 }
 
@@ -143,27 +158,52 @@ export function PasteCard({ paste }: PasteCardProps) {
         <CardContent className="p-4 flex-1 flex flex-col min-h-0">
           {/* Header */}
           <div className="flex items-start justify-between gap-3 mb-3">
-            <div className="flex-1 min-w-0">
-              <Link
-                href={`/p/${paste.slug}`}
-                className="hover:text-primary transition-colors duration-200 block group-hover:text-primary"
-              >
-                <h3 className="font-semibold text-sm truncate leading-tight">
-                  {paste.title || `Paste ${paste.slug}`}
-                </h3>
-              </Link>
-              <div className="flex items-center gap-2 mt-1">
-                <p className="text-xs text-muted-foreground">
-                  {formatDistanceToNow(paste.createdAt, { addSuffix: true })}
-                </p>
-                {paste.expiresAt && !isExpired && (
-                  <div className="flex items-center gap-1 text-xs text-amber-600 dark:text-amber-400">
-                    <Clock className="h-3 w-3" />
-                    <span className="hidden sm:inline">
-                      Expires {formatDistanceToNow(paste.expiresAt, { addSuffix: true })}
-                    </span>
-                  </div>
+            <div className="flex gap-3 flex-1 min-w-0">
+              {/* Avatar */}
+              {paste.user && (
+                <Avatar className="h-8 w-8 shrink-0">
+                  <AvatarImage src={paste.user.image || undefined} alt={paste.user.name} />
+                  <AvatarFallback className="text-xs bg-muted">
+                    {paste.user.name.charAt(0).toUpperCase()}
+                  </AvatarFallback>
+                </Avatar>
+              )}
+              
+              <div className="flex-1 min-w-0">
+                <Link
+                  href={`/p/${paste.slug}`}
+                  className="hover:text-primary transition-colors duration-200 block group-hover:text-primary"
+                >
+                  <h3 className="font-semibold text-sm truncate leading-tight">
+                    {paste.title || `Paste ${paste.slug}`}
+                  </h3>
+                </Link>
+                
+                {/* Description */}
+                {paste.description && (
+                  <p className="text-xs text-muted-foreground mt-1 line-clamp-2 leading-relaxed">
+                    {paste.description}
+                  </p>
                 )}
+                
+                <div className="flex items-center gap-2 mt-1">
+                  {paste.user && (
+                    <span className="text-xs text-muted-foreground font-medium">
+                      {paste.user.name}
+                    </span>
+                  )}
+                  <span className="text-xs text-muted-foreground">
+                    {formatDistanceToNow(paste.createdAt, { addSuffix: true })}
+                  </span>
+                  {paste.expiresAt && !isExpired && (
+                    <div className="flex items-center gap-1 text-xs text-amber-600 dark:text-amber-400">
+                      <Clock className="h-3 w-3" />
+                      <span className="hidden sm:inline">
+                        Expires {formatDistanceToNow(paste.expiresAt, { addSuffix: true })}
+                      </span>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
 
@@ -271,7 +311,7 @@ export function PasteCard({ paste }: PasteCardProps) {
                 className="h-5 px-2 text-xs font-medium bg-orange-50 text-orange-700 border-orange-200 dark:bg-orange-900/30 dark:text-orange-400 dark:border-orange-700/50"
               >
                 <Zap className="h-2.5 w-2.5 mr-1" />
-                Burn
+                Burn after {paste.burnAfterReadViews || 1} view{(paste.burnAfterReadViews || 1) !== 1 ? 's' : ''}
               </Badge>
             )}
 
@@ -285,6 +325,22 @@ export function PasteCard({ paste }: PasteCardProps) {
               </Badge>
             )}
           </div>
+
+          {/* Tags */}
+          {paste.tags && paste.tags.length > 0 && (
+            <div className="flex flex-wrap items-center gap-1.5 mb-3">
+              {paste.tags.map((tag) => (
+                <Badge
+                  key={tag.id}
+                  variant="outline"
+                  className="h-5 px-2 text-xs font-medium bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-900/30 dark:text-purple-400 dark:border-purple-700/50"
+                >
+                  <Tag className="h-2.5 w-2.5 mr-1" />
+                  {tag.name}
+                </Badge>
+              ))}
+            </div>
+          )}
 
         </CardContent>
 
@@ -345,7 +401,7 @@ export function PasteCard({ paste }: PasteCardProps) {
             >
               {isPending ? (
                 <div className="flex items-center gap-2">
-                  <Loader2 className="h-3 w-3 animate-spin" />
+                  <Loader className="h-3 w-3 animate-spin" />
                   Deleting...
                 </div>
               ) : (

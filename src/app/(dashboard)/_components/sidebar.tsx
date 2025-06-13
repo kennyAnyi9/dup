@@ -7,7 +7,6 @@ import { Logo } from "@/components/common/logo";
 import { formatDistanceToNow } from "date-fns";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -40,9 +39,15 @@ interface SidebarProps {
     id: string;
     slug: string;
     title: string | null;
+    description: string | null;
     language: string;
     views: number;
     createdAt: Date;
+    user: {
+      id: string;
+      name: string;
+      image: string | null;
+    } | null;
   }>;
 }
 
@@ -138,18 +143,14 @@ export function Sidebar({ user, stats, recentPublicPastes }: SidebarProps) {
 
           {/* Quick Stats */}
           <div className="grid grid-cols-2 gap-3 mb-4">
-            <Card>
-              <CardContent className="p-3">
-                <div className="text-2xl font-bold">{stats.totalPastes}</div>
-                <p className="text-xs text-muted-foreground">Total Pastes</p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-3">
-                <div className="text-2xl font-bold">{stats.totalViews}</div>
-                <p className="text-xs text-muted-foreground">Total Views</p>
-              </CardContent>
-            </Card>
+            <div className="p-3 rounded-md border border-border">
+              <div className="text-2xl font-bold">{stats.totalPastes}</div>
+              <p className="text-xs text-muted-foreground">Total Pastes</p>
+            </div>
+            <div className="p-3 rounded-md border border-border">
+              <div className="text-2xl font-bold">{stats.totalViews}</div>
+              <p className="text-xs text-muted-foreground">Total Views</p>
+            </div>
           </div>
 
           {/* Create Paste Button */}
@@ -195,14 +196,37 @@ export function Sidebar({ user, stats, recentPublicPastes }: SidebarProps) {
             <div className="space-y-2">
               {recentPublicPastes.length > 0 ? (
                 recentPublicPastes.map((paste) => (
-                  <Card key={paste.id} className="p-3 hover:bg-muted/50 transition-colors">
-                    <div className="space-y-1">
-                      <Link
-                        href={`/p/${paste.slug}`}
-                        className="block text-sm font-medium hover:underline line-clamp-1"
-                      >
-                        {paste.title || `Paste ${paste.slug}`}
-                      </Link>
+                  <div key={paste.id} className="p-3 rounded-md border border-border hover:bg-muted/50 transition-colors">
+                    <div className="space-y-2">
+                      <div className="flex items-start gap-2">
+                        {paste.user && (
+                          <Avatar className="h-6 w-6 shrink-0">
+                            <AvatarImage src={paste.user.image || undefined} alt={paste.user.name} />
+                            <AvatarFallback className="text-xs bg-muted text-[10px]">
+                              {paste.user.name.charAt(0).toUpperCase()}
+                            </AvatarFallback>
+                          </Avatar>
+                        )}
+                        <div className="flex-1 min-w-0">
+                          <Link
+                            href={`/p/${paste.slug}`}
+                            className="block text-sm font-medium hover:underline line-clamp-1"
+                          >
+                            {paste.title || `Paste ${paste.slug}`}
+                          </Link>
+                          {paste.user && (
+                            <p className="text-xs text-muted-foreground">
+                              by {paste.user.name}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                      
+                      {paste.description && (
+                        <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
+                          {paste.description}
+                        </p>
+                      )}
                       
                       <div className="flex items-center gap-2">
                         <Badge variant="outline" className="text-xs">
@@ -223,7 +247,7 @@ export function Sidebar({ user, stats, recentPublicPastes }: SidebarProps) {
                         </div>
                       </div>
                     </div>
-                  </Card>
+                  </div>
                 ))
               ) : (
                 <div className="text-center py-4">
