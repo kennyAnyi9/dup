@@ -80,17 +80,17 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
                   <Logo width={40} height={40} className="h-10 w-10" />
                 </div>
               </Link>
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-slash -rotate-12 mr-0.5 ml-2.5 h-4 w-4 text-muted-foreground">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-slash -rotate-12 mr-0.5 ml-2.5 h-4 w-4 text-muted-foreground hidden sm:block">
                 <path d="M22 2 2 22"></path>
               </svg>
-              <div className="w-40">
+              <div className="w-20 sm:w-40 hidden sm:block">
                 <span className="truncate text-sm font-medium">{user.name || user.email}</span>
               </div>
             </div>
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2 sm:gap-4">
               <Link 
                 href="/changelog" 
-                className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+                className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors hidden sm:block"
               >
                 Changelog
               </Link>
@@ -107,15 +107,17 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
           <DashboardSidebar recentPublicPastes={recentPublicPastesData.pastes} totalPublicPastes={recentPublicPastesData.total} />
           
           {/* Main Content Area */}
-          <div className="basis-4/5 rounded-lg border border-border px-3 py-4 backdrop-blur-[2px] md:p-6 relative overflow-hidden min-w-0">
+          <div className="flex-1 lg:basis-4/5 rounded-lg border border-border px-3 py-4 backdrop-blur-[2px] md:p-6 relative overflow-hidden min-w-0">
             <div className="flex flex-col gap-3 h-full">
               {/* Page Header */}
-              <div className="col-span-full flex items-start justify-between gap-1">
+              <div className="col-span-full flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-1">
                 <div className="flex min-w-0 flex-col gap-1">
-                  <h1 className="font-cal text-3xl">My Pastes</h1>
-                  <p className="text-muted-foreground">Manage and organize your code snippets.</p>
+                  <h1 className="font-cal text-2xl sm:text-3xl">My Pastes</h1>
+                  <p className="text-muted-foreground text-sm sm:text-base">Manage and organize your code snippets.</p>
                 </div>
-                <DashboardHeaderButton />
+                <div className="sm:shrink-0">
+                  <DashboardHeaderButton />
+                </div>
               </div>
 
               {/* Search and Filters */}
@@ -176,7 +178,7 @@ async function PastesContent({
       </div>
 
       {/* Pastes Table */}
-      <div className="flex-1 overflow-auto">
+      <div className="flex-1 min-h-0">
         <PastesContentWrapper pastes={pastes} />
       </div>
 

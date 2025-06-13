@@ -29,6 +29,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Checkbox } from "@/components/ui/checkbox";
 import { formatDistanceToNow } from "date-fns";
 import {
   AlertTriangle,
@@ -88,6 +89,10 @@ interface PasteTableProps {
     views: boolean;
     created: boolean;
   };
+  selectedPastes?: Set<string>;
+  onSelectPaste?: (pasteId: string, selected: boolean) => void;
+  onSelectAll?: (selected: boolean) => void;
+  allSelected?: boolean;
 }
 
 export function PasteTable({ 
@@ -99,7 +104,11 @@ export function PasteTable({
     status: true,
     views: true,
     created: true,
-  }
+  },
+  selectedPastes = new Set(),
+  onSelectPaste,
+  onSelectAll,
+  allSelected = false,
 }: PasteTableProps) {
   const router = useRouter();
   const [showDeleteDialog, setShowDeleteDialog] = useState<string | null>(null);
@@ -176,17 +185,27 @@ export function PasteTable({
   return (
     <>
       <div className="rounded-lg border border-border overflow-hidden">
-        <Table>
+        <Table className={`${
+          Object.values(visibleColumns).some(visible => visible) 
+            ? 'min-w-[600px]' 
+            : ''
+        }`}>
           <TableHeader>
             <TableRow className="hover:bg-transparent">
-              <TableHead className="w-8">
-                <input type="checkbox" className="rounded border-border" />
+              <TableHead className="w-12">
+                {onSelectAll && (
+                  <Checkbox
+                    checked={allSelected}
+                    onCheckedChange={onSelectAll}
+                    aria-label="Select all pastes"
+                  />
+                )}
               </TableHead>
-              {visibleColumns.avatar && <TableHead className="w-10"></TableHead>}
+              {visibleColumns.avatar && <TableHead className="w-10">Avatar</TableHead>}
               <TableHead>Title</TableHead>
               {visibleColumns.language && <TableHead>Language</TableHead>}
               {visibleColumns.status && <TableHead>Status</TableHead>}
-              {visibleColumns.views && <TableHead>Views</TableHead>}
+              {visibleColumns.views && <TableHead>Reads</TableHead>}
               {visibleColumns.created && <TableHead>Created</TableHead>}
               <TableHead className="w-12"></TableHead>
             </TableRow>
@@ -199,7 +218,13 @@ export function PasteTable({
               return (
                 <TableRow key={paste.id} className={isExpired ? "opacity-60" : ""}>
                   <TableCell>
-                    <input type="checkbox" className="rounded border-border" />
+                    {onSelectPaste && (
+                      <Checkbox
+                        checked={selectedPastes.has(paste.id)}
+                        onCheckedChange={(checked) => onSelectPaste(paste.id, checked as boolean)}
+                        aria-label={`Select paste ${paste.title || paste.slug}`}
+                      />
+                    )}
                   </TableCell>
                   {visibleColumns.avatar && (
                     <TableCell>
@@ -226,6 +251,23 @@ export function PasteTable({
                           {paste.description}
                         </p>
                       )}
+                      
+                      {/* Mobile-only metadata */}
+                      <div className="flex items-center gap-2 sm:hidden mt-1">
+                        <Badge
+                          variant="outline"
+                          className="h-4 px-1.5 text-xs bg-slate-50 text-slate-700 border-slate-200 dark:bg-slate-800/50 dark:text-slate-300 dark:border-slate-600/50"
+                        >
+                          {paste.language}
+                        </Badge>
+                        <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                          <Eye className="h-3 w-3" />
+                          {paste.views}
+                        </div>
+                        <span className="text-xs text-muted-foreground">
+                          {formatDistanceToNow(paste.createdAt, { addSuffix: true })}
+                        </span>
+                      </div>
                       <div className="flex items-center gap-2">
                         {paste.hasPassword && (
                           <Badge
