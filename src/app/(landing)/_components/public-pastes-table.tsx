@@ -14,7 +14,7 @@ import {
 import { formatDistanceToNow } from "date-fns";
 import { Clipboard, Eye, FileText } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { toast } from "sonner";
 
 interface Paste {
@@ -24,7 +24,7 @@ interface Paste {
   description: string | null;
   language: string;
   views: number;
-  createdAt: Date;
+  createdAt: string;
   user: {
     name: string;
     image: string | null;
@@ -37,14 +37,31 @@ interface PublicPastesTableProps {
 
 export function PublicPastesTable({ pastes }: PublicPastesTableProps) {
   const [copied, setCopied] = useState<string | null>(null);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
+  }, []);
 
   async function handleCopyUrl(paste: Paste) {
     try {
+      // Clear any existing timeout
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+
       const pasteUrl = `${window.location.origin}/p/${paste.slug}`;
       await navigator.clipboard.writeText(pasteUrl);
       setCopied(paste.id);
       toast.success("URL copied to clipboard!");
-      setTimeout(() => setCopied(null), 2000);
+      
+      // Store timeout ID in ref for cleanup
+      timeoutRef.current = setTimeout(() => setCopied(null), 2000);
     } catch (error) {
       toast.error("Failed to copy URL");
       console.error("Copy failed:", error);
@@ -123,7 +140,7 @@ export function PublicPastesTable({ pastes }: PublicPastesTableProps) {
                       {paste.views}
                     </div>
                     <span className="text-xs text-muted-foreground">
-                      {formatDistanceToNow(paste.createdAt, {
+                      {formatDistanceToNow(new Date(paste.createdAt), {
                         addSuffix: true,
                       })}
                     </span>
@@ -143,7 +160,7 @@ export function PublicPastesTable({ pastes }: PublicPastesTableProps) {
               </TableCell>
               <TableCell className="py-4 hidden lg:table-cell">
                 <span className="text-sm text-muted-foreground">
-                  {formatDistanceToNow(paste.createdAt, {
+                  {formatDistanceToNow(new Date(paste.createdAt), {
                     addSuffix: true,
                   })}
                 </span>

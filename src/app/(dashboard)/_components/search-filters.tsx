@@ -156,10 +156,10 @@ export function SearchFilters({
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3 md:space-y-4">
       {/* Search and Quick Actions */}
-      <div className="flex flex-col sm:flex-row sm:justify-between gap-3">
-        <form onSubmit={handleSearchSubmit} className="flex-1 max-w-md">
+      <div className="flex flex-col gap-3">
+        <form onSubmit={handleSearchSubmit} className="w-full">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
@@ -167,10 +167,10 @@ export function SearchFilters({
               placeholder="Search pastes..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="pl-10 pr-24"
+              className="pl-10 pr-24 h-9 md:h-10"
             />
             {!search && (
-              <kbd className="absolute right-3 top-1/2 -translate-y-1/2 hidden sm:inline-flex h-5 select-none items-center gap-1 rounded border bg-muted border-border px-1.5 font-mono text-[10px] font-medium text-muted-foreground">
+              <kbd className="absolute right-3 top-1/2 -translate-y-1/2 hidden md:inline-flex h-5 select-none items-center gap-1 rounded border bg-muted border-border px-1.5 font-mono text-[10px] font-medium text-muted-foreground">
                 <span className="text-xs">{isMac() ? '⌘' : 'Ctrl'}</span>
                 <span>K</span>
               </kbd>
@@ -189,10 +189,10 @@ export function SearchFilters({
           </div>
         </form>
 
-        <div className="flex gap-2 flex-wrap">
+        <div className="flex gap-2">
           {/* Filter Dropdown */}
           <Select value={filter} onValueChange={handleFilterChange}>
-            <SelectTrigger className="min-w-[100px] flex-1 sm:flex-initial sm:w-[130px]">
+            <SelectTrigger className="flex-1 h-9 md:h-10 md:flex-initial md:w-[130px]">
               <div className="flex items-center gap-2">
                 {getFilterIcon(filter)}
                 <SelectValue />
@@ -208,7 +208,7 @@ export function SearchFilters({
 
           {/* Sort Dropdown */}
           <Select value={sort} onValueChange={handleSortChange}>
-            <SelectTrigger className="min-w-[90px] flex-1 sm:flex-initial sm:w-[110px]">
+            <SelectTrigger className="flex-1 h-9 md:h-10 md:flex-initial md:w-[110px]">
               <div className="flex items-center gap-2">
                 <SortAsc className="h-3 w-3" />
                 <SelectValue />
@@ -226,7 +226,7 @@ export function SearchFilters({
       {/* Active Filters */}
       {hasActiveFilters && (
         <div className="flex flex-wrap items-center gap-2">
-          <span className="text-sm text-muted-foreground">Active filters:</span>
+          <span className="text-xs md:text-sm text-muted-foreground">Active filters:</span>
           
           {search && (
             <Badge variant="secondary" className="gap-1">
@@ -278,7 +278,8 @@ export function SearchFilters({
             onClick={clearAllFilters}
             className="h-6 px-2 text-xs"
           >
-            Clear all
+            <span className="hidden sm:inline">Clear all</span>
+            <span className="sm:hidden">Clear</span>
           </Button>
         </div>
       )}

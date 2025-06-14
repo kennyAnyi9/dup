@@ -29,7 +29,6 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Separator } from "@/components/ui/separator";
 import { useAuth } from "@/hooks/use-auth";
 import {
@@ -45,7 +44,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import {
   Calendar,
   Check,
-  ChevronDown,
   Code,
   Eye,
   EyeOff,
@@ -53,14 +51,12 @@ import {
   Globe,
   Loader,
   Lock,
-  CornerDownLeft,
   Settings,
   Tag,
   Type,
   Zap,
 } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useState, useTransition, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -89,10 +85,8 @@ export function PasteFormModal({
   editingPaste = null,
 }: PasteFormModalProps) {
   const { isAuthenticated } = useAuth();
-  const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [showPassword, setShowPassword] = useState(false);
-  const [showAdvancedOptions, setShowAdvancedOptions] = useState(false);
   const [urlAvailability, setUrlAvailability] = useState<{
     isChecking: boolean;
     available: boolean | null;
@@ -173,10 +167,21 @@ export function PasteFormModal({
         const result = await createPaste(data);
 
         if (result.success && result.paste) {
-          toast.success("Paste created successfully!");
+          const pasteUrl = `${window.location.origin}/p/${result.paste.slug}`;
+          
+          // Copy URL to clipboard
+          try {
+            await navigator.clipboard.writeText(pasteUrl);
+            toast.success("Paste created successfully! URL copied to clipboard.");
+          } catch {
+            toast.success("Paste created successfully!");
+          }
+          
           onOpenChange(false);
           form.reset();
-          router.push(`/p/${result.paste.slug}`);
+          
+          // Don't redirect - let the table update instead
+          // router.push(`/p/${result.paste.slug}`);
         } else {
           toast.error(result.error || "Failed to create paste");
         }
@@ -203,27 +208,27 @@ export function PasteFormModal({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-[90vw] w-full max-h-[85vh] sm:max-w-2xl lg:max-w-4xl xl:max-w-5xl p-0 gap-0">
-        <DialogHeader className="px-3 sm:px-4 py-2 sm:py-3 border-b">
-          <DialogTitle className="flex items-center justify-between text-base sm:text-lg">
+        <DialogHeader className="px-3 sm:px-4 py-2 sm:py-3 border-b space-y-2">
+          <DialogTitle className="flex items-center gap-2 text-base sm:text-lg">
+            <Code className="h-4 w-4" />
+            <span>{editingPaste ? "Edit Paste" : "Create Paste"}</span>
+          </DialogTitle>
+          {(!isAuthenticated || watchedBurnAfterRead) && (
             <div className="flex items-center gap-2">
-              <Code className="h-4 w-4" />
-              <span>{editingPaste ? "Edit Paste" : "Create Paste"}</span>
-            </div>
-            <div className="flex items-center gap-1">
               {!isAuthenticated && (
                 <Badge variant="outline" className="text-xs px-2 py-0.5">
                   <Globe className="h-2.5 w-2.5 mr-1" />
-                  Guest
+                  Guest Mode
                 </Badge>
               )}
               {watchedBurnAfterRead && (
                 <Badge variant="destructive" className="text-xs px-2 py-0.5">
                   <Zap className="h-2.5 w-2.5 mr-1" />
-                  Burn
+                  Burn After Read
                 </Badge>
               )}
             </div>
-          </DialogTitle>
+          )}
         </DialogHeader>
 
         <ScrollArea className="flex-1 max-h-[calc(85vh-120px)]">
@@ -358,7 +363,8 @@ export function PasteFormModal({
                       Settings
                     </CardTitle>
                   </CardHeader>
-                  <CardContent className="space-y-4">
+                  <CardContent className="space-y-6">
+                    {/* Basic Settings */}
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                       {/* Language */}
                       <FormField
@@ -483,180 +489,165 @@ export function PasteFormModal({
                         )}
                       />
                     </div>
-                  </CardContent>
-                </Card>
 
-                {/* Advanced Options */}
-                <Collapsible open={showAdvancedOptions} onOpenChange={setShowAdvancedOptions}>
-                  <CollapsibleTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      className="flex w-full justify-between p-0 font-normal hover:bg-transparent"
-                      type="button"
-                    >
-                      <span className="text-sm font-medium">Advanced Options</span>
-                      <ChevronDown
-                        className={`h-4 w-4 transition-transform duration-200 ${
-                          showAdvancedOptions ? "rotate-180" : ""
-                        }`}
-                      />
-                    </Button>
-                  </CollapsibleTrigger>
-                  <CollapsibleContent className="space-y-4">
-                    <Card>
-                      <CardContent className="pt-6 space-y-4">
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                          {/* Password Protection */}
+                    <Separator />
+
+                    {/* Advanced Options */}
+                    <div className="space-y-4">
+                      <h4 className="text-sm font-medium text-muted-foreground">Advanced Options</h4>
+                      
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        {/* Password Protection */}
+                        <FormField
+                          control={form.control}
+                          name="password"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel className="text-sm flex items-center gap-1.5">
+                                <Lock className="h-3 w-3" />
+                                Password (optional)
+                              </FormLabel>
+                              <FormControl>
+                                <div className="relative">
+                                  <Input
+                                    type={showPassword ? "text" : "password"}
+                                    placeholder="Protect with password..."
+                                    className="h-9 pr-8"
+                                    {...field}
+                                  />
+                                  <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="sm"
+                                    className="absolute right-0 top-0 h-9 w-9 hover:bg-transparent"
+                                    onClick={() => setShowPassword(!showPassword)}
+                                  >
+                                    {showPassword ? (
+                                      <EyeOffIcon className="h-3 w-3" />
+                                    ) : (
+                                      <Eye className="h-3 w-3" />
+                                    )}
+                                  </Button>
+                                </div>
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        {/* Custom URL - Only for authenticated users */}
+                        {isAuthenticated && (
                           <FormField
                             control={form.control}
-                            name="password"
+                            name="customUrl"
                             render={({ field }) => (
                               <FormItem>
-                                <FormLabel className="text-xs flex items-center gap-1.5">
-                                  <Lock className="h-3 w-3" />
-                                  Password (optional)
+                                <FormLabel className="text-sm flex items-center gap-1.5">
+                                  <Type className="h-3 w-3" />
+                                  Custom URL (optional)
                                 </FormLabel>
                                 <FormControl>
                                   <div className="relative">
+                                    <span className="absolute left-2 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">
+                                      /p/
+                                    </span>
                                     <Input
-                                      type={showPassword ? "text" : "password"}
-                                      placeholder="Protect with password..."
-                                      className="h-8 pr-8 text-sm"
+                                      placeholder="my-custom-url"
+                                      className={`h-9 pl-8 pr-8 ${
+                                        field.value && urlAvailability.available === false
+                                          ? "border-destructive focus-visible:ring-destructive"
+                                          : field.value && urlAvailability.available === true
+                                          ? "border-green-500 focus-visible:ring-green-500"
+                                          : ""
+                                      }`}
                                       {...field}
                                     />
-                                    <Button
-                                      type="button"
-                                      variant="ghost"
-                                      size="sm"
-                                      className="absolute right-0 top-0 h-8 w-8 hover:bg-transparent"
-                                      onClick={() => setShowPassword(!showPassword)}
-                                    >
-                                      {showPassword ? (
-                                        <EyeOffIcon className="h-3 w-3" />
-                                      ) : (
-                                        <Eye className="h-3 w-3" />
-                                      )}
-                                    </Button>
+                                    {field.value && (
+                                      <div className="absolute right-2 top-1/2 -translate-y-1/2">
+                                        {urlAvailability.isChecking ? (
+                                          <Loader className="h-3 w-3 animate-spin text-muted-foreground" />
+                                        ) : urlAvailability.available === true ? (
+                                          <Check className="h-3 w-3 text-green-500" />
+                                        ) : urlAvailability.available === false ? (
+                                          <div className="h-3 w-3 rounded-full bg-destructive" />
+                                        ) : null}
+                                      </div>
+                                    )}
                                   </div>
+                                </FormControl>
+                                {field.value && urlAvailability.available === false && (
+                                  <p className="text-xs text-destructive">
+                                    {urlAvailability.error || "This URL is already taken"}
+                                  </p>
+                                )}
+                                {field.value && urlAvailability.available === true && (
+                                  <p className="text-xs text-green-600">
+                                    URL is available
+                                  </p>
+                                )}
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        )}
+                      </div>
+
+                      {/* Burn After Read - Enhanced */}
+                      <div className="space-y-3">
+                        <FormField
+                          control={form.control}
+                          name="burnAfterRead"
+                          render={({ field }) => (
+                            <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-3">
+                              <FormControl>
+                                <Checkbox
+                                  checked={field.value}
+                                  onCheckedChange={field.onChange}
+                                />
+                              </FormControl>
+                              <div className="space-y-1 leading-none">
+                                <FormLabel className="text-sm flex items-center gap-1.5">
+                                  <Zap className="h-3 w-3" />
+                                  Burn After Read
+                                </FormLabel>
+                                <div className="text-xs text-muted-foreground">
+                                  Delete after specified views
+                                </div>
+                              </div>
+                            </FormItem>
+                          )}
+                        />
+
+                        {watchedBurnAfterRead && (
+                          <FormField
+                            control={form.control}
+                            name="burnAfterReadViews"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel className="text-sm">
+                                  Delete after how many views?
+                                </FormLabel>
+                                <FormControl>
+                                  <Input
+                                    type="number"
+                                    min="1"
+                                    max="100"
+                                    placeholder="1"
+                                    className="h-9"
+                                    {...field}
+                                    onChange={(e) => field.onChange(parseInt(e.target.value) || 1)}
+                                  />
                                 </FormControl>
                                 <FormMessage />
                               </FormItem>
                             )}
                           />
+                        )}
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
 
-                          {/* Custom URL - Only for authenticated users */}
-                          {isAuthenticated && (
-                            <FormField
-                              control={form.control}
-                              name="customUrl"
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel className="text-xs flex items-center gap-1.5">
-                                    <Type className="h-3 w-3" />
-                                    Custom URL (optional)
-                                  </FormLabel>
-                                  <FormControl>
-                                    <div className="relative">
-                                      <span className="absolute left-2 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">
-                                        /p/
-                                      </span>
-                                      <Input
-                                        placeholder="my-custom-url"
-                                        className={`h-8 pl-8 pr-8 text-sm ${
-                                          field.value && urlAvailability.available === false
-                                            ? "border-destructive focus-visible:ring-destructive"
-                                            : field.value && urlAvailability.available === true
-                                            ? "border-green-500 focus-visible:ring-green-500"
-                                            : ""
-                                        }`}
-                                        {...field}
-                                      />
-                                      {field.value && (
-                                        <div className="absolute right-2 top-1/2 -translate-y-1/2">
-                                          {urlAvailability.isChecking ? (
-                                            <Loader className="h-3 w-3 animate-spin text-muted-foreground" />
-                                          ) : urlAvailability.available === true ? (
-                                            <Check className="h-3 w-3 text-green-500" />
-                                          ) : urlAvailability.available === false ? (
-                                            <div className="h-3 w-3 rounded-full bg-destructive" />
-                                          ) : null}
-                                        </div>
-                                      )}
-                                    </div>
-                                  </FormControl>
-                                  {field.value && urlAvailability.available === false && (
-                                    <p className="text-xs text-destructive">
-                                      {urlAvailability.error || "This URL is already taken"}
-                                    </p>
-                                  )}
-                                  {field.value && urlAvailability.available === true && (
-                                    <p className="text-xs text-green-600">
-                                      URL is available
-                                    </p>
-                                  )}
-                                  <FormMessage />
-                                </FormItem>
-                              )}
-                            />
-                          )}
-                        </div>
-
-                        {/* Burn After Read - Enhanced */}
-                        <div className="space-y-3">
-                          <FormField
-                            control={form.control}
-                            name="burnAfterRead"
-                            render={({ field }) => (
-                              <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-3">
-                                <FormControl>
-                                  <Checkbox
-                                    checked={field.value}
-                                    onCheckedChange={field.onChange}
-                                  />
-                                </FormControl>
-                                <div className="space-y-1 leading-none">
-                                  <FormLabel className="text-xs flex items-center gap-1.5">
-                                    <Zap className="h-3 w-3" />
-                                    Burn After Read
-                                  </FormLabel>
-                                  <div className="text-xs text-muted-foreground">
-                                    Delete after specified views
-                                  </div>
-                                </div>
-                              </FormItem>
-                            )}
-                          />
-
-                          {watchedBurnAfterRead && (
-                            <FormField
-                              control={form.control}
-                              name="burnAfterReadViews"
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel className="text-xs">
-                                    Delete after how many views?
-                                  </FormLabel>
-                                  <FormControl>
-                                    <Input
-                                      type="number"
-                                      min="1"
-                                      max="100"
-                                      placeholder="1"
-                                      className="h-8 text-sm"
-                                      {...field}
-                                      onChange={(e) => field.onChange(parseInt(e.target.value) || 1)}
-                                    />
-                                  </FormControl>
-                                  <FormMessage />
-                                </FormItem>
-                              )}
-                            />
-                          )}
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </CollapsibleContent>
-                </Collapsible>
               </form>
             </Form>
           </div>
@@ -708,10 +699,7 @@ export function PasteFormModal({
                     <span>{editingPaste ? "Updating..." : "Creating..."}</span>
                   </div>
                 ) : (
-                  <div className="flex items-center gap-1.5">
-                    <CornerDownLeft className="h-3 w-3" />
-                    <span>{editingPaste ? "Update Paste" : "Create Paste"}</span>
-                  </div>
+                  <span>{editingPaste ? "Update Paste" : "Create Paste"}</span>
                 )}
               </Button>
             </div>
