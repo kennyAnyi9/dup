@@ -8,10 +8,16 @@ export function HomeClient() {
   const { openModal } = usePasteModal();
 
   return (
-    <div className="flex gap-4 justify-center">
-      <Button onClick={() => openModal("")}>Try it out</Button>
+    <div className="flex flex-row gap-3 sm:gap-4 justify-center items-center w-full sm:w-auto">
+      <Button
+        variant="secondary"
+        onClick={() => openModal("")}
+        className="w-fit sm:w-auto cursor-pointer px-7 py-5"
+      >
+        Try it out
+      </Button>
 
-      <Button variant="outline" asChild>
+      <Button asChild className="w-fit sm:w-auto ">
         <Link href="/register">Get Started</Link>
       </Button>
     </div>

@@ -1,8 +1,8 @@
 "use client";
 
 import { APP_NAME } from "@/lib/constants";
-import Image from "next/image";
 import { useTheme } from "next-themes";
+import Image from "next/image";
 import { useEffect, useState } from "react";
 
 interface LogoProps {
@@ -12,11 +12,11 @@ interface LogoProps {
   priority?: boolean;
 }
 
-export function Logo({ 
-  width = 240, 
-  height = 64, 
+export function Logo({
+  width = 240,
+  height = 64,
   className = "h-16 w-auto",
-  priority = false 
+  priority = false,
 }: LogoProps) {
   const { theme, systemTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
@@ -29,7 +29,7 @@ export function Logo({
     // Return a default logo during SSR to avoid hydration mismatch
     return (
       <Image
-        src="/dup-dark2.png"
+        src="/dup-dark.png"
         alt={APP_NAME}
         width={width}
         height={height}
@@ -40,7 +40,7 @@ export function Logo({
   }
 
   const currentTheme = theme === "system" ? systemTheme : theme;
-  const logoSrc = currentTheme === "dark" ? "/du-light.png" : "/dup-dark2.png";
+  const logoSrc = currentTheme === "dark" ? "/dup-dark.png" : "/dup-light.png";
 
   return (
     <Image

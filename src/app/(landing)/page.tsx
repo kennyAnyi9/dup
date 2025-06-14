@@ -1,6 +1,5 @@
 import { getRecentPublicPastes } from "@/app/actions/paste";
 import { WarpBackground } from "@/components/magicui/warp-background";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import {
   Panel,
@@ -10,8 +9,8 @@ import {
   Pattern,
 } from "@/components/ui/panel";
 import { PASTE_LIMITS } from "@/lib/paste-limits";
-import { formatDistanceToNow } from "date-fns";
 import {
+  BarChart3,
   Clock,
   Eye,
   FileText,
@@ -23,6 +22,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { HomeClient } from "./_components/home-client";
+import { PublicPastesTable } from "./_components/public-pastes-table";
 
 export default async function Home() {
   const recentPastesData = await getRecentPublicPastes(8);
@@ -30,67 +30,103 @@ export default async function Home() {
 
   return (
     <div className="max-w-4xl mx-auto px-4">
-      <Pattern />
-
       {/* Hero Section */}
-      <Panel className="!border-x-0">
+      <Panel className="grid-section relative overflow-hidden  [.grid-section_~_&]:border-t-0">
         <WarpBackground
           perspective={300}
           beamSize={10}
           beamsPerSide={3}
           gridColor="rgba(128, 128, 128, 0.15)"
-          className="min-h-[400px]"
+          className="min-h-[400px] sm:min-h-[500px] oveflow-hidden border-t-0"
         >
-          <PanelContent className="space-y-8 py-20">
-            <div className="relative mx-auto flex rounded-md w-[500px] h-[420px] bg-background flex-col items-center justify-center text-center space-y-6 px-12">
-              <div>
-                <h1 className="text-center text-4xl font-medium sm:text-5xl sm:leading-[1.15] animate-slide-up-fade [--offset:20px] [animation-duration:1s] [animation-fill-mode:both] motion-reduce:animate-fade-in [animation-delay:100ms]">
-                  The Pastebin Reimagined
-                </h1>
-                <p className="mt-5 text-pretty text-base text-muted-foreground text-center sm:text-xl animate-slide-up-fade [--offset:10px] [animation-delay:200ms] [animation-duration:1s] [animation-fill-mode:both] motion-reduce:animate-fade-in">
-                  The modern pastebin for everyone. Beautiful syntax
-                  highlighting, powerful privacy controls, zero complexity.
-                </p>
+          <div className="sm:py-20">
+            <div className="relative mx-auto flex w-full max-w-none sm:max-w-4xl flex-col items-center  sm:px-8 lg:px-12 text-center">
+              <h1 className="text-center text-3xl font-medium leading-tight max-w-lg sm:text-4xl md:text-5xl sm:leading-[1.15] animate-slide-up-fade [--offset:20px] [animation-duration:1s] [animation-fill-mode:both] motion-reduce:animate-fade-in [animation-delay:100ms]">
+                The Pastebin Reimagined
+              </h1>
+              <p className="mt-5 w-full max-w-none sm:max-w-lg text-pretty text-base sm:text-lg md:text-xl text-muted-foreground text-center animate-slide-up-fade [--offset:10px] [animation-delay:200ms] [animation-duration:1s] [animation-fill-mode:both] motion-reduce:animate-fade-in">
+                The modern pastebin for everyone. Beautiful syntax highlighting,
+                powerful privacy controls, zero complexity.
+              </p>
+              <div className="relative mx-auto mt-8 sm:mt-10 flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 animate-slide-up-fade [--offset:5px] [animation-delay:300ms] [animation-duration:1s] [animation-fill-mode:both] motion-reduce:animate-fade-in">
+                <HomeClient />
               </div>
-              <HomeClient />
             </div>
-          </PanelContent>
+          </div>
         </WarpBackground>
+        <div className="pointer-events-none absolute inset-0 dark:hidden">
+          <div className="absolute inset-0 opacity-10">
+            <div className="size-full bg-[linear-gradient(90deg,#F4950C,#EB5C0C)] [mask-image:linear-gradient(transparent_25%,black)]"></div>
+          </div>
+        </div>
       </Panel>
-      <Pattern />
 
-      {/* Key Features Section */}
+      {/* Core Features Section */}
       <Panel>
         <PanelHeader>
-          <PanelTitle className="text-2xl text-center">
-            Core Features
-          </PanelTitle>
+          <PanelTitle>Core Features</PanelTitle>
         </PanelHeader>
-        <PanelContent>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-            <div className="flex items-center gap-2 p-3 rounded-lg bg-accent">
-              <Zap className="h-5 w-5 text-primary" />
-              <span className="font-medium">Burn after read</span>
+        <PanelContent className="p-0 border-b">
+          <div className="grid grid-cols-1 gap-px bg-border text-sm sm:grid-cols-2 lg:grid-cols-3">
+            <div className="flex flex-col items-start gap-2 bg-background p-8 text-left lg:px-9 lg:py-10">
+              <Zap className="size-4 shrink-0 text-primary" />
+              <h3 className="font-medium">Burn after read</h3>
+              <div className="max-w-xs text-pretty text-muted-foreground sm:max-w-none">
+                <p>
+                  Automatically delete pastes after they&apos;ve been viewed once for
+                  maximum security and privacy.
+                </p>
+              </div>
             </div>
-            <div className="flex items-center gap-2 p-3 rounded-lg bg-accent">
-              <Lock className="h-5 w-5 text-primary" />
-              <span className="font-medium">Password protection</span>
+            <div className="flex flex-col items-start gap-2 bg-background p-8 text-left lg:px-9 lg:py-10">
+              <Lock className="size-4 shrink-0 text-primary" />
+              <h3 className="font-medium">Password protection</h3>
+              <div className="max-w-xs text-pretty text-muted-foreground sm:max-w-none">
+                <p>
+                  Secure your sensitive pastes with password protection to
+                  control who can access your content.
+                </p>
+              </div>
             </div>
-            <div className="flex items-center gap-2 p-3 rounded-lg bg-accent">
-              <FileText className="h-5 w-5 text-primary" />
-              <span className="font-medium">Syntax highlighting</span>
+            <div className="flex flex-col items-start gap-2 bg-background p-8 text-left lg:px-9 lg:py-10">
+              <FileText className="size-4 shrink-0 text-primary" />
+              <h3 className="font-medium">Syntax highlighting</h3>
+              <div className="max-w-xs text-pretty text-muted-foreground sm:max-w-none">
+                <p>
+                  Beautiful syntax highlighting for over 100 programming
+                  languages with automatic detection.
+                </p>
+              </div>
             </div>
-            <div className="flex items-center gap-2 p-3 rounded-lg bg-accent">
-              <Clock className="h-5 w-5 text-primary" />
-              <span className="font-medium">Custom expiry</span>
+            <div className="flex flex-col items-start gap-2 bg-background p-8 text-left lg:px-9 lg:py-10">
+              <Clock className="size-4 shrink-0 text-primary" />
+              <h3 className="font-medium">Custom expiry</h3>
+              <div className="max-w-xs text-pretty text-muted-foreground sm:max-w-none">
+                <p>
+                  Set custom expiration times for your pastes from minutes to
+                  never, giving you full control.
+                </p>
+              </div>
             </div>
-            <div className="flex items-center gap-2 p-3 rounded-lg bg-accent">
-              <Shield className="h-5 w-5 text-primary" />
-              <span className="font-medium">Rate limiting</span>
+            <div className="flex flex-col items-start gap-2 bg-background p-8 text-left lg:px-9 lg:py-10">
+              <BarChart3 className="size-4 shrink-0 text-primary" />
+              <h3 className="font-medium">Analytics</h3>
+              <div className="max-w-xs text-pretty text-muted-foreground sm:max-w-none">
+                <p>
+                  Detailed analytics and insights to track your paste
+                  performance and engagement metrics.
+                </p>
+              </div>
             </div>
-            <div className="flex items-center gap-2 p-3 rounded-lg bg-accent">
-              <Eye className="h-5 w-5 text-primary" />
-              <span className="font-medium">View tracking</span>
+            <div className="flex flex-col items-start gap-2 bg-background p-8 text-left lg:px-9 lg:py-10">
+              <Eye className="size-4 shrink-0 text-primary" />
+              <h3 className="font-medium">View tracking</h3>
+              <div className="max-w-xs text-pretty text-muted-foreground sm:max-w-none">
+                <p>
+                  Track how many times your pastes have been viewed with
+                  detailed analytics and insights.
+                </p>
+              </div>
             </div>
           </div>
         </PanelContent>
@@ -105,71 +141,8 @@ export default async function Home() {
             Recent Public Pastes
           </PanelTitle>
         </PanelHeader>
-        <PanelContent>
-          {recentPastes.length > 0 ? (
-            <div className="grid gap-3">
-              {recentPastes.map((paste) => (
-                <div
-                  key={paste.id}
-                  className="p-4 rounded-lg bg-accent hover:bg-muted/50 transition-colors"
-                >
-                  <div className="flex items-start gap-3 mb-3">
-                    {paste.user && (
-                      <Avatar className="h-8 w-8 shrink-0">
-                        <AvatarImage src={paste.user.image || undefined} alt={paste.user.name} />
-                        <AvatarFallback className="text-xs bg-muted">
-                          {paste.user.name.charAt(0).toUpperCase()}
-                        </AvatarFallback>
-                      </Avatar>
-                    )}
-                    <div className="flex-1 min-w-0">
-                      <Link
-                        href={`/p/${paste.slug}`}
-                        className="font-medium text-primary hover:underline line-clamp-1 block"
-                      >
-                        {paste.title || `Paste ${paste.slug}`}
-                      </Link>
-                      {paste.user && (
-                        <p className="text-sm text-muted-foreground">
-                          by {paste.user.name}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                  
-                  {paste.description && (
-                    <p className="text-sm text-muted-foreground line-clamp-2 mb-3 leading-relaxed">
-                      {paste.description}
-                    </p>
-                  )}
-                  
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <Badge variant="outline" className="text-xs">
-                        {paste.language}
-                      </Badge>
-                      <div className="flex items-center gap-1 text-sm">
-                        <Eye className="h-3.5 w-3.5 text-muted-foreground" />
-                        {paste.views}
-                      </div>
-                    </div>
-                    <span className="text-sm text-muted-foreground">
-                      {formatDistanceToNow(paste.createdAt, {
-                        addSuffix: true,
-                      })}
-                    </span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="p-6 text-center">
-              <FileText className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
-              <p className="text-sm text-muted-foreground">
-                No public pastes yet. Be the first to share!
-              </p>
-            </div>
-          )}
+        <PanelContent className="p-0">
+          <PublicPastesTable pastes={recentPastes} />
         </PanelContent>
       </Panel>
       <Pattern />
@@ -178,7 +151,7 @@ export default async function Home() {
       <Panel>
         <PanelHeader>
           <div className="text-center">
-            <PanelTitle className="text-2xl mb-2">Why Sign Up?</PanelTitle>
+            <PanelTitle className="">Why Sign Up?</PanelTitle>
             <p className="text-muted-foreground">
               Unlock powerful features with a free account
             </p>

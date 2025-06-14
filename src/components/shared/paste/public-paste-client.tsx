@@ -7,6 +7,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { Logo } from "@/components/common/logo";
+import { usePasteModal } from "./paste-modal-provider";
 import { getPaste } from "@/app/actions/paste";
 import { useAuth } from "@/hooks/use-auth";
 import { 
@@ -20,7 +22,8 @@ import {
   Zap,
   AlertTriangle,
   FileX,
-  Shield
+  Shield,
+  Plus
 } from "lucide-react";
 import { formatDistanceToNow, format } from "date-fns";
 import { toast } from "sonner";
@@ -33,6 +36,7 @@ interface PublicPasteClientProps {
 
 export function PublicPasteClient({ slug }: PublicPasteClientProps) {
   const { user } = useAuth();
+  const { openModal } = usePasteModal();
   
   const [paste, setPaste] = useState<PasteResult | null>(null);
   const [loading, setLoading] = useState(true);
@@ -125,65 +129,89 @@ export function PublicPasteClient({ slug }: PublicPasteClientProps) {
     }
   }
 
+  // Header component
+  const Header = () => (
+    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <div className="container mx-auto px-4 py-3">
+        <div className="flex items-center justify-between">
+          <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+            <Logo width={32} height={32} className="h-8 w-8" />
+            <span className="font-semibold text-lg">Dup</span>
+          </Link>
+          <Button onClick={() => openModal()} className="flex items-center gap-2">
+            <Plus className="h-4 w-4" />
+            Create Paste
+          </Button>
+        </div>
+      </div>
+    </header>
+  );
+
   // Loading state
   if (loading) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="max-w-4xl mx-auto">
-          <div className="animate-pulse space-y-4">
-            <div className="h-8 bg-muted rounded w-1/3"></div>
-            <div className="h-4 bg-muted rounded w-1/4"></div>
-            <div className="h-64 bg-muted rounded"></div>
+      <>
+        <Header />
+        <div className="container mx-auto px-4 py-8">
+          <div className="max-w-4xl mx-auto">
+            <div className="animate-pulse space-y-4">
+              <div className="h-8 bg-muted rounded w-1/3"></div>
+              <div className="h-4 bg-muted rounded w-1/4"></div>
+              <div className="h-64 bg-muted rounded"></div>
+            </div>
           </div>
         </div>
-      </div>
+      </>
     );
   }
 
   // Error state
   if (error) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="max-w-2xl mx-auto text-center space-y-6">
-          <div className="space-y-2">
-            {error.includes("not found") ? (
-              <FileX className="h-16 w-16 text-muted-foreground mx-auto" />
-            ) : error.includes("expired") ? (
-              <Clock className="h-16 w-16 text-muted-foreground mx-auto" />
-            ) : (
-              <AlertTriangle className="h-16 w-16 text-muted-foreground mx-auto" />
-            )}
-            <h1 className="text-2xl font-bold">
-              {error.includes("not found") && "Paste Not Found"}
-              {error.includes("expired") && "Paste Expired"}
-              {!error.includes("not found") && !error.includes("expired") && "Error"}
-            </h1>
-            <p className="text-muted-foreground">{error}</p>
-          </div>
-          
-          <div className="space-y-4">
-            {error.includes("not found") && (
-              <p className="text-sm text-muted-foreground">
-                This paste may have been deleted, expired, or the URL might be incorrect.
-              </p>
-            )}
-            {error.includes("expired") && (
-              <p className="text-sm text-muted-foreground">
-                This paste has reached its expiry time and is no longer available.
-              </p>
-            )}
+      <>
+        <Header />
+        <div className="container mx-auto px-4 py-8">
+          <div className="max-w-2xl mx-auto text-center space-y-6">
+            <div className="space-y-2">
+              {error.includes("not found") ? (
+                <FileX className="h-16 w-16 text-muted-foreground mx-auto" />
+              ) : error.includes("expired") ? (
+                <Clock className="h-16 w-16 text-muted-foreground mx-auto" />
+              ) : (
+                <AlertTriangle className="h-16 w-16 text-muted-foreground mx-auto" />
+              )}
+              <h1 className="text-2xl font-bold">
+                {error.includes("not found") && "Paste Not Found"}
+                {error.includes("expired") && "Paste Expired"}
+                {!error.includes("not found") && !error.includes("expired") && "Error"}
+              </h1>
+              <p className="text-muted-foreground">{error}</p>
+            </div>
             
-            <div className="flex flex-col sm:flex-row gap-2 justify-center">
-              <Button asChild>
-                <Link href="/">Create New Paste</Link>
-              </Button>
-              <Button variant="outline" onClick={() => window.history.back()}>
-                Go Back
-              </Button>
+            <div className="space-y-4">
+              {error.includes("not found") && (
+                <p className="text-sm text-muted-foreground">
+                  This paste may have been deleted, expired, or the URL might be incorrect.
+                </p>
+              )}
+              {error.includes("expired") && (
+                <p className="text-sm text-muted-foreground">
+                  This paste has reached its expiry time and is no longer available.
+                </p>
+              )}
+              
+              <div className="flex flex-col sm:flex-row gap-2 justify-center">
+                <Button onClick={() => openModal()}>
+                  Create New Paste
+                </Button>
+                <Button variant="outline" onClick={() => window.history.back()}>
+                  Go Back
+                </Button>
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      </>
     );
   }
 
@@ -191,6 +219,7 @@ export function PublicPasteClient({ slug }: PublicPasteClientProps) {
   if (showPasswordDialog) {
     return (
       <>
+        <Header />
         <div className="container mx-auto px-4 py-8">
           <div className="max-w-2xl mx-auto text-center space-y-6">
             <div className="space-y-2">
@@ -223,20 +252,22 @@ export function PublicPasteClient({ slug }: PublicPasteClientProps) {
   const expiryDate = paste.expiresAt ? new Date(paste.expiresAt) : null;
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="max-w-5xl mx-auto space-y-6">
-        {/* Header */}
-        <div className="space-y-4">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div className="space-y-1">
-              <h1 className="text-2xl font-bold">
-                {paste.title || `Paste ${paste.slug}`}
-              </h1>
-              <p className="text-sm text-muted-foreground">
-                Created {formatDistanceToNow(createdDate, { addSuffix: true })} • 
-                {paste.views} {paste.views === 1 ? "view" : "views"}
-              </p>
-            </div>
+    <>
+      <Header />
+      <div className="container mx-auto px-4 py-8">
+        <div className="max-w-5xl mx-auto space-y-6">
+          {/* Header */}
+          <div className="space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div className="space-y-1">
+                <h1 className="text-2xl font-bold">
+                  {paste.title || `Paste ${paste.slug}`}
+                </h1>
+                <p className="text-sm text-muted-foreground">
+                  Created {formatDistanceToNow(createdDate, { addSuffix: true })} • 
+                  {paste.views} {paste.views === 1 ? "read" : "reads"}
+                </p>
+              </div>
 
             {isOwner && (
               <div className="flex items-center gap-2">
@@ -257,7 +288,7 @@ export function PublicPasteClient({ slug }: PublicPasteClientProps) {
             
             <div className="flex items-center gap-1">
               <Eye className="h-4 w-4" />
-              <span>{paste.views} views</span>
+              <span>{paste.views} reads</span>
             </div>
 
             <div className="flex items-center gap-1">
@@ -279,6 +310,11 @@ export function PublicPasteClient({ slug }: PublicPasteClientProps) {
                 <Zap className="h-4 w-4 text-orange-500" />
                 <span className="text-orange-600 dark:text-orange-400">
                   Burn after read
+                  {paste.burnAfterReadViews && (
+                    <span className="ml-1 font-mono text-xs">
+                      ({Math.max(0, paste.burnAfterReadViews - paste.views)} reads left)
+                    </span>
+                  )}
                 </span>
               </div>
             )}
@@ -289,9 +325,16 @@ export function PublicPasteClient({ slug }: PublicPasteClientProps) {
               <CardContent className="p-4">
                 <div className="flex items-center gap-2 text-orange-800 dark:text-orange-200">
                   <Zap className="h-4 w-4" />
-                  <p className="text-sm font-medium">
-                    This paste will be permanently deleted after you view it.
-                  </p>
+                  <div className="space-y-1">
+                    <p className="text-sm font-medium">
+                      This paste will be permanently deleted after viewing it.
+                    </p>
+                    {paste.burnAfterReadViews && (
+                      <p className="text-xs text-orange-700 dark:text-orange-300">
+                        {Math.max(0, paste.burnAfterReadViews - paste.views)} read{Math.max(0, paste.burnAfterReadViews - paste.views) !== 1 ? 's' : ''} remaining before deletion
+                      </p>
+                    )}
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -307,7 +350,8 @@ export function PublicPasteClient({ slug }: PublicPasteClientProps) {
           title={paste.title}
           slug={paste.slug}
         />
+        </div>
       </div>
-    </div>
+    </>
   );
 }
