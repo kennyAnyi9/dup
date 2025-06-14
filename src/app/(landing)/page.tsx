@@ -73,7 +73,7 @@ export default async function Home() {
               <h3 className="font-medium">Burn after read</h3>
               <div className="max-w-xs text-pretty text-muted-foreground sm:max-w-none">
                 <p>
-                  Automatically delete pastes after they've been viewed once for
+                  Automatically delete pastes after they&apos;ve been viewed once for
                   maximum security and privacy.
                 </p>
               </div>
