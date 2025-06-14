@@ -24,7 +24,7 @@ interface Paste {
   description: string | null;
   language: string;
   views: number;
-  createdAt: string;
+  createdAt: Date;
   user: {
     name: string;
     image: string | null;
@@ -140,7 +140,7 @@ export function PublicPastesTable({ pastes }: PublicPastesTableProps) {
                       {paste.views}
                     </div>
                     <span className="text-xs text-muted-foreground">
-                      {formatDistanceToNow(new Date(paste.createdAt), {
+                      {formatDistanceToNow(paste.createdAt, {
                         addSuffix: true,
                       })}
                     </span>
@@ -160,7 +160,7 @@ export function PublicPastesTable({ pastes }: PublicPastesTableProps) {
               </TableCell>
               <TableCell className="py-4 hidden lg:table-cell">
                 <span className="text-sm text-muted-foreground">
-                  {formatDistanceToNow(new Date(paste.createdAt), {
+                  {formatDistanceToNow(paste.createdAt, {
                     addSuffix: true,
                   })}
                 </span>

@@ -689,7 +689,9 @@ export function PasteFormModal({
                 disabled={
                   isPending ||
                   watchedContent.length === 0 ||
-                  watchedContent.length > charLimit
+                  watchedContent.length > charLimit ||
+                  (!!watchedCustomUrl.trim() && urlAvailability.isChecking) ||
+                  (!!watchedCustomUrl.trim() && urlAvailability.available === false)
                 }
                 className="h-8 flex-1 sm:flex-none text-sm"
               >
