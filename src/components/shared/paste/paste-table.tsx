@@ -14,6 +14,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -29,7 +30,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Checkbox } from "@/components/ui/checkbox";
 import { formatDistanceToNow } from "date-fns";
 import {
   AlertTriangle,
@@ -53,6 +53,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
+import { PastePreviewModal } from "./paste-preview-modal";
 
 interface PasteTableProps {
   pastes: Array<{
@@ -95,9 +96,9 @@ interface PasteTableProps {
   allSelected?: boolean;
 }
 
-export function PasteTable({ 
-  pastes, 
-  onEdit, 
+export function PasteTable({
+  pastes,
+  onEdit,
   visibleColumns = {
     avatar: true,
     language: true,
@@ -114,6 +115,9 @@ export function PasteTable({
   const [showDeleteDialog, setShowDeleteDialog] = useState<string | null>(null);
   const [copied, setCopied] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+  const [previewPaste, setPreviewPaste] = useState<
+    PasteTableProps["pastes"][0] | null
+  >(null);
 
   function getVisibilityInfo(visibility: string) {
     switch (visibility) {
@@ -185,11 +189,13 @@ export function PasteTable({
   return (
     <>
       <div className="rounded-lg border border-border overflow-hidden">
-        <Table className={`${
-          Object.values(visibleColumns).some(visible => visible) 
-            ? 'min-w-[600px]' 
-            : ''
-        }`}>
+        <Table
+          className={`${
+            Object.values(visibleColumns).some((visible) => visible)
+              ? "min-w-[600px]"
+              : ""
+          }`}
+        >
           <TableHeader>
             <TableRow className="hover:bg-transparent">
               <TableHead className="w-12">
@@ -201,8 +207,10 @@ export function PasteTable({
                   />
                 )}
               </TableHead>
-              {visibleColumns.avatar && <TableHead className="w-10">Avatar</TableHead>}
-              <TableHead>Title</TableHead>
+              {visibleColumns.avatar && (
+                <TableHead className="w-10">Avatar</TableHead>
+              )}
+              <TableHead className="min-w-0 max-w-xs">Title</TableHead>
               {visibleColumns.language && <TableHead>Language</TableHead>}
               {visibleColumns.status && <TableHead>Status</TableHead>}
               {visibleColumns.views && <TableHead>Reads</TableHead>}
@@ -214,14 +222,21 @@ export function PasteTable({
             {pastes.map((paste) => {
               const isExpired = paste.expiresAt && new Date() > paste.expiresAt;
               const visibilityInfo = getVisibilityInfo(paste.visibility);
-              
+
               return (
-                <TableRow key={paste.id} className={isExpired ? "opacity-60" : ""}>
+                <TableRow
+                  key={paste.id}
+                  className={`cursor-pointer hover:bg-accent/50 transition-colors ${isExpired ? "opacity-60" : ""}`}
+                  onClick={() => setPreviewPaste(paste)}
+                >
                   <TableCell>
                     {onSelectPaste && (
                       <Checkbox
                         checked={selectedPastes.has(paste.id)}
-                        onCheckedChange={(checked) => onSelectPaste(paste.id, checked as boolean)}
+                        onCheckedChange={(checked) =>
+                          onSelectPaste(paste.id, checked as boolean)
+                        }
+                        onClick={(e) => e.stopPropagation()}
                         aria-label={`Select paste ${paste.title || paste.slug}`}
                       />
                     )}
@@ -230,7 +245,10 @@ export function PasteTable({
                     <TableCell>
                       {paste.user && (
                         <Avatar className="h-8 w-8">
-                          <AvatarImage src={paste.user.image || undefined} alt={paste.user.name} />
+                          <AvatarImage
+                            src={paste.user.image || undefined}
+                            alt={paste.user.name}
+                          />
                           <AvatarFallback className="text-xs bg-muted">
                             {paste.user.name.charAt(0).toUpperCase()}
                           </AvatarFallback>
@@ -238,20 +256,27 @@ export function PasteTable({
                       )}
                     </TableCell>
                   )}
-                  <TableCell>
+                  <TableCell className="min-w-0 max-w-xs">
                     <div className="flex flex-col gap-1 min-w-0">
-                      <Link
-                        href={`/p/${paste.slug}`}
-                        className="font-medium text-sm hover:text-primary transition-colors truncate"
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setPreviewPaste(paste);
+                        }}
+                        className="font-medium text-sm hover:text-primary transition-colors block truncate text-left"
+                        title={paste.title || `Paste ${paste.slug}`}
                       >
                         {paste.title || `Paste ${paste.slug}`}
-                      </Link>
+                      </button>
                       {paste.description && (
-                        <p className="text-xs text-muted-foreground line-clamp-1 mt-0.5">
+                        <p
+                          className="text-xs text-muted-foreground line-clamp-1 mt-0.5"
+                          title={paste.description}
+                        >
                           {paste.description}
                         </p>
                       )}
-                      
+
                       {/* Mobile-only metadata */}
                       <div className="flex items-center gap-2 sm:hidden mt-1">
                         <Badge
@@ -265,7 +290,9 @@ export function PasteTable({
                           {paste.views}
                         </div>
                         <span className="text-xs text-muted-foreground">
-                          {formatDistanceToNow(paste.createdAt, { addSuffix: true })}
+                          {formatDistanceToNow(paste.createdAt, {
+                            addSuffix: true,
+                          })}
                         </span>
                       </div>
                       <div className="flex items-center gap-2">
@@ -284,7 +311,8 @@ export function PasteTable({
                             className="h-4 px-1.5 text-xs bg-orange-50 text-orange-700 border-orange-200 dark:bg-orange-900/30 dark:text-orange-400 dark:border-orange-700/50"
                           >
                             <Zap className="h-2.5 w-2.5 mr-0.5" />
-                            Burn after {paste.burnAfterReadViews || 1} view{(paste.burnAfterReadViews || 1) !== 1 ? 's' : ''}
+                            Burn after {paste.burnAfterReadViews || 1} view
+                            {(paste.burnAfterReadViews || 1) !== 1 ? "s" : ""}
                           </Badge>
                         )}
                         {paste.expiresAt && !isExpired && (
@@ -293,7 +321,10 @@ export function PasteTable({
                             className="h-4 px-1.5 text-xs bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-900/30 dark:text-amber-400 dark:border-amber-700/50"
                           >
                             <Clock className="h-2.5 w-2.5 mr-0.5" />
-                            Expires {formatDistanceToNow(paste.expiresAt, { addSuffix: true })}
+                            Expires{" "}
+                            {formatDistanceToNow(paste.expiresAt, {
+                              addSuffix: true,
+                            })}
                           </Badge>
                         )}
                         {isExpired && (
@@ -341,7 +372,9 @@ export function PasteTable({
                   {visibleColumns.status && (
                     <TableCell>
                       <div className="flex items-center gap-2">
-                        <div className={`w-2 h-2 rounded-full ${visibilityInfo.dotColor}`} />
+                        <div
+                          className={`w-2 h-2 rounded-full ${visibilityInfo.dotColor}`}
+                        />
                         <span className="text-sm">{visibilityInfo.label}</span>
                       </div>
                     </TableCell>
@@ -357,7 +390,9 @@ export function PasteTable({
                   {visibleColumns.created && (
                     <TableCell>
                       <span className="text-sm text-muted-foreground">
-                        {formatDistanceToNow(paste.createdAt, { addSuffix: true })}
+                        {formatDistanceToNow(paste.createdAt, {
+                          addSuffix: true,
+                        })}
                       </span>
                     </TableCell>
                   )}
@@ -368,11 +403,12 @@ export function PasteTable({
                           variant="ghost"
                           size="sm"
                           className="h-8 w-8 p-0"
+                          onClick={(e) => e.stopPropagation()}
                         >
                           <MoreHorizontal className="h-4 w-4" />
                         </Button>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="w-44">
+                      <DropdownMenuContent align="end" className="w-44" onClick={(e) => e.stopPropagation()}>
                         <DropdownMenuItem asChild>
                           <Link
                             href={`/${paste.slug}`}
@@ -382,30 +418,43 @@ export function PasteTable({
                             View Paste
                           </Link>
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleCopyUrl(paste)}>
+                        <DropdownMenuItem onClick={(e) => {
+                          e.stopPropagation();
+                          handleCopyUrl(paste);
+                        }}>
                           <div className="relative h-4 w-4 mr-2">
                             <Clipboard
                               className={`h-4 w-4 absolute transition-all duration-300 ${
-                                copied === paste.id ? "scale-0 opacity-0" : "scale-100 opacity-100"
+                                copied === paste.id
+                                  ? "scale-0 opacity-0"
+                                  : "scale-100 opacity-100"
                               }`}
                             />
                             <Check
                               className={`h-4 w-4 absolute transition-all duration-300 ${
-                                copied === paste.id ? "scale-100 opacity-100" : "scale-0 opacity-0"
+                                copied === paste.id
+                                  ? "scale-100 opacity-100"
+                                  : "scale-0 opacity-0"
                               }`}
                             />
                           </div>
                           {copied === paste.id ? "Copied!" : "Copy URL"}
                         </DropdownMenuItem>
                         {onEdit && (
-                          <DropdownMenuItem onClick={() => onEdit(paste)}>
+                          <DropdownMenuItem onClick={(e) => {
+                            e.stopPropagation();
+                            onEdit(paste);
+                          }}>
                             <Pencil className="h-4 w-4" />
                             Edit Paste
                           </DropdownMenuItem>
                         )}
                         <DropdownMenuSeparator />
                         <DropdownMenuItem
-                          onClick={() => setShowDeleteDialog(paste.id)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setShowDeleteDialog(paste.id);
+                          }}
                           className="text-destructive focus:text-destructive"
                         >
                           <Trash2 className="h-4 w-4" />
@@ -422,7 +471,10 @@ export function PasteTable({
       </div>
 
       {/* Delete Confirmation Dialog */}
-      <AlertDialog open={!!showDeleteDialog} onOpenChange={() => setShowDeleteDialog(null)}>
+      <AlertDialog
+        open={!!showDeleteDialog}
+        onOpenChange={() => setShowDeleteDialog(null)}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle className="flex items-center gap-2">
@@ -430,7 +482,8 @@ export function PasteTable({
               Delete Paste
             </AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete this paste? This action cannot be undone.
+              Are you sure you want to delete this paste? This action cannot be
+              undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -452,6 +505,18 @@ export function PasteTable({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Paste Preview Modal */}
+      <PastePreviewModal
+        paste={previewPaste}
+        open={!!previewPaste}
+        onOpenChange={(open) => !open && setPreviewPaste(null)}
+        onEdit={onEdit ? () => previewPaste && onEdit(previewPaste) : undefined}
+        onDelete={(pasteId) => {
+          setPreviewPaste(null);
+          setShowDeleteDialog(pasteId);
+        }}
+      />
     </>
   );
 }

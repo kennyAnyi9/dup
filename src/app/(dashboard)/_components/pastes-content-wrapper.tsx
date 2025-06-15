@@ -95,6 +95,10 @@ export function PastesContentWrapper({ pastes }: PastesContentWrapperProps) {
       content: paste.content,
       language: paste.language,
       visibility: paste.visibility,
+      burnAfterRead: paste.burnAfterRead,
+      burnAfterReadViews: paste.burnAfterReadViews,
+      expiresAt: paste.expiresAt,
+      hasPassword: paste.hasPassword,
       tags: paste.tags?.map(tag => ({ name: tag.name })) || [],
     });
   };

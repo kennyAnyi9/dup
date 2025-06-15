@@ -1,6 +1,6 @@
 "use client";
 
-import { createPaste } from "@/app/actions/paste";
+import { createPaste, updatePaste } from "@/app/actions/paste";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -39,7 +39,7 @@ import {
   type SupportedLanguage,
   type PasteVisibility,
 } from "@/lib/constants";
-import { createPasteSchema, type CreatePasteInput } from "@/types/paste";
+import { createPasteSchema, type CreatePasteInput, type UpdatePasteInput } from "@/types/paste";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   Calendar,
@@ -97,22 +97,75 @@ export function PasteFormModal({
     ? CHAR_LIMIT_AUTHENTICATED
     : CHAR_LIMIT_ANONYMOUS;
 
+  const isEditing = !!editingPaste;
+  
   const form = useForm({
-    resolver: zodResolver(createPasteSchema),
+    resolver: zodResolver(createPasteSchema), // Use create schema for both, handle differences in onSubmit
     defaultValues: {
-      title: editingPaste?.title || "",
-      description: editingPaste?.description || "",
-      content: editingPaste?.content || initialContent,
-      language: (editingPaste?.language as SupportedLanguage) || "plain",
-      visibility: (editingPaste?.visibility as PasteVisibility) || PASTE_VISIBILITY.PUBLIC,
+      title: "",
+      description: "",
+      content: "",
+      language: "plain",
+      visibility: PASTE_VISIBILITY.PUBLIC,
       password: "",
       customUrl: "",
-      tags: editingPaste?.tags?.map(tag => tag.name) || [],
+      tags: [],
       burnAfterRead: false,
       burnAfterReadViews: 1,
       expiresIn: isAuthenticated ? "never" : "30m",
     },
   });
+
+  // Helper function to convert expiresAt to expiresIn
+  const getExpiresInValue = (expiresAt: Date | null): string => {
+    if (!expiresAt) return "never";
+    
+    const now = new Date();
+    const diffMs = expiresAt.getTime() - now.getTime();
+    const diffHours = diffMs / (1000 * 60 * 60);
+    const diffDays = diffMs / (1000 * 60 * 60 * 24);
+    
+    if (diffHours <= 1) return "1h";
+    if (diffHours <= 24) return "1d";
+    if (diffDays <= 7) return "7d";
+    if (diffDays <= 30) return "30d";
+    return "never";
+  };
+
+  // Reset form values when editingPaste changes
+  useEffect(() => {
+    if (editingPaste) {
+      const resetData = {
+        id: editingPaste.id,
+        title: editingPaste.title || "",
+        description: editingPaste.description || "",
+        content: editingPaste.content,
+        language: (editingPaste.language as SupportedLanguage) || "plain",
+        visibility: (editingPaste.visibility as PasteVisibility) || PASTE_VISIBILITY.PUBLIC,
+        password: "", // Don't show existing password
+        tags: editingPaste.tags?.map(tag => tag.name) || [],
+        burnAfterRead: editingPaste.burnAfterRead,
+        burnAfterReadViews: editingPaste.burnAfterReadViews || 1,
+        expiresIn: getExpiresInValue(editingPaste.expiresAt),
+      };
+      
+      form.reset(resetData);
+    } else {
+      form.reset({
+        title: "",
+        description: "",
+        content: initialContent,
+        language: "plain",
+        visibility: PASTE_VISIBILITY.PUBLIC,
+        password: "",
+        customUrl: "",
+        tags: [],
+        burnAfterRead: false,
+        burnAfterReadViews: 1,
+        expiresIn: isAuthenticated ? "never" : "30m",
+      });
+    }
+  }, [editingPaste, initialContent, isAuthenticated, form]);
 
   const watchedContent = form.watch("content") || "";
   const watchedVisibility = form.watch("visibility") || PASTE_VISIBILITY.PUBLIC;
@@ -164,7 +217,28 @@ export function PasteFormModal({
   const onSubmit = (data: CreatePasteInput) => {
     startTransition(async () => {
       try {
-        const result = await createPaste(data);
+        let result;
+        
+        if (isEditing && editingPaste) {
+          // Transform create data to update data
+          const updateData: UpdatePasteInput = {
+            id: editingPaste.id,
+            title: data.title,
+            description: data.description,
+            content: data.content,
+            language: data.language,
+            visibility: data.visibility,
+            password: data.password,
+            removePassword: false, // Could be enhanced to detect when password is cleared
+            burnAfterRead: data.burnAfterRead,
+            burnAfterReadViews: data.burnAfterReadViews,
+            tags: data.tags,
+            expiresIn: data.expiresIn,
+          };
+          result = await updatePaste(updateData);
+        } else {
+          result = await createPaste(data);
+        }
 
         if (result.success && result.paste) {
           const pasteUrl = `${window.location.origin}/p/${result.paste.slug}`;
@@ -172,9 +246,17 @@ export function PasteFormModal({
           // Copy URL to clipboard
           try {
             await navigator.clipboard.writeText(pasteUrl);
-            toast.success("Paste created successfully! URL copied to clipboard.");
+            toast.success(
+              isEditing 
+                ? "Paste updated successfully! URL copied to clipboard."
+                : "Paste created successfully! URL copied to clipboard."
+            );
           } catch {
-            toast.success("Paste created successfully!");
+            toast.success(
+              isEditing 
+                ? "Paste updated successfully!"
+                : "Paste created successfully!"
+            );
           }
           
           onOpenChange(false);
@@ -183,11 +265,11 @@ export function PasteFormModal({
           // Don't redirect - let the table update instead
           // router.push(`/p/${result.paste.slug}`);
         } else {
-          toast.error(result.error || "Failed to create paste");
+          toast.error(result.error || (isEditing ? "Failed to update paste" : "Failed to create paste"));
         }
       } catch (error) {
         toast.error("An unexpected error occurred");
-        console.error("Paste creation error:", error);
+        console.error(isEditing ? "Paste update error:" : "Paste creation error:", error);
       }
     });
   };
@@ -535,8 +617,8 @@ export function PasteFormModal({
                           )}
                         />
 
-                        {/* Custom URL - Only for authenticated users */}
-                        {isAuthenticated && (
+                        {/* Custom URL - Only for authenticated users when creating */}
+                        {isAuthenticated && !isEditing && (
                           <FormField
                             control={form.control}
                             name="customUrl"
