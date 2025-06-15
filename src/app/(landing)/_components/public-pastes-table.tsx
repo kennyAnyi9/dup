@@ -85,7 +85,7 @@ export function PublicPastesTable({ pastes }: PublicPastesTableProps) {
         <TableHeader>
           <TableRow className="hover:bg-transparent">
             <TableHead className="w-10">Author</TableHead>
-            <TableHead>Title</TableHead>
+            <TableHead className="min-w-0 max-w-xs">Title</TableHead>
             <TableHead className="hidden sm:table-cell">Language</TableHead>
             <TableHead className="hidden md:table-cell">Views</TableHead>
             <TableHead className="hidden lg:table-cell">Created</TableHead>
@@ -111,21 +111,22 @@ export function PublicPastesTable({ pastes }: PublicPastesTableProps) {
                   </Avatar>
                 )}
               </TableCell>
-              <TableCell className="py-4">
+              <TableCell className="py-4 min-w-0 max-w-xs">
                 <div className="flex flex-col gap-1 min-w-0">
                   <Link
                     href={`/p/${paste.slug}`}
-                    className="font-medium text-sm hover:text-primary transition-colors line-clamp-1"
+                    className="font-medium text-sm hover:text-primary transition-colors block truncate"
+                    title={paste.title || `Paste ${paste.slug}`}
                   >
                     {paste.title || `Paste ${paste.slug}`}
                   </Link>
                   {paste.user && (
-                    <p className="text-xs text-muted-foreground">
+                    <p className="text-xs text-muted-foreground truncate" title={paste.user.name}>
                       by {paste.user.name}
                     </p>
                   )}
                   {paste.description && (
-                    <p className="text-xs text-muted-foreground line-clamp-1 mt-0.5">
+                    <p className="text-xs text-muted-foreground line-clamp-1 mt-0.5" title={paste.description}>
                       {paste.description}
                     </p>
                   )}

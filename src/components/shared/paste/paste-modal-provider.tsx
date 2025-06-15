@@ -10,6 +10,10 @@ interface EditingPaste {
   content: string;
   language: string;
   visibility: string;
+  burnAfterRead: boolean;
+  burnAfterReadViews: number | null;
+  expiresAt: Date | null;
+  hasPassword: boolean;
   tags?: Array<{ name: string }>;
 }
 

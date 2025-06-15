@@ -46,11 +46,31 @@ export const updatePasteSettingsSchema = z.object({
   expiresIn: z.enum(["1h", "1d", "7d", "30d", "never", "remove"]).optional(),
 });
 
+export const updatePasteSchema = z.object({
+  id: z.string().min(1),
+  title: z.string().max(100).optional(),
+  description: z.string().max(500).optional(),
+  content: z.string().min(1, "Content is required"),
+  language: z.enum(SUPPORTED_LANGUAGES).default("plain"),
+  visibility: z.enum([
+    PASTE_VISIBILITY.PUBLIC,
+    PASTE_VISIBILITY.UNLISTED,
+    PASTE_VISIBILITY.PRIVATE,
+  ]).default(PASTE_VISIBILITY.PUBLIC),
+  password: z.string().optional(),
+  removePassword: z.boolean().default(false),
+  burnAfterRead: z.boolean().default(false),
+  burnAfterReadViews: z.number().min(1).max(100).optional(),
+  tags: z.array(z.string().min(1).max(20)).max(5).optional(),
+  expiresIn: z.enum(["1h", "1d", "7d", "30d", "never", "remove"]).optional(),
+});
+
 export type CreatePasteInput = z.infer<typeof createPasteSchema>;
 export type GetPasteInput = z.infer<typeof getPasteSchema>;
 export type DeletePasteInput = z.infer<typeof deletePasteSchema>;
 export type CheckUrlAvailabilityInput = z.infer<typeof checkUrlAvailabilitySchema>;
 export type UpdatePasteSettingsInput = z.infer<typeof updatePasteSettingsSchema>;
+export type UpdatePasteInput = z.infer<typeof updatePasteSchema>;
 
 export interface PasteResult {
   id: string;
@@ -106,5 +126,15 @@ export interface CheckUrlAvailabilityResult {
 
 export interface UpdatePasteSettingsResult {
   success: boolean;
+  error?: string;
+}
+
+export interface UpdatePasteResult {
+  success: boolean;
+  paste?: {
+    id: string;
+    slug: string;
+    url: string;
+  };
   error?: string;
 }
