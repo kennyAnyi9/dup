@@ -151,9 +151,10 @@ export async function createPaste(input: CreatePasteInput): Promise<CreatePasteR
           });
         
         createdPaste = newPaste[0];
-      } catch (error: any) {
+      } catch (error: unknown) {
         // Check if it's a unique constraint violation
-        if (error.code === '23505' || error.message?.includes('duplicate') || error.message?.includes('unique')) {
+        const err = error as { code?: string; message?: string };
+        if (err.code === '23505' || err.message?.includes('duplicate') || err.message?.includes('unique')) {
           return {
             success: false,
             error: "Custom URL is already taken",
@@ -194,9 +195,10 @@ export async function createPaste(input: CreatePasteInput): Promise<CreatePasteR
           
           createdPaste = newPaste[0];
           break;
-        } catch (error: any) {
+        } catch (error: unknown) {
           // Check if it's a unique constraint violation on slug
-          if (error.code === '23505' || error.message?.includes('duplicate') || error.message?.includes('unique')) {
+          const err = error as { code?: string; message?: string };
+          if (err.code === '23505' || err.message?.includes('duplicate') || err.message?.includes('unique')) {
             if (attempt >= maxAttempts) {
               throw new Error("Failed to generate unique slug after multiple attempts");
             }
