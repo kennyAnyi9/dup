@@ -1,6 +1,6 @@
 import { WarpBackground } from "@/components/magicui/warp-background";
 import { HomeClient } from "@/features/landing/components/sections/home-client";
-import { PublicPastesTable } from "@/features/landing/components/ui/public-pastes-table";
+import { PublicPasteCards } from "@/features/landing/components/ui/public-paste-cards";
 import { getRecentPublicPastes } from "@/features/paste/actions/paste.actions";
 import { Badge } from "@/shared/components/dupui/badge";
 import {
@@ -41,6 +41,10 @@ export default async function Home() {
         >
           <div className="sm:py-20">
             <div className="relative mx-auto flex w-full max-w-none sm:max-w-4xl flex-col items-center  sm:px-8 lg:px-12 text-center">
+              <Badge variant="secondary" className="mb-4 animate-slide-up-fade [--offset:30px] [animation-duration:1s] [animation-fill-mode:both] motion-reduce:animate-fade-in [animation-delay:50ms]">
+                <Zap className="h-3 w-3 mr-1" />
+                Beta
+              </Badge>
               <h1 className="text-center text-3xl font-medium leading-tight max-w-lg sm:text-4xl md:text-5xl sm:leading-[1.15] animate-slide-up-fade [--offset:20px] [animation-duration:1s] [animation-fill-mode:both] motion-reduce:animate-fade-in [animation-delay:100ms]">
                 The Pastebin Reimagined
               </h1>
@@ -141,8 +145,8 @@ export default async function Home() {
             Recent Public Pastes
           </PanelTitle>
         </PanelHeader>
-        <PanelContent className="p-0">
-          <PublicPastesTable pastes={recentPastes} />
+        <PanelContent>
+          <PublicPasteCards pastes={recentPastes} />
         </PanelContent>
       </Panel>
       <Pattern />

@@ -26,7 +26,6 @@ import { Suspense } from "react";
 import { EmptyState } from "@/features/dashboard/components/ui/dashboard-empty-states";
 import { DashboardHeaderButton } from "@/features/dashboard/components/ui/dashboard-header-button";
 import { DashboardMobileSidebar } from "@/features/dashboard/components/navigation/dashboard-mobile-sidebar";
-import { DashboardProfileDropdown } from "@/features/dashboard/components/ui/dashboard-profile-dropdown";
 import { DashboardSidebar } from "@/features/dashboard/components/navigation/dashboard-sidebar";
 import { PastesContentWrapper } from "@/features/dashboard/components/layout/pastes-content-wrapper";
 import { SearchFilters } from "@/features/dashboard/components/ui/search-filters";
@@ -69,18 +68,16 @@ export default async function DashboardPage({
     <PasteModalProvider>
       <div className="container relative mx-auto flex h-screen w-full flex-col items-center gap-6 p-4 overflow-hidden">
         {/* Header */}
-        <header className="sticky top-2 z-50 w-full border-border">
-          <div className="w-full rounded-lg border border-border md:p-6 bg-background/70 px-3 py-3 backdrop-blur-lg md:px-6 md:py-3">
-            <div className="flex w-full items-center justify-between">
+        <header className="sticky top-2 z-50 w-full">
+          <div className="w-full rounded-lg border border-border bg-background/70 px-4 py-2 backdrop-blur-lg">
+            <div className="flex w-full items-center justify-between h-12">
               <div className="flex items-center gap-3">
                 <DashboardMobileSidebar
                   recentPublicPastes={recentPublicPastesData.pastes}
                   totalPublicPastes={recentPublicPastesData.total}
                 />
                 <Link className="shrink-0" href="/">
-                  <div className="rounded-lg border border-border overflow-hidden">
-                    <Logo />
-                  </div>
+                  <Logo width={240} height={64} className="h-16 w-auto" />
                 </Link>
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -98,18 +95,12 @@ export default async function DashboardPage({
                 </svg>
                 <div className="w-20 sm:w-40 hidden sm:block">
                   <span className="truncate text-sm font-medium">
-                    {user.name || user.email}
+                    My Pastes
                   </span>
                 </div>
               </div>
               <div className="flex items-center gap-2 sm:gap-4">
-                <Link
-                  href="/changelog"
-                  className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors hidden sm:block"
-                >
-                  Changelog
-                </Link>
-                <DashboardProfileDropdown user={user} />
+                <DashboardHeaderButton />
               </div>
             </div>
           </div>
@@ -122,41 +113,32 @@ export default async function DashboardPage({
             <DashboardSidebar
               recentPublicPastes={recentPublicPastesData.pastes}
               totalPublicPastes={recentPublicPastesData.total}
+              user={user}
             />
 
             {/* Main Content Area */}
-            <div className="flex-1 lg:basis-4/5 rounded-lg border border-border px-3 py-4 backdrop-blur-[2px] md:p-6 relative overflow-hidden min-w-0">
-              <div className="flex flex-col gap-3 h-full">
-                {/* Page Header */}
-                <div className="col-span-full flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-1">
-                  <div className="flex min-w-0 flex-col gap-1">
-                    <h1 className="font-cal text-2xl sm:text-3xl">My Pastes</h1>
-                    <p className="text-muted-foreground text-sm sm:text-base">
-                      Manage and organize your code snippets.
-                    </p>
-                  </div>
-                  <div className="sm:shrink-0">
-                    <DashboardHeaderButton />
-                  </div>
-                </div>
+            <div className="flex-1 lg:basis-4/5 rounded-lg border border-border backdrop-blur-[2px] relative overflow-hidden min-w-0">
+              <div className="h-full overflow-auto px-3 py-4 md:p-6">
+                <div className="flex flex-col gap-3">
 
-                {/* Search and Filters */}
-                <SearchFilters
-                  defaultSearch={search}
-                  defaultFilter={filter}
-                  defaultSort={sort}
-                />
+                  {/* Search and Filters */}
+                  <SearchFilters
+                    defaultSearch={search}
+                    defaultFilter={filter}
+                    defaultSort={sort}
+                  />
 
-                {/* Content */}
-                <div className="flex-1 overflow-hidden">
-                  <Suspense fallback={<PastesLoading />}>
-                    <PastesContent
-                      page={page}
-                      search={search}
-                      filter={filter}
-                      sort={sort}
-                    />
-                  </Suspense>
+                  {/* Content */}
+                  <div>
+                    <Suspense fallback={<PastesLoading />}>
+                      <PastesContent
+                        page={page}
+                        search={search}
+                        filter={filter}
+                        sort={sort}
+                      />
+                    </Suspense>
+                  </div>
                 </div>
               </div>
             </div>
@@ -186,7 +168,7 @@ async function PastesContent({
   }
 
   return (
-    <div className="flex flex-col h-full space-y-3">
+    <div className="flex flex-col h-full space-y-2">
       {/* Results Summary */}
       <div className="flex items-center justify-between text-sm text-muted-foreground shrink-0">
         <div>

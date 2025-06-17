@@ -36,6 +36,7 @@ import {
   Check,
   Clipboard,
   Clock,
+  CornerDownRight,
   ExternalLink,
   Eye,
   EyeOff,
@@ -53,6 +54,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useTransition, useCallback } from "react";
 import { toast } from "sonner";
+import { getBaseUrl } from "@/lib/utils/url";
 
 interface PasteTableProps {
   pastes: Array<{
@@ -265,19 +267,23 @@ export function PasteTable({
                           e.stopPropagation();
                           router.push(`/p/${paste.slug}`);
                         }}
-                        className="font-medium text-sm hover:text-primary transition-colors block truncate text-left"
+                        className="font-medium text-sm hover:text-primary transition-colors block truncate text-left max-w-[8rem] sm:max-w-none"
                         title={paste.title || `Paste ${paste.slug}`}
                       >
                         {paste.title || `Paste ${paste.slug}`}
                       </button>
-                      {paste.description && (
-                        <p
-                          className="text-xs text-muted-foreground line-clamp-1 mt-0.5"
-                          title={paste.description}
+                      <div className="flex items-center gap-1 mt-0.5">
+                        <CornerDownRight className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                        <a
+                          href={`${getBaseUrl()}/p/${paste.slug}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onClick={(e) => e.stopPropagation()}
+                          className="max-w-32 truncate text-xs text-muted-foreground underline-offset-4 transition-all hover:text-foreground hover:underline"
                         >
-                          {paste.description}
-                        </p>
-                      )}
+                          {getBaseUrl().replace(/^https?:\/\//, '')}/p/{paste.slug}
+                        </a>
+                      </div>
 
                       {/* Mobile-only metadata */}
                       <div className="flex items-center gap-2 sm:hidden mt-1">

@@ -14,12 +14,15 @@ import {
 } from "@/components/ui/alert-dialog";
 import { usePasteModal } from "@/features/paste/components/providers/paste-modal-provider";
 import { PasteTable } from "@/features/paste/components/ui/paste-table";
+import { PasteCardsGrid } from "@/features/paste/components/ui/paste-cards-grid";
 import { Button } from "@/shared/components/dupui/button";
 import { useIsMobile } from "@/shared/hooks/use-mobile";
 import { Trash2 } from "lucide-react";
 import { useEffect, useRef, useState, useTransition } from "react";
 import { toast } from "sonner";
 import { ColumnToggle } from "../ui/column-toggle";
+import { ViewToggle } from "../ui/view-toggle";
+import { useViewPreference } from "../../hooks/use-view-preference";
 
 interface PastesContentWrapperProps {
   pastes: Array<{
@@ -53,8 +56,12 @@ interface PastesContentWrapperProps {
 export function PastesContentWrapper({ pastes }: PastesContentWrapperProps) {
   const { openEditModal } = usePasteModal();
   const [isPending, startTransition] = useTransition();
-  const [selectedPastes, setSelectedPastes] = useState<Set<string>>(new Set());
+  const [selectedPastes, setSelectedPastes] = useState(() => new Set<string>());
+  const { view: currentView, setView: setCurrentView } = useViewPreference();
   const isMobile = useIsMobile();
+  
+  // Force table view on mobile devices
+  const effectiveView = isMobile ? "table" : currentView;
 
   const [visibleColumns, setVisibleColumns] = useState({
     avatar: true,
@@ -109,8 +116,17 @@ export function PastesContentWrapper({ pastes }: PastesContentWrapperProps) {
   };
 
   const handleColumnToggle = (key: string) => {
-    // Mark this column as user-toggled to preserve it across viewport changes
-    userToggledColumns.current.add(key);
+    // Track user toggles but remove if returning to default state
+    const currentValue = visibleColumns[key as keyof typeof visibleColumns];
+    const defaultValue = !isMobile; // Default is visible on desktop, hidden on mobile
+    
+    if (!currentValue === defaultValue) {
+      // User is returning to default state, remove from tracked toggles
+      userToggledColumns.current.delete(key);
+    } else {
+      // User is changing from default, track this toggle
+      userToggledColumns.current.add(key);
+    }
     
     setVisibleColumns((prev) => ({
       ...prev,
@@ -146,6 +162,8 @@ export function PastesContentWrapper({ pastes }: PastesContentWrapperProps) {
     
     startTransition(async () => {
       try {
+        // TODO: For large selections (>50), consider using p-limit to throttle
+        // concurrent requests or implement batch deletion API endpoint
         const deletePromises = Array.from(selectedPastes).map((pasteId) => {
           return deletePaste({ id: pasteId });
         });
@@ -176,8 +194,8 @@ export function PastesContentWrapper({ pastes }: PastesContentWrapperProps) {
   const someSelected = selectedPastes.size > 0;
 
   return (
-    <div className="h-full flex flex-col space-y-4">
-      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 shrink-0">
+    <div className="h-full flex flex-col">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 shrink-0 mb-2">
         {/* Bulk Actions */}
         {someSelected && (
           <div className="flex items-center gap-2">
@@ -221,23 +239,35 @@ export function PastesContentWrapper({ pastes }: PastesContentWrapperProps) {
           </div>
         )}
 
-        {/* Column Toggle */}
+        {/* View Toggle and Column Toggle */}
         <div className="flex items-center gap-2 ml-auto">
-          <ColumnToggle columns={columns} onToggle={handleColumnToggle} />
+          <ViewToggle view={effectiveView} onViewChange={setCurrentView} />
+          {effectiveView === "table" && (
+            <ColumnToggle columns={columns} onToggle={handleColumnToggle} />
+          )}
         </div>
       </div>
 
-      {/* Responsive Table Layout with Horizontal Scroll */}
-      <div className="flex-1 min-h-0 overflow-auto">
-        <PasteTable
-          pastes={pastes}
-          onEdit={handleEdit}
-          visibleColumns={visibleColumns}
-          selectedPastes={selectedPastes}
-          onSelectPaste={handleSelectPaste}
-          onSelectAll={handleSelectAll}
-          allSelected={allSelected}
-        />
+      {/* Content Area - Table or Cards */}
+      <div>
+        {effectiveView === "table" ? (
+          <PasteTable
+            pastes={pastes}
+            onEdit={handleEdit}
+            visibleColumns={visibleColumns}
+            selectedPastes={selectedPastes}
+            onSelectPaste={handleSelectPaste}
+            onSelectAll={handleSelectAll}
+            allSelected={allSelected}
+          />
+        ) : (
+          <PasteCardsGrid
+            pastes={pastes}
+            onEdit={handleEdit}
+            selectedPastes={selectedPastes}
+            onSelectPaste={handleSelectPaste}
+          />
+        )}
       </div>
     </div>
   );

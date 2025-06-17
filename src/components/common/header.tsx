@@ -44,35 +44,10 @@ export function Header() {
             >
               <div className="px-4">
                 <div className="flex h-16 items-center justify-between">
-                  <div className="flex items-center space-x-8">
+                  <div className="flex items-center gap-2">
                     <Link href="/" className="flex items-center">
                       <Logo priority />
                     </Link>
-
-                    <nav className="hidden md:flex items-center space-x-6">
-                      <Link
-                        href="/"
-                        className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-                      >
-                        Home
-                      </Link>
-                      {isAuthenticated && (
-                        <>
-                          <Link
-                            href="/dashboard"
-                            className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-                          >
-                            My Pastes
-                          </Link>
-                          <Link
-                            href="/new"
-                            className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-                          >
-                            New Paste
-                          </Link>
-                        </>
-                      )}
-                    </nav>
                   </div>
 
                   <div className="flex items-center space-x-4">
