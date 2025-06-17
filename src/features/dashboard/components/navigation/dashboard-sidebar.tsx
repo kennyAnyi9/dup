@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { formatDistanceToNow } from "date-fns";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { DashboardProfileDropdown } from "../ui/dashboard-profile-dropdown";
 import {
   BarChart3,
   FileText,
@@ -21,9 +22,15 @@ interface DashboardSidebarProps {
     createdAt: Date;
   }>;
   totalPublicPastes?: number;
+  user?: {
+    id: string;
+    name?: string | null;
+    email: string;
+    image?: string | null;
+  };
 }
 
-export function DashboardSidebar({ recentPublicPastes = [], totalPublicPastes = 0 }: DashboardSidebarProps) {
+export function DashboardSidebar({ recentPublicPastes = [], totalPublicPastes = 0, user }: DashboardSidebarProps) {
 
   const navigationItems = [
     {
@@ -135,6 +142,13 @@ export function DashboardSidebar({ recentPublicPastes = [], totalPublicPastes = 
             </div>
           </ScrollArea>
         </div>
+        
+        {/* User Profile at bottom */}
+        {user && (
+          <div className="mt-auto pt-4 border-t border-border">
+            <DashboardProfileDropdown user={user} />
+          </div>
+        )}
       </div>
     </div>
   );

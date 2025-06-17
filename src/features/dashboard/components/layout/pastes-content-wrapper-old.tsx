@@ -59,9 +59,6 @@ export function PastesContentWrapper({ pastes }: PastesContentWrapperProps) {
   const [selectedPastes, setSelectedPastes] = useState<Set<string>>(new Set());
   const { view: currentView, setView: setCurrentView } = useViewPreference();
   const isMobile = useIsMobile();
-  
-  // Force table view on mobile devices
-  const effectiveView = isMobile ? "table" : currentView;
 
   const [visibleColumns, setVisibleColumns] = useState({
     avatar: true,
@@ -230,8 +227,8 @@ export function PastesContentWrapper({ pastes }: PastesContentWrapperProps) {
 
         {/* View Toggle and Column Toggle */}
         <div className="flex items-center gap-2 ml-auto">
-          <ViewToggle view={effectiveView} onViewChange={setCurrentView} />
-          {effectiveView === "table" && (
+          <ViewToggle view={currentView} onViewChange={setCurrentView} />
+          {currentView === "table" && (
             <ColumnToggle columns={columns} onToggle={handleColumnToggle} />
           )}
         </div>
@@ -239,7 +236,7 @@ export function PastesContentWrapper({ pastes }: PastesContentWrapperProps) {
 
       {/* Content Area - Table or Cards */}
       <div>
-        {effectiveView === "table" ? (
+        {currentView === "table" ? (
           <PasteTable
             pastes={pastes}
             onEdit={handleEdit}

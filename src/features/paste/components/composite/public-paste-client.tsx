@@ -134,8 +134,8 @@ export function PublicPasteClient({ slug }: PublicPasteClientProps) {
   // Header component
   const Header = () => (
     <header className="max-w-5xl mx-auto pr-3 sticky top-0 z-50 w-full border rounded-2xl bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="  px-4 py-3">
-        <div className="flex items-center justify-between">
+      <div className="px-4">
+        <div className="flex items-center justify-between h-16">
           <Link
             href="/"
             className="flex items-center gap-2 hover:opacity-80 transition-opacity"
