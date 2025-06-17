@@ -3,6 +3,7 @@
 import { getPaste } from "@/app/actions/paste";
 import { Logo } from "@/components/common/logo";
 import { Badge } from "@/components/ui/badge";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -24,7 +25,7 @@ import {
   Zap,
 } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { PasswordDialog } from "../forms/password-dialog";
 import { usePasteModal } from "../providers/paste-modal-provider";
@@ -37,6 +38,7 @@ interface PublicPasteClientProps {
 export function PublicPasteClient({ slug }: PublicPasteClientProps) {
   const { user } = useAuth();
   const { openModal } = usePasteModal();
+  const router = useRouter();
 
   const [paste, setPaste] = useState<PasteResult | null>(null);
   const [loading, setLoading] = useState(true);
@@ -45,11 +47,7 @@ export function PublicPasteClient({ slug }: PublicPasteClientProps) {
   const [passwordError, setPasswordError] = useState<string | null>(null);
   const [passwordLoading, setPasswordLoading] = useState(false);
 
-  useEffect(() => {
-    loadPaste();
-  }, [slug]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  async function loadPaste(password?: string) {
+  const loadPaste = useCallback(async (password?: string) => {
     try {
       setLoading(true);
       setError(null);
@@ -79,7 +77,11 @@ export function PublicPasteClient({ slug }: PublicPasteClientProps) {
     } finally {
       setLoading(false);
     }
-  }
+  }, [slug]);
+
+  useEffect(() => {
+    loadPaste();
+  }, [loadPaste]);
 
   async function handlePasswordSubmit(password: string) {
     setPasswordLoading(true);
@@ -211,7 +213,7 @@ export function PublicPasteClient({ slug }: PublicPasteClientProps) {
 
               <div className="flex flex-col sm:flex-row gap-2 justify-center">
                 <Button onClick={() => openModal()}>Create New Paste</Button>
-                <Button variant="outline" onClick={() => window.history.back()}>
+                <Button variant="outline" onClick={() => router.back()}>
                   Go Back
                 </Button>
               </div>

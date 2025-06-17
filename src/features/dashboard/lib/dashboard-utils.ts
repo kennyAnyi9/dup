@@ -50,5 +50,5 @@ export function getPaginationRange(current: number, total: number, delta: number
     rangeWithDots.push(total);
   }
 
-  return rangeWithDots.filter((item, index) => rangeWithDots.indexOf(item) === index);
+  return [...new Set(rangeWithDots)];
 }

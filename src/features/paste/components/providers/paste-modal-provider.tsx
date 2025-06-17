@@ -1,7 +1,7 @@
 "use client";
 
-import { createContext, useContext, useState, ReactNode } from "react";
-import { PasteFormModal } from "../forms/paste-form-modal";
+import { createContext, useContext, useState, ReactNode, useMemo, useCallback } from "react";
+import { PasteFormModal } from "@/features/paste/components";
 
 interface EditingPaste {
   id: string;
@@ -43,26 +43,31 @@ export function PasteModalProvider({ children }: PasteModalProviderProps) {
   const [initialContent, setInitialContent] = useState("");
   const [editingPaste, setEditingPaste] = useState<EditingPaste | null>(null);
 
-  const openModal = (content = "") => {
+  const openModal = useCallback((content = "") => {
     setInitialContent(content);
     setEditingPaste(null);
     setIsOpen(true);
-  };
+  }, []);
 
-  const openEditModal = (paste: EditingPaste) => {
+  const openEditModal = useCallback((paste: EditingPaste) => {
     setEditingPaste(paste);
     setInitialContent("");
     setIsOpen(true);
-  };
+  }, []);
 
-  const closeModal = () => {
+  const closeModal = useCallback(() => {
     setIsOpen(false);
     setInitialContent("");
     setEditingPaste(null);
-  };
+  }, []);
+
+  const contextValue = useMemo(
+    () => ({ isOpen, openModal, openEditModal, closeModal }),
+    [isOpen, openModal, openEditModal, closeModal]
+  );
 
   return (
-    <PasteModalContext.Provider value={{ isOpen, openModal, openEditModal, closeModal }}>
+    <PasteModalContext.Provider value={contextValue}>
       {children}
       <PasteFormModal
         open={isOpen}

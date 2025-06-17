@@ -13,8 +13,8 @@ interface LogoProps {
 }
 
 export function Logo({
-  width = 240,
-  height = 64,
+  width,
+  height,
   className = "h-16 w-auto",
   priority = false,
 }: LogoProps) {
@@ -26,14 +26,14 @@ export function Logo({
   }, []);
 
   if (!mounted) {
-    // Return a default logo during SSR to avoid hydration mismatch
+    // Hide logo until mounted to prevent flash-of-wrong-theme
     return (
       <Image
         src="/dup-dark.png"
         alt={APP_NAME}
         width={width}
         height={height}
-        className={className}
+        className={`${className} invisible`}
         priority={priority}
       />
     );

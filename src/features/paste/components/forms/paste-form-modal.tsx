@@ -126,6 +126,10 @@ export function PasteFormModal({
     
     const now = new Date();
     const diffMs = expiresAt.getTime() - now.getTime();
+    
+    // Handle expired pastes
+    if (diffMs <= 0) return "never";
+    
     const diffHours = diffMs / (1000 * 60 * 60);
     const diffDays = diffMs / (1000 * 60 * 60 * 24);
     

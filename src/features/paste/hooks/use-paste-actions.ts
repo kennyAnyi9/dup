@@ -5,12 +5,10 @@ import { toast } from "sonner";
 import { deletePaste } from "@/app/actions/paste";
 
 export function usePasteActions() {
-  const [loading, setLoading] = useState(false);
-  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [deletingIds, setDeletingIds] = useState<Set<string>>(new Set());
 
   const handleDelete = async (pasteId: string, onSuccess?: () => void) => {
-    setLoading(true);
-    setDeletingId(pasteId);
+    setDeletingIds(prev => new Set(prev).add(pasteId));
     
     try {
       const result = await deletePaste({ id: pasteId });
@@ -25,14 +23,17 @@ export function usePasteActions() {
       console.error("Delete failed:", error);
       toast.error("Failed to delete paste");
     } finally {
-      setLoading(false);
-      setDeletingId(null);
+      setDeletingIds(prev => {
+        const next = new Set(prev);
+        next.delete(pasteId);
+        return next;
+      });
     }
   };
 
   return {
-    loading,
-    deletingId,
+    deletingIds,
+    isDeleting: (id: string) => deletingIds.has(id),
     handleDelete,
   };
 }

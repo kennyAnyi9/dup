@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useKeyboardShortcuts } from "@/hooks/use-keyboard-shortcuts";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -36,6 +36,13 @@ export function PasswordDialog({
 }: PasswordDialogProps) {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+
+  // Clear local state when the dialog is closed
+  useEffect(() => {
+    if (!open) {
+      setPassword("");
+    }
+  }, [open]);
 
   // Keyboard shortcuts
   useKeyboardShortcuts([

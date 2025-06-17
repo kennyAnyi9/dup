@@ -9,7 +9,7 @@ export function useDashboardSearch() {
 
   const updateSearch = useCallback(
     (params: Record<string, string | null>) => {
-      const newSearchParams = new URLSearchParams(searchParams);
+      const newSearchParams = new URLSearchParams(searchParams.toString());
       
       Object.entries(params).forEach(([key, value]) => {
         if (value === null || value === "") {
@@ -24,7 +24,8 @@ export function useDashboardSearch() {
         newSearchParams.delete("page");
       }
       
-      router.push(`?${newSearchParams.toString()}`);
+      const pathname = window.location.pathname;
+      router.push(`${pathname}?${newSearchParams.toString()}`);
     },
     [router, searchParams]
   );

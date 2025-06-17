@@ -6,7 +6,7 @@ import { useTheme } from "next-themes";
 import { useEffect } from "react";
 
 export function ThemeSwitch() {
-  const { theme, setTheme } = useTheme();
+  const { theme, resolvedTheme, setTheme } = useTheme();
 
   useEffect(() => {
     function handleKeyPress(event: KeyboardEvent) {
@@ -37,7 +37,8 @@ export function ThemeSwitch() {
   }, [setTheme]);
 
   function toggleTheme() {
-    setTheme(theme === "dark" ? "light" : "dark");
+    const current = resolvedTheme ?? theme;
+    setTheme(current === "dark" ? "light" : "dark");
   }
 
   return (

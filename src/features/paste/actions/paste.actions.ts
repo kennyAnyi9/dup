@@ -120,72 +120,100 @@ export async function createPaste(input: CreatePasteInput): Promise<CreatePasteR
     // Calculate expiry date
     const expiresAt = calculateExpiryDate(validatedInput.expiresIn, isAuthenticated);
 
-    // Generate or validate slug
-    let slug: string;
+    // Atomic slug generation and paste creation
+    const pasteId = nanoid();
+    let createdPaste;
     
     if (validatedInput.customUrl && validatedInput.customUrl.trim()) {
-      // Use custom URL if provided and not empty
-      slug = validatedInput.customUrl.trim();
+      // Use custom URL - attempt direct insert
+      const slug = validatedInput.customUrl.trim();
       
-      // Check if custom slug already exists
-      const existing = await db
-        .select({ id: paste.id })
-        .from(paste)
-        .where(eq(paste.slug, slug))
-        .limit(1);
-      
-      if (existing.length > 0) {
-        return {
-          success: false,
-          error: "Custom URL is already taken",
-        };
+      try {
+        const newPaste = await db
+          .insert(paste)
+          .values({
+            id: pasteId,
+            slug,
+            title: validatedInput.title || null,
+            description: validatedInput.description || null,
+            content: validatedInput.content,
+            language: validatedInput.language,
+            visibility: validatedInput.visibility,
+            password: hashedPassword,
+            burnAfterRead: validatedInput.burnAfterRead,
+            burnAfterReadViews: validatedInput.burnAfterRead ? (validatedInput.burnAfterReadViews || 1) : null,
+            expiresAt,
+            userId: user?.id || null,
+          })
+          .returning({
+            id: paste.id,
+            slug: paste.slug,
+          });
+        
+        createdPaste = newPaste[0];
+      } catch (error: any) {
+        // Check if it's a unique constraint violation
+        if (error.code === '23505' || error.message?.includes('duplicate') || error.message?.includes('unique')) {
+          return {
+            success: false,
+            error: "Custom URL is already taken",
+          };
+        }
+        throw error;
       }
     } else {
-      // Generate unique slug
-      let attempts = 0;
-      do {
-        slug = generateSlug();
-        attempts++;
+      // Generate unique slug with atomic insert retry
+      const maxAttempts = 10;
+      let attempt = 0;
+      
+      while (attempt < maxAttempts) {
+        const slug = generateSlug();
+        attempt++;
         
-        // Check if slug already exists
-        const existing = await db
-          .select({ id: paste.id })
-          .from(paste)
-          .where(eq(paste.slug, slug))
-          .limit(1);
-        
-        if (existing.length === 0) break;
-        
-        if (attempts > 10) {
-          throw new Error("Failed to generate unique slug");
+        try {
+          const newPaste = await db
+            .insert(paste)
+            .values({
+              id: pasteId,
+              slug,
+              title: validatedInput.title || null,
+              description: validatedInput.description || null,
+              content: validatedInput.content,
+              language: validatedInput.language,
+              visibility: validatedInput.visibility,
+              password: hashedPassword,
+              burnAfterRead: validatedInput.burnAfterRead,
+              burnAfterReadViews: validatedInput.burnAfterRead ? (validatedInput.burnAfterReadViews || 1) : null,
+              expiresAt,
+              userId: user?.id || null,
+            })
+            .returning({
+              id: paste.id,
+              slug: paste.slug,
+            });
+          
+          createdPaste = newPaste[0];
+          break;
+        } catch (error: any) {
+          // Check if it's a unique constraint violation on slug
+          if (error.code === '23505' || error.message?.includes('duplicate') || error.message?.includes('unique')) {
+            if (attempt >= maxAttempts) {
+              throw new Error("Failed to generate unique slug after multiple attempts");
+            }
+            // Continue to next attempt
+            continue;
+          }
+          // Re-throw other errors
+          throw error;
         }
-      } while (true);
+      }
+      
+      if (!createdPaste) {
+        throw new Error("Failed to create paste after multiple slug generation attempts");
+      }
     }
 
-    // Create paste
-    const pasteId = nanoid();
-    const newPaste = await db
-      .insert(paste)
-      .values({
-        id: pasteId,
-        slug,
-        title: validatedInput.title || null,
-        description: validatedInput.description || null,
-        content: validatedInput.content,
-        language: validatedInput.language,
-        visibility: validatedInput.visibility,
-        password: hashedPassword,
-        burnAfterRead: validatedInput.burnAfterRead,
-        burnAfterReadViews: validatedInput.burnAfterRead ? (validatedInput.burnAfterReadViews || 1) : null,
-        expiresAt,
-        userId: user?.id || null,
-      })
-      .returning({
-        id: paste.id,
-        slug: paste.slug,
-      });
-
-    const createdPaste = newPaste[0];
+    // createdPaste is already set above
 
     // Handle tags if provided
     if (validatedInput.tags && validatedInput.tags.length > 0) {
@@ -773,7 +801,7 @@ export async function updatePasteSettings(input: UpdatePasteSettingsInput): Prom
     }
 
     // Check rate limit
-    const rateLimit = await checkRateLimit(user.id, "UPDATE_PASTE");
+    const rateLimit = await checkRateLimit(user.id, "update-paste");
     if (!rateLimit.success) {
       return {
         success: false,

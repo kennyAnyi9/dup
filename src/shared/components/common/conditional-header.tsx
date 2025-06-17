@@ -4,15 +4,11 @@ import { usePathname } from "next/navigation";
 import { Header } from "./header";
 
 export function ConditionalHeader() {
-  const pathname = usePathname();
+  const pathname = usePathname() ?? "";
   
   // Hide header on dashboard, auth routes, and paste detail pages
-  if (pathname.startsWith("/dashboard") || 
-      pathname.startsWith("/login") || 
-      pathname.startsWith("/register") || 
-      pathname.startsWith("/sign-in") || 
-      pathname.startsWith("/sign-up") ||
-      pathname.startsWith("/p/")) {
+  const hiddenRoots = ["/dashboard", "/login", "/register", "/sign-in", "/sign-up", "/p/"];
+  if (hiddenRoots.some((root) => pathname.startsWith(root))) {
     return null;
   }
   

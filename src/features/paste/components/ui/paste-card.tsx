@@ -184,7 +184,7 @@ export function PasteCard({ paste }: PasteCardProps) {
                 <DropdownMenuContent align="end" className="w-44">
                   <DropdownMenuItem asChild>
                     <Link
-                      href={`/${paste.slug}`}
+                      href={`/p/${paste.slug}`}
                       className="flex items-center gap-2"
                     >
                       <ExternalLink className="h-4 w-4" />
@@ -233,7 +233,10 @@ export function PasteCard({ paste }: PasteCardProps) {
               className={`h-5 px-2 text-xs font-medium ${visibilityInfo.className}`}
             >
               <span className="flex items-center gap-1">
-                <visibilityInfo.icon className="h-3 w-3" />
+                {(() => {
+                  const Icon = visibilityInfo.icon;
+                  return <Icon className="h-3 w-3" />;
+                })()}
                 {visibilityInfo.label}
               </span>
             </Badge>
@@ -312,7 +315,7 @@ export function PasteCard({ paste }: PasteCardProps) {
               asChild
               className="h-7 px-3 text-xs font-medium hover:bg-primary/10 hover:text-primary transition-colors"
             >
-              <Link href={`/${paste.slug}`} className="flex items-center gap-1.5">
+              <Link href={`/p/${paste.slug}`} className="flex items-center gap-1.5">
                 <ExternalLink className="h-3 w-3" />
                 <span className="hidden sm:inline">View</span>
               </Link>

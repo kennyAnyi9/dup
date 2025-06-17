@@ -106,7 +106,7 @@ export function PublicPastesTable({ pastes }: PublicPastesTableProps) {
                       alt={paste.user.name}
                     />
                     <AvatarFallback className="text-xs bg-muted">
-                      {paste.user.name.charAt(0).toUpperCase()}
+                      {(paste.user.name?.trim()?.[0] || "?").toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
                 )}

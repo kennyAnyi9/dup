@@ -51,7 +51,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState, useTransition } from "react";
+import { useState, useTransition, useCallback } from "react";
 import { toast } from "sonner";
 
 interface PasteTableProps {
@@ -114,6 +114,10 @@ export function PasteTable({
   const [showDeleteDialog, setShowDeleteDialog] = useState<string | null>(null);
   const [copied, setCopied] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+
+  const handleRowClick = useCallback((slug: string) => {
+    router.push(`/p/${slug}`);
+  }, [router]);
 
   function getVisibilityInfo(visibility: string) {
     switch (visibility) {
@@ -198,7 +202,7 @@ export function PasteTable({
                 {onSelectAll && (
                   <Checkbox
                     checked={allSelected}
-                    onCheckedChange={onSelectAll}
+                    onCheckedChange={(value) => onSelectAll(value === true)}
                     aria-label="Select all pastes"
                   />
                 )}
@@ -225,14 +229,14 @@ export function PasteTable({
                   className={`cursor-pointer hover:bg-accent/50 transition-colors ${
                     isExpired ? "opacity-60" : ""
                   }`}
-                  onClick={() => router.push(`/p/${paste.slug}`)}
+                  onClick={() => handleRowClick(paste.slug)}
                 >
                   <TableCell>
                     {onSelectPaste && (
                       <Checkbox
                         checked={selectedPastes.has(paste.id)}
-                        onCheckedChange={(checked) =>
-                          onSelectPaste(paste.id, checked as boolean)
+                        onCheckedChange={(value) =>
+                          onSelectPaste(paste.id, value === true)
                         }
                         onClick={(e) => e.stopPropagation()}
                         aria-label={`Select paste ${paste.title || paste.slug}`}

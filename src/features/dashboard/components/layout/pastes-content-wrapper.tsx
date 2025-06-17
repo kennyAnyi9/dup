@@ -1,6 +1,6 @@
 "use client";
 
-import { deletePaste } from "@/app/actions/paste";
+import { deletePaste } from "@/features/paste/actions/paste.actions";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -17,7 +17,7 @@ import { PasteTable } from "@/features/paste/components/ui/paste-table";
 import { Button } from "@/shared/components/dupui/button";
 import { useIsMobile } from "@/shared/hooks/use-mobile";
 import { Trash2 } from "lucide-react";
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { toast } from "sonner";
 import { ColumnToggle } from "../ui/column-toggle";
 
@@ -64,27 +64,32 @@ export function PastesContentWrapper({ pastes }: PastesContentWrapperProps) {
     created: true,
   });
 
-  // Update column visibility based on screen size
+  // Track user's manual column toggles to preserve them across viewport changes
+  const userToggledColumns = useRef(new Set<string>());
+
+  // Update column visibility based on screen size, preserving user choices
   useEffect(() => {
-    if (isMobile) {
-      // Hide all columns on mobile by default
-      setVisibleColumns({
-        avatar: false,
-        language: false,
-        status: false,
-        views: false,
-        created: false,
-      });
-    } else {
-      // Show all columns on desktop by default
-      setVisibleColumns({
-        avatar: true,
-        language: true,
-        status: true,
-        views: true,
-        created: true,
-      });
-    }
+    setVisibleColumns((prev) => {
+      const newColumns = { ...prev };
+      
+      if (isMobile) {
+        // Hide columns on mobile, but preserve user's explicit choices
+        Object.keys(newColumns).forEach((key) => {
+          if (!userToggledColumns.current.has(key)) {
+            newColumns[key as keyof typeof newColumns] = false;
+          }
+        });
+      } else {
+        // Show columns on desktop, but preserve user's explicit choices
+        Object.keys(newColumns).forEach((key) => {
+          if (!userToggledColumns.current.has(key)) {
+            newColumns[key as keyof typeof newColumns] = true;
+          }
+        });
+      }
+      
+      return newColumns;
+    });
   }, [isMobile]);
 
   const handleEdit = (paste: PastesContentWrapperProps["pastes"][0]) => {
@@ -104,6 +109,9 @@ export function PastesContentWrapper({ pastes }: PastesContentWrapperProps) {
   };
 
   const handleColumnToggle = (key: string) => {
+    // Mark this column as user-toggled to preserve it across viewport changes
+    userToggledColumns.current.add(key);
+    
     setVisibleColumns((prev) => ({
       ...prev,
       [key]: !prev[key as keyof typeof prev],
@@ -133,6 +141,9 @@ export function PastesContentWrapper({ pastes }: PastesContentWrapperProps) {
   const handleBulkDelete = async () => {
     if (selectedPastes.size === 0) return;
 
+    // Snapshot the count before starting the transition to avoid race conditions
+    const count = selectedPastes.size;
+    
     startTransition(async () => {
       try {
         const deletePromises = Array.from(selectedPastes).map((pasteId) => {
@@ -142,9 +153,7 @@ export function PastesContentWrapper({ pastes }: PastesContentWrapperProps) {
         await Promise.all(deletePromises);
 
         toast.success(
-          `Successfully deleted ${selectedPastes.size} paste${
-            selectedPastes.size > 1 ? "s" : ""
-          }`
+          `Successfully deleted ${count} paste${count > 1 ? "s" : ""}`
         );
         setSelectedPastes(new Set());
       } catch (error) {

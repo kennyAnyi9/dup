@@ -17,10 +17,10 @@ try {
 // Cache key prefixes
 export const CACHE_KEYS = {
   RECENT_PUBLIC_PASTES: "recent_public_pastes",
-  PASTE_VIEW: "paste_view:",
+  PASTE_VIEW: "paste_view:",      // Rendered paste view with processed content/metadata
   USER_PASTES: "user_pastes:",
   PASTE_COUNT: "paste_count:",
-  PASTE: "paste:",
+  PASTE: "paste:",                // Raw paste DB record for operations/updates
 } as const;
 
 // Cache TTL (Time To Live) in seconds
