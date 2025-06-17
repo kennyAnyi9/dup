@@ -14,6 +14,7 @@ import {
 import Link from "next/link";
 import { useState, useRef, useEffect } from "react";
 import { toast } from "sonner";
+import { getBaseUrl } from "@/lib/utils/url";
 
 interface Paste {
   id: string;
@@ -35,12 +36,12 @@ interface PublicPasteCardsProps {
 
 export function PublicPasteCards({ pastes }: PublicPasteCardsProps) {
   const [copied, setCopied] = useState<string | null>(null);
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const timeoutRef = useRef<number | null>(null);
 
   useEffect(() => {
     return () => {
       if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
+        window.clearTimeout(timeoutRef.current);
       }
     };
   }, []);
@@ -48,7 +49,7 @@ export function PublicPasteCards({ pastes }: PublicPasteCardsProps) {
   async function handleCopyUrl(paste: Paste) {
     try {
       if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
+        window.clearTimeout(timeoutRef.current);
       }
 
       const pasteUrl = `${window.location.origin}/p/${paste.slug}`;
@@ -56,7 +57,7 @@ export function PublicPasteCards({ pastes }: PublicPasteCardsProps) {
       setCopied(paste.id);
       toast.success("URL copied to clipboard!");
       
-      timeoutRef.current = setTimeout(() => setCopied(null), 2000);
+      timeoutRef.current = window.setTimeout(() => setCopied(null), 2000);
     } catch (error) {
       toast.error("Failed to copy URL");
       console.error("Copy failed:", error);
@@ -128,6 +129,7 @@ export function PublicPasteCards({ pastes }: PublicPasteCardsProps) {
                     size="sm"
                     onClick={() => handleCopyUrl(paste)}
                     className="h-6 w-6 p-0 rounded-full border border-border bg-muted hover:bg-muted/80 transition-all duration-200 flex items-center justify-center"
+                    aria-label="Copy paste URL"
                   >
                     <div className="relative h-3 w-3 flex items-center justify-center">
                       <Clipboard
@@ -154,12 +156,12 @@ export function PublicPasteCards({ pastes }: PublicPasteCardsProps) {
                 <div className="flex items-center gap-1">
                   <CornerDownRight className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
                   <a
-                    href={`https://dup.it.com/p/${paste.slug}`}
+                    href={`${getBaseUrl()}/p/${paste.slug}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="max-w-32 truncate text-xs text-muted-foreground underline-offset-4 transition-all hover:text-foreground hover:underline"
                   >
-                    dup.it.com/p/{paste.slug}
+                    {getBaseUrl().replace(/^https?:\/\//, '')}/p/{paste.slug}
                   </a>
                 </div>
                 
@@ -170,7 +172,7 @@ export function PublicPasteCards({ pastes }: PublicPasteCardsProps) {
                 )}
                 
                 <span className="text-xs text-muted-foreground">
-                  {formatDistanceToNow(paste.createdAt, {
+                  {formatDistanceToNow(new Date(paste.createdAt), {
                     addSuffix: true,
                   })}
                 </span>

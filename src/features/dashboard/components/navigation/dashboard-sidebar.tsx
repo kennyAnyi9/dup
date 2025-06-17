@@ -11,6 +11,7 @@ import {
   Globe,
   Eye,
 } from "lucide-react";
+import { User } from "better-auth";
 
 interface DashboardSidebarProps {
   recentPublicPastes?: Array<{
@@ -22,12 +23,7 @@ interface DashboardSidebarProps {
     createdAt: Date;
   }>;
   totalPublicPastes?: number;
-  user?: {
-    id: string;
-    name?: string | null;
-    email: string;
-    image?: string | null;
-  };
+  user?: User;
 }
 
 export function DashboardSidebar({ recentPublicPastes = [], totalPublicPastes = 0, user }: DashboardSidebarProps) {

@@ -18,6 +18,7 @@ export function ViewToggle({ view, onViewChange }: ViewToggleProps) {
         size="sm"
         onClick={() => onViewChange("table")}
         className="h-7 px-2"
+        aria-pressed={view === "table"}
       >
         <Table className="h-4 w-4" />
         <span className="ml-1 hidden sm:inline">Table</span>
@@ -27,6 +28,7 @@ export function ViewToggle({ view, onViewChange }: ViewToggleProps) {
         size="sm"
         onClick={() => onViewChange("card")}
         className="h-7 px-2"
+        aria-pressed={view === "card"}
       >
         <LayoutGrid className="h-4 w-4" />
         <span className="ml-1 hidden sm:inline">Cards</span>

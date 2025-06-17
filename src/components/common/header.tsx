@@ -44,7 +44,7 @@ export function Header() {
             >
               <div className="px-4">
                 <div className="flex h-16 items-center justify-between">
-                  <div className="flex items-center">
+                  <div className="flex items-center gap-2">
                     <Link href="/" className="flex items-center">
                       <Logo priority />
                     </Link>

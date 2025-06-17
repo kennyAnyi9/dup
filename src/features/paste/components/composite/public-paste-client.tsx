@@ -145,9 +145,11 @@ export function PublicPasteClient({ slug }: PublicPasteClientProps) {
           <Button
             onClick={() => openModal()}
             className="flex items-center gap-2"
+            aria-label="Create new paste"
           >
             <Plus className="h-4 w-4" />
-            Create Paste
+            <span className="hidden sm:inline">Create Paste</span>
+            <span className="sm:hidden">New</span>
           </Button>
         </div>
       </div>

@@ -41,7 +41,7 @@ export default async function Home() {
         >
           <div className="sm:py-20">
             <div className="relative mx-auto flex w-full max-w-none sm:max-w-4xl flex-col items-center  sm:px-8 lg:px-12 text-center">
-              <Badge variant="destructive" className="mb-4 animate-slide-up-fade [--offset:30px] [animation-duration:1s] [animation-fill-mode:both] motion-reduce:animate-fade-in [animation-delay:50ms]">
+              <Badge variant="secondary" className="mb-4 animate-slide-up-fade [--offset:30px] [animation-duration:1s] [animation-fill-mode:both] motion-reduce:animate-fade-in [animation-delay:50ms]">
                 <Zap className="h-3 w-3 mr-1" />
                 Beta
               </Badge>

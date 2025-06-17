@@ -69,6 +69,8 @@ export function PasteCardsGrid({
 
   return (
     <div className="space-y-3">
+      {/* TODO: Consider implementing list virtualization (react-window/react-virtualized) 
+          for better performance with large datasets (100+ pastes) */}
       {pastes.map((paste) => (
         <PasteCardView
           key={paste.id}

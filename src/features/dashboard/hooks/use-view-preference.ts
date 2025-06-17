@@ -1,31 +1,34 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 type ViewType = "table" | "card";
 
 const VIEW_PREFERENCE_KEY = "pastes-view-preference";
 
-export function useViewPreference() {
-  const [view, setView] = useState<ViewType>("table");
-  const [isLoaded, setIsLoaded] = useState(false);
-
-  useEffect(() => {
-    // Load saved preference from localStorage
-    try {
+function getInitialViewPreference(): ViewType {
+  try {
+    if (typeof window !== "undefined") {
       const saved = localStorage.getItem(VIEW_PREFERENCE_KEY);
       if (saved && (saved === "table" || saved === "card")) {
-        setView(saved as ViewType);
+        return saved as ViewType;
       }
-    } catch (error) {
-      // Silent fail if localStorage is not available
-      console.warn("Failed to load view preference:", error);
     }
-    setIsLoaded(true);
-  }, []);
+  } catch (error) {
+    // Silent fail if localStorage is not available
+    console.warn("Failed to load view preference:", error);
+  }
+  return "table";
+}
+
+export function useViewPreference() {
+  const [view, setView] = useState<ViewType>(getInitialViewPreference);
 
   const setViewPreference = (newView: ViewType) => {
-    setView(newView);
+    setView(prev => {
+      if (prev === newView) return prev;
+      return newView;
+    });
     try {
       localStorage.setItem(VIEW_PREFERENCE_KEY, newView);
     } catch (error) {
@@ -37,6 +40,5 @@ export function useViewPreference() {
   return {
     view,
     setView: setViewPreference,
-    isLoaded,
   };
 }

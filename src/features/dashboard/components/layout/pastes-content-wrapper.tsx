@@ -56,7 +56,7 @@ interface PastesContentWrapperProps {
 export function PastesContentWrapper({ pastes }: PastesContentWrapperProps) {
   const { openEditModal } = usePasteModal();
   const [isPending, startTransition] = useTransition();
-  const [selectedPastes, setSelectedPastes] = useState<Set<string>>(new Set());
+  const [selectedPastes, setSelectedPastes] = useState(() => new Set<string>());
   const { view: currentView, setView: setCurrentView } = useViewPreference();
   const isMobile = useIsMobile();
   
@@ -116,8 +116,17 @@ export function PastesContentWrapper({ pastes }: PastesContentWrapperProps) {
   };
 
   const handleColumnToggle = (key: string) => {
-    // Mark this column as user-toggled to preserve it across viewport changes
-    userToggledColumns.current.add(key);
+    // Track user toggles but remove if returning to default state
+    const currentValue = visibleColumns[key as keyof typeof visibleColumns];
+    const defaultValue = !isMobile; // Default is visible on desktop, hidden on mobile
+    
+    if (!currentValue === defaultValue) {
+      // User is returning to default state, remove from tracked toggles
+      userToggledColumns.current.delete(key);
+    } else {
+      // User is changing from default, track this toggle
+      userToggledColumns.current.add(key);
+    }
     
     setVisibleColumns((prev) => ({
       ...prev,
@@ -153,6 +162,8 @@ export function PastesContentWrapper({ pastes }: PastesContentWrapperProps) {
     
     startTransition(async () => {
       try {
+        // TODO: For large selections (>50), consider using p-limit to throttle
+        // concurrent requests or implement batch deletion API endpoint
         const deletePromises = Array.from(selectedPastes).map((pasteId) => {
           return deletePaste({ id: pasteId });
         });

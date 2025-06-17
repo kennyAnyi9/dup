@@ -48,6 +48,7 @@ import { useState } from "react";
 import { useCopyUrl } from "../../hooks/use-copy-url";
 import { usePasteActions } from "../../hooks/use-paste-actions";
 import { getVisibilityInfo } from "../../lib/paste-utils";
+import { getBaseUrl } from "@/lib/utils/url";
 
 interface PasteCardViewProps {
   paste: {
@@ -166,6 +167,7 @@ export function PasteCardView({
                           size="sm"
                           onClick={handleCopyUrl}
                           className="h-6 w-6 p-0 rounded-full border border-border bg-muted hover:bg-muted/80 transition-all duration-200 flex items-center justify-center"
+                          aria-label="Copy paste URL"
                         >
                           <div className="relative h-3 w-3 flex items-center justify-center">
                             <Clipboard
@@ -190,6 +192,7 @@ export function PasteCardView({
                           variant="ghost"
                           size="sm"
                           className="h-6 w-6 p-0 rounded-full border border-border bg-muted hover:bg-muted/80 transition-all duration-200"
+                          aria-label="Show QR code"
                         >
                           <QrCode className="h-3.5 w-3.5" />
                         </Button>
@@ -201,12 +204,12 @@ export function PasteCardView({
                       <div className="flex items-center gap-1">
                         <CornerDownRight className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
                         <a
-                          href={`https://dup.it.com/p/${paste.slug}`}
+                          href={`${getBaseUrl()}/p/${paste.slug}`}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="max-w-32 truncate text-xs text-muted-foreground underline-offset-4 transition-all hover:text-foreground hover:underline"
                         >
-                          dup.it.com/p/{paste.slug}
+                          {getBaseUrl().replace(/^https?:\/\//, '')}/p/{paste.slug}
                         </a>
                       </div>
                       <span className="text-xs text-muted-foreground">
@@ -229,10 +232,7 @@ export function PasteCardView({
                         className={`h-4 px-1.5 text-xs font-medium ${visibilityInfo.className}`}
                       >
                         <span className="flex items-center gap-1">
-                          {(() => {
-                            const Icon = visibilityInfo.icon;
-                            return <Icon className="h-2.5 w-2.5" />;
-                          })()}
+                          <visibilityInfo.icon className="h-2.5 w-2.5" />
                           {visibilityInfo.label}
                         </span>
                       </Badge>
@@ -327,6 +327,7 @@ export function PasteCardView({
                       checked={isSelected || false}
                       onChange={(e) => onSelect(paste.id, e.target.checked)}
                       className="rounded border-border"
+                      aria-label={`Select paste ${paste.title || paste.slug}`}
                     />
                   )}
 

@@ -20,6 +20,7 @@ import {
   Earth, 
   Shield, 
   Eye,
+  EyeOff,
   Loader
 } from "lucide-react";
 import { useKeyboardShortcuts, isMac } from "@/hooks/use-keyboard-shortcuts";
@@ -136,7 +137,7 @@ export function SearchFilters({
       case "private":
         return <Shield className="h-3 w-3" />;
       case "unlisted":
-        return <Eye className="h-3 w-3" />;
+        return <EyeOff className="h-3 w-3" />;
       default:
         return <Layers className="h-3 w-3" />;
     }
