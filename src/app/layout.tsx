@@ -1,8 +1,6 @@
-import { AuthProvider } from "@/app/(auth)/_components/auth-provider";
+import { AppProviders } from "@/components/common/app-providers";
 import { ConditionalFooter } from "@/components/common/conditional-footer";
 import { ConditionalHeader } from "@/components/common/conditional-header";
-import { PasteModalProvider } from "@/components/shared/paste/paste-modal-provider";
-import { ThemeProvider } from "@/components/theme/provider";
 import { CommandPalette } from "@/components/ui/command-palette";
 import { Toaster } from "@/components/ui/sonner";
 import { APP_NAME } from "@/lib/constants";
@@ -42,23 +40,13 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen flex flex-col`}
       >
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
-          <AuthProvider>
-            <PasteModalProvider>
-              <ConditionalHeader />
-
-              <main className="flex-1">{children}</main>
-              <ConditionalFooter />
-              <CommandPalette />
-              <Toaster />
-            </PasteModalProvider>
-          </AuthProvider>
-        </ThemeProvider>
+        <AppProviders>
+          <ConditionalHeader />
+          <main className="flex-1">{children}</main>
+          <ConditionalFooter />
+          <CommandPalette />
+          <Toaster />
+        </AppProviders>
       </body>
     </html>
   );

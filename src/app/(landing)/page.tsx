@@ -1,14 +1,16 @@
-import { getRecentPublicPastes } from "@/app/actions/paste";
 import { WarpBackground } from "@/components/magicui/warp-background";
-import { Badge } from "@/components/ui/badge";
+import { HomeClient } from "@/features/landing/components/sections/home-client";
+import { PublicPastesTable } from "@/features/landing/components/ui/public-pastes-table";
+import { getRecentPublicPastes } from "@/features/paste/actions/paste.actions";
+import { Badge } from "@/shared/components/dupui/badge";
 import {
   Panel,
   PanelContent,
   PanelHeader,
   PanelTitle,
   Pattern,
-} from "@/components/ui/panel";
-import { PASTE_LIMITS } from "@/lib/paste-limits";
+} from "@/shared/components/dupui/panel";
+import { PASTE_LIMITS } from "@/shared/lib/paste-limits";
 import {
   BarChart3,
   Clock,
@@ -21,8 +23,6 @@ import {
   Zap,
 } from "lucide-react";
 import Link from "next/link";
-import { HomeClient } from "./_components/home-client";
-import { PublicPastesTable } from "./_components/public-pastes-table";
 
 export default async function Home() {
   const recentPastesData = await getRecentPublicPastes(8);
@@ -73,8 +73,8 @@ export default async function Home() {
               <h3 className="font-medium">Burn after read</h3>
               <div className="max-w-xs text-pretty text-muted-foreground sm:max-w-none">
                 <p>
-                  Automatically delete pastes after they&apos;ve been viewed once for
-                  maximum security and privacy.
+                  Automatically delete pastes after they&apos;ve been viewed
+                  once for maximum security and privacy.
                 </p>
               </div>
             </div>

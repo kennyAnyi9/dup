@@ -20,6 +20,7 @@ export const CACHE_KEYS = {
   PASTE_VIEW: "paste_view:",
   USER_PASTES: "user_pastes:",
   PASTE_COUNT: "paste_count:",
+  PASTE: "paste:",
 } as const;
 
 // Cache TTL (Time To Live) in seconds
@@ -28,6 +29,7 @@ export const CACHE_TTL = {
   PASTE_VIEW: 3600, // 1 hour
   USER_PASTES: 600, // 10 minutes
   PASTE_COUNT: 1800, // 30 minutes
+  PASTE: 3600, // 1 hour
 } as const;
 
 export interface CacheOptions {

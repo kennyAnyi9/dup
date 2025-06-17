@@ -1,26 +1,7 @@
-import { Suspense } from "react";
-import { PasteModalProvider } from "@/components/shared/paste/paste-modal-provider";
-import type { Metadata } from "next";
-import { redirect } from "next/navigation";
-import { getCurrentUser } from "@/lib/auth-server";
-import { getUserPastes, getRecentPublicPastes } from "@/app/actions/paste";
-import { SearchFilters } from "../_components/search-filters";
-import { PastesContentWrapper } from "../_components/pastes-content-wrapper";
-import { DashboardHeaderButton } from "../_components/dashboard-header-button";
-import { EmptyState } from "../_components/dashboard-empty-states";
-import { DashboardSidebar } from "../_components/dashboard-sidebar";
-import { DashboardMobileSidebar } from "../_components/dashboard-mobile-sidebar";
-import { DashboardProfileDropdown } from "../_components/dashboard-profile-dropdown";
-import { Logo } from "@/components/common/logo";
+import { getRecentPublicPastes, getUserPastes } from "@/features/paste/actions/paste.actions";
+import { Logo } from "@/shared/components/common/logo";
+import { PasteModalProvider } from "@/features/paste/components/providers/paste-modal-provider";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { 
   Pagination,
   PaginationContent,
   PaginationEllipsis,
@@ -29,7 +10,26 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { getCurrentUser } from "@/lib/auth-server";
+import type { Metadata } from "next";
 import Link from "next/link";
+import { redirect } from "next/navigation";
+import { Suspense } from "react";
+import { EmptyState } from "@/features/dashboard/components/ui/dashboard-empty-states";
+import { DashboardHeaderButton } from "@/features/dashboard/components/ui/dashboard-header-button";
+import { DashboardMobileSidebar } from "@/features/dashboard/components/navigation/dashboard-mobile-sidebar";
+import { DashboardProfileDropdown } from "@/features/dashboard/components/ui/dashboard-profile-dropdown";
+import { DashboardSidebar } from "@/features/dashboard/components/navigation/dashboard-sidebar";
+import { PastesContentWrapper } from "@/features/dashboard/components/layout/pastes-content-wrapper";
+import { SearchFilters } from "@/features/dashboard/components/ui/search-filters";
 
 export const metadata: Metadata = {
   title: "Dashboard - Dup",
@@ -47,7 +47,9 @@ interface DashboardPageProps {
   searchParams: Promise<SearchParams>;
 }
 
-export default async function DashboardPage({ searchParams }: DashboardPageProps) {
+export default async function DashboardPage({
+  searchParams,
+}: DashboardPageProps) {
   const user = await getCurrentUser();
   if (!user) {
     redirect("/login");
@@ -66,87 +68,104 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
   return (
     <PasteModalProvider>
       <div className="container relative mx-auto flex h-screen w-full flex-col items-center gap-6 p-4 overflow-hidden">
-      {/* Header */}
-      <header className="sticky top-2 z-50 w-full border-border">
-        <div className="w-full rounded-lg border border-border md:p-6 bg-background/70 px-3 py-3 backdrop-blur-lg md:px-6 md:py-3">
-          <div className="flex w-full items-center justify-between">
-            <div className="flex items-center gap-3">
-              <DashboardMobileSidebar 
-                recentPublicPastes={recentPublicPastesData.pastes}
-                totalPublicPastes={recentPublicPastesData.total}
-              />
-              <Link className="shrink-0" href="/">
-                <div className="rounded-lg border border-border overflow-hidden">
-                  <Logo width={40} height={40} className="h-10 w-10" />
-                </div>
-              </Link>
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-slash -rotate-12 mr-0.5 ml-2.5 h-4 w-4 text-muted-foreground hidden sm:block">
-                <path d="M22 2 2 22"></path>
-              </svg>
-              <div className="w-20 sm:w-40 hidden sm:block">
-                <span className="truncate text-sm font-medium">{user.name || user.email}</span>
-              </div>
-            </div>
-            <div className="flex items-center gap-2 sm:gap-4">
-              <Link 
-                href="/changelog" 
-                className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors hidden sm:block"
-              >
-                Changelog
-              </Link>
-              <DashboardProfileDropdown user={user} />
-            </div>
-          </div>
-        </div>
-      </header>
-
-      {/* Main Content */}
-      <main className="z-10 flex w-full flex-1 flex-col items-start overflow-hidden min-w-0">
-        <div className="flex w-full flex-1 flex-col gap-4 lg:flex-row lg:gap-6 overflow-hidden min-w-0">
-          {/* Sidebar */}
-          <DashboardSidebar recentPublicPastes={recentPublicPastesData.pastes} totalPublicPastes={recentPublicPastesData.total} />
-          
-          {/* Main Content Area */}
-          <div className="flex-1 lg:basis-4/5 rounded-lg border border-border px-3 py-4 backdrop-blur-[2px] md:p-6 relative overflow-hidden min-w-0">
-            <div className="flex flex-col gap-3 h-full">
-              {/* Page Header */}
-              <div className="col-span-full flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-1">
-                <div className="flex min-w-0 flex-col gap-1">
-                  <h1 className="font-cal text-2xl sm:text-3xl">My Pastes</h1>
-                  <p className="text-muted-foreground text-sm sm:text-base">Manage and organize your code snippets.</p>
-                </div>
-                <div className="sm:shrink-0">
-                  <DashboardHeaderButton />
+        {/* Header */}
+        <header className="sticky top-2 z-50 w-full border-border">
+          <div className="w-full rounded-lg border border-border md:p-6 bg-background/70 px-3 py-3 backdrop-blur-lg md:px-6 md:py-3">
+            <div className="flex w-full items-center justify-between">
+              <div className="flex items-center gap-3">
+                <DashboardMobileSidebar
+                  recentPublicPastes={recentPublicPastesData.pastes}
+                  totalPublicPastes={recentPublicPastesData.total}
+                />
+                <Link className="shrink-0" href="/">
+                  <div className="rounded-lg border border-border overflow-hidden">
+                    <Logo />
+                  </div>
+                </Link>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="lucide lucide-slash -rotate-12 mr-0.5 ml-2.5 h-4 w-4 text-muted-foreground hidden sm:block"
+                >
+                  <path d="M22 2 2 22"></path>
+                </svg>
+                <div className="w-20 sm:w-40 hidden sm:block">
+                  <span className="truncate text-sm font-medium">
+                    {user.name || user.email}
+                  </span>
                 </div>
               </div>
-
-              {/* Search and Filters */}
-              <SearchFilters
-                defaultSearch={search}
-                defaultFilter={filter}
-                defaultSort={sort}
-              />
-
-              {/* Content */}
-              <div className="flex-1 overflow-hidden">
-                <Suspense fallback={<PastesLoading />}>
-                  <PastesContent
-                    page={page}
-                    search={search}
-                    filter={filter}
-                    sort={sort}
-                  />
-                </Suspense>
+              <div className="flex items-center gap-2 sm:gap-4">
+                <Link
+                  href="/changelog"
+                  className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors hidden sm:block"
+                >
+                  Changelog
+                </Link>
+                <DashboardProfileDropdown user={user} />
               </div>
             </div>
           </div>
-        </div>
-      </main>
+        </header>
+
+        {/* Main Content */}
+        <main className="z-10 flex w-full flex-1 flex-col items-start overflow-hidden min-w-0">
+          <div className="flex w-full flex-1 flex-col gap-4 lg:flex-row lg:gap-6 overflow-hidden min-w-0">
+            {/* Sidebar */}
+            <DashboardSidebar
+              recentPublicPastes={recentPublicPastesData.pastes}
+              totalPublicPastes={recentPublicPastesData.total}
+            />
+
+            {/* Main Content Area */}
+            <div className="flex-1 lg:basis-4/5 rounded-lg border border-border px-3 py-4 backdrop-blur-[2px] md:p-6 relative overflow-hidden min-w-0">
+              <div className="flex flex-col gap-3 h-full">
+                {/* Page Header */}
+                <div className="col-span-full flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-1">
+                  <div className="flex min-w-0 flex-col gap-1">
+                    <h1 className="font-cal text-2xl sm:text-3xl">My Pastes</h1>
+                    <p className="text-muted-foreground text-sm sm:text-base">
+                      Manage and organize your code snippets.
+                    </p>
+                  </div>
+                  <div className="sm:shrink-0">
+                    <DashboardHeaderButton />
+                  </div>
+                </div>
+
+                {/* Search and Filters */}
+                <SearchFilters
+                  defaultSearch={search}
+                  defaultFilter={filter}
+                  defaultSort={sort}
+                />
+
+                {/* Content */}
+                <div className="flex-1 overflow-hidden">
+                  <Suspense fallback={<PastesLoading />}>
+                    <PastesContent
+                      page={page}
+                      search={search}
+                      filter={filter}
+                      sort={sort}
+                    />
+                  </Suspense>
+                </div>
+              </div>
+            </div>
+          </div>
+        </main>
       </div>
     </PasteModalProvider>
   );
 }
-
 
 async function PastesContent({
   page,
@@ -192,23 +211,23 @@ async function PastesContent({
   );
 }
 
-function PaginationComponent({ 
-  pagination 
-}: { 
+function PaginationComponent({
+  pagination,
+}: {
   pagination: {
     page: number;
     totalPages: number;
     hasNext: boolean;
     hasPrev: boolean;
-  }
+  };
 }) {
   const { page, totalPages, hasNext, hasPrev } = pagination;
-  
+
   // Generate page numbers to show
   const getPageNumbers = () => {
     const pages: (number | string)[] = [];
     const showPages = 7; // Number of page buttons to show
-    
+
     if (totalPages <= showPages) {
       // Show all pages if total pages is small
       for (let i = 1; i <= totalPages; i++) {
@@ -245,7 +264,7 @@ function PaginationComponent({
         pages.push(totalPages);
       }
     }
-    
+
     return pages;
   };
 
@@ -255,18 +274,18 @@ function PaginationComponent({
     <Pagination>
       <PaginationContent>
         <PaginationItem>
-          <PaginationPrevious 
+          <PaginationPrevious
             href={hasPrev ? `?page=${page - 1}` : undefined}
             className={!hasPrev ? "pointer-events-none opacity-50" : ""}
           />
         </PaginationItem>
-        
+
         {pageNumbers.map((pageNum, index) => (
           <PaginationItem key={index}>
             {pageNum === "..." ? (
               <PaginationEllipsis />
             ) : (
-              <PaginationLink 
+              <PaginationLink
                 href={`?page=${pageNum}`}
                 isActive={pageNum === page}
               >
@@ -275,9 +294,9 @@ function PaginationComponent({
             )}
           </PaginationItem>
         ))}
-        
+
         <PaginationItem>
-          <PaginationNext 
+          <PaginationNext
             href={hasNext ? `?page=${page + 1}` : undefined}
             className={!hasNext ? "pointer-events-none opacity-50" : ""}
           />
@@ -286,8 +305,6 @@ function PaginationComponent({
     </Pagination>
   );
 }
-
-
 
 function PastesLoading() {
   return (

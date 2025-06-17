@@ -20,23 +20,26 @@ import {
   CACHE_TTL,
   generateCacheKey,
   deleteFromCache,
-} from "@/lib/cache";
+} from "@/shared/lib/cache";
 import {
   createPasteSchema,
   getPasteSchema,
   deletePasteSchema,
   checkUrlAvailabilitySchema,
   updatePasteSettingsSchema,
+  updatePasteSchema,
   type CreatePasteResult,
   type GetPasteResult,
   type DeletePasteResult,
   type CheckUrlAvailabilityResult,
   type UpdatePasteSettingsResult,
+  type UpdatePasteResult,
   type CreatePasteInput,
   type GetPasteInput,
   type DeletePasteInput,
   type CheckUrlAvailabilityInput,
   type UpdatePasteSettingsInput,
+  type UpdatePasteInput,
 } from "@/types/paste";
 import bcrypt from "bcryptjs";
 
@@ -374,6 +377,7 @@ export async function getPaste(input: GetPasteInput): Promise<GetPasteResult> {
           views: newViewCount,
           expiresAt: foundPaste.expiresAt || undefined,
           userId: foundPaste.userId || undefined,
+          hasPassword: !!foundPaste.password,
           createdAt: foundPaste.createdAt,
           updatedAt: foundPaste.updatedAt,
         },
@@ -395,6 +399,7 @@ export async function getPaste(input: GetPasteInput): Promise<GetPasteResult> {
         views: newViewCount,
         expiresAt: foundPaste.expiresAt || undefined,
         userId: foundPaste.userId || undefined,
+        hasPassword: !!foundPaste.password,
         createdAt: foundPaste.createdAt,
         updatedAt: foundPaste.updatedAt,
       },
@@ -915,6 +920,189 @@ export async function checkUrlAvailability(input: CheckUrlAvailabilityInput): Pr
     return {
       available: false,
       error: error instanceof Error ? error.message : "Failed to check URL availability",
+    };
+  }
+}
+
+export async function updatePaste(input: UpdatePasteInput): Promise<UpdatePasteResult> {
+  try {
+    // Validate input
+    const validatedInput = updatePasteSchema.parse(input);
+    
+    // Get current user
+    const user = await getCurrentUser();
+    if (!user) {
+      return {
+        success: false,
+        error: "Authentication required",
+      };
+    }
+
+    // Check rate limiting
+    const rateLimitResult = await checkRateLimit(user.id, "update-paste");
+    if (!rateLimitResult.success) {
+      return {
+        success: false,
+        error: `Rate limit exceeded. Try again in a few minutes.`,
+      };
+    }
+
+    // Check character limits
+    const charLimit = CHAR_LIMIT_AUTHENTICATED;
+    if (validatedInput.content.length > charLimit) {
+      return {
+        success: false,
+        error: `Content exceeds ${charLimit} character limit`,
+      };
+    }
+
+    // Find the paste and verify ownership
+    const existingPaste = await db
+      .select({
+        id: paste.id,
+        slug: paste.slug,
+        userId: paste.userId,
+        password: paste.password,
+      })
+      .from(paste)
+      .where(
+        and(
+          eq(paste.id, validatedInput.id),
+          eq(paste.isDeleted, false)
+        )
+      )
+      .limit(1);
+
+    if (existingPaste.length === 0) {
+      return {
+        success: false,
+        error: "Paste not found",
+      };
+    }
+
+    const targetPaste = existingPaste[0];
+
+    // Verify ownership
+    if (targetPaste.userId !== user.id) {
+      return {
+        success: false,
+        error: "You can only edit your own pastes",
+      };
+    }
+
+    // Handle password
+    let hashedPassword: string | null = targetPaste.password;
+    if (validatedInput.removePassword) {
+      hashedPassword = null;
+    } else if (validatedInput.password) {
+      hashedPassword = await bcrypt.hash(validatedInput.password, 10);
+    }
+
+    // Handle expiry
+    let expiresAt: Date | null = null;
+    if (validatedInput.expiresIn && validatedInput.expiresIn !== "remove") {
+      expiresAt = calculateExpiryDate(validatedInput.expiresIn, true);
+    }
+
+    // Update the paste
+    const [updatedPaste] = await db
+      .update(paste)
+      .set({
+        title: validatedInput.title || null,
+        description: validatedInput.description || null,
+        content: validatedInput.content,
+        language: validatedInput.language,
+        visibility: validatedInput.visibility,
+        password: hashedPassword,
+        burnAfterRead: validatedInput.burnAfterRead,
+        burnAfterReadViews: validatedInput.burnAfterRead ? validatedInput.burnAfterReadViews || 1 : null,
+        expiresAt,
+        updatedAt: new Date(),
+      })
+      .where(eq(paste.id, validatedInput.id))
+      .returning({
+        id: paste.id,
+        slug: paste.slug,
+      });
+
+    if (!updatedPaste) {
+      return {
+        success: false,
+        error: "Failed to update paste",
+      };
+    }
+
+    // Handle tags
+    if (validatedInput.tags) {
+      // Remove existing tags
+      await db.delete(pasteTag).where(eq(pasteTag.pasteId, validatedInput.id));
+
+      // Add new tags
+      if (validatedInput.tags.length > 0) {
+        for (const tagName of validatedInput.tags) {
+          // Create a slug from the tag name
+          const tagSlug = tagName.toLowerCase().replace(/[^a-z0-9-_]/g, '-').replace(/-+/g, '-').trim();
+          const tagId = nanoid();
+
+          // Insert tag if it doesn't exist
+          const existingTag = await db
+            .select({ id: tag.id })
+            .from(tag)
+            .where(eq(tag.slug, tagSlug))
+            .limit(1);
+
+          let tagIdToUse: string;
+          
+          if (existingTag.length === 0) {
+            // Create new tag
+            const newTag = await db
+              .insert(tag)
+              .values({
+                id: tagId,
+                name: tagName,
+                slug: tagSlug,
+                color: `#${Math.floor(Math.random()*16777215).toString(16)}`, // Random color
+                createdAt: new Date(),
+                updatedAt: new Date(),
+              })
+              .returning({ id: tag.id });
+            tagIdToUse = newTag[0].id;
+          } else {
+            tagIdToUse = existingTag[0].id;
+          }
+
+          // Link tag to paste
+          await db.insert(pasteTag).values({
+            pasteId: validatedInput.id,
+            tagId: tagIdToUse,
+          });
+        }
+      }
+    }
+
+    // Clear cache for this paste
+    await deleteFromCache(generateCacheKey(CACHE_KEYS.PASTE, updatedPaste.slug));
+    
+    // Clear user pastes cache
+    await deleteFromCache(generateCacheKey(CACHE_KEYS.USER_PASTES, user.id));
+
+    // Revalidate relevant paths
+    revalidatePath('/dashboard');
+    revalidatePath(`/p/${updatedPaste.slug}`);
+
+    return {
+      success: true,
+      paste: {
+        id: updatedPaste.id,
+        slug: updatedPaste.slug,
+        url: `${APP_URL}/p/${updatedPaste.slug}`,
+      },
+    };
+  } catch (error) {
+    console.error("Update paste error:", error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Failed to update paste",
     };
   }
 }
