@@ -74,6 +74,10 @@ interface PasteFormModalProps {
     content: string;
     language: string;
     visibility: string;
+    burnAfterRead: boolean;
+    burnAfterReadViews: number | null;
+    expiresAt: Date | null;
+    hasPassword: boolean;
     tags?: Array<{ name: string }>;
   } | null;
 }
@@ -117,7 +121,7 @@ export function PasteFormModal({
   });
 
   // Helper function to convert expiresAt to expiresIn
-  const getExpiresInValue = (expiresAt: Date | null): string => {
+  const getExpiresInValue = (expiresAt: Date | null): "1h" | "1d" | "7d" | "30d" | "never" => {
     if (!expiresAt) return "never";
     
     const now = new Date();
@@ -233,7 +237,7 @@ export function PasteFormModal({
             burnAfterRead: data.burnAfterRead,
             burnAfterReadViews: data.burnAfterReadViews,
             tags: data.tags,
-            expiresIn: data.expiresIn,
+            expiresIn: data.expiresIn === "30m" ? "1h" : data.expiresIn,
           };
           result = await updatePaste(updateData);
         } else {

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { toast } from "sonner";
-import { deletePaste } from "../actions/paste.actions";
+import { deletePaste } from "@/app/actions/paste";
 
 export function usePasteActions() {
   const [loading, setLoading] = useState(false);
@@ -13,7 +13,7 @@ export function usePasteActions() {
     setDeletingId(pasteId);
     
     try {
-      const result = await deletePaste(pasteId);
+      const result = await deletePaste({ id: pasteId });
       
       if (result.success) {
         toast.success("Paste deleted successfully");

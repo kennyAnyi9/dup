@@ -1,6 +1,6 @@
 "use client";
 
-import { usePasteModal } from "@/components/shared/paste/paste-modal-provider";
+import { usePasteModal } from "@/features/paste/components/providers/paste-modal-provider";
 import { Button } from "@/components/ui/button";
 import { useKeyboardShortcuts } from "@/hooks/use-keyboard-shortcuts";
 

@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Search, FolderOpen } from "lucide-react";
-import { usePasteModal } from "@/components/shared/paste/paste-modal-provider";
+import { usePasteModal } from "@/features/paste/components/providers/paste-modal-provider";
 import { useRouter } from "next/navigation";
 
 interface EmptyStateProps {

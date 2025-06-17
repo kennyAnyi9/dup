@@ -1,7 +1,7 @@
-import { AuthProvider } from "@/app/(auth)/_components/auth-provider";
+import { AuthProvider } from "@/features/auth/components/providers/auth-provider";
 import { ConditionalFooter } from "@/components/common/conditional-footer";
 import { ConditionalHeader } from "@/components/common/conditional-header";
-import { PasteModalProvider } from "@/components/shared/paste/paste-modal-provider";
+import { PasteModalProvider } from "@/features/paste/components/providers/paste-modal-provider";
 import { ThemeProvider } from "@/components/theme/provider";
 import { CommandPalette } from "@/components/ui/command-palette";
 import { Toaster } from "@/components/ui/sonner";

@@ -32,10 +32,7 @@ import {
   Clock,
   ExternalLink,
   Eye,
-  EyeOff,
-  Globe,
   Loader,
-  Lock,
   MoreHorizontal,
   Shield,
   Tag,
@@ -44,8 +41,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState, useTransition } from "react";
-import { toast } from "sonner";
+import { useState } from "react";
 
 interface PasteCardProps {
   paste: {
@@ -79,75 +75,19 @@ interface PasteCardProps {
 export function PasteCard({ paste }: PasteCardProps) {
   const router = useRouter();
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-  const [isPending, startTransition] = useTransition();
   const { copied, copyUrl } = useCopyUrl();
   const { loading: isDeleting, handleDelete } = usePasteActions();
 
   const isExpired = paste.expiresAt && new Date() > paste.expiresAt;
 
-  function getVisibilityInfo(visibility: string) {
-    switch (visibility) {
-      case "public":
-        return {
-          icon: <Globe className="h-3 w-3" />,
-          label: "Public",
-          className:
-            "bg-green-100 text-green-800 border-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-700/50",
-        };
-      case "private":
-        return {
-          icon: <Lock className="h-3 w-3" />,
-          label: "Private",
-          className:
-            "bg-red-100 text-red-800 border-red-200 dark:bg-red-900/30 dark:text-red-400 dark:border-red-700/50",
-        };
-      case "unlisted":
-        return {
-          icon: <EyeOff className="h-3 w-3" />,
-          label: "Unlisted",
-          className:
-            "bg-yellow-100 text-yellow-800 border-yellow-200 dark:bg-yellow-900/30 dark:text-yellow-400 dark:border-yellow-700/50",
-        };
-      default:
-        return {
-          icon: <Globe className="h-3 w-3" />,
-          label: visibility,
-          className: "bg-muted text-muted-foreground border-border",
-        };
-    }
-  }
 
-  async function handleCopyUrl() {
-    try {
-      // Calculate the URL at copy time to ensure we have the correct absolute URL
-      const pasteUrl = `${window.location.origin}/p/${paste.slug}`;
-      await navigator.clipboard.writeText(pasteUrl);
-      setCopied(true);
-      toast.success("URL copied to clipboard!");
-      setTimeout(() => setCopied(false), 2000);
-    } catch (error) {
-      toast.error("Failed to copy URL");
-      console.error("Copy failed:", error);
-    }
-  }
+  const handleCopyUrl = () => copyUrl(paste.slug);
 
-  function handleDelete() {
-    startTransition(async () => {
-      try {
-        const result = await deletePaste({ id: paste.id });
-        if (result.success) {
-          toast.success("Paste deleted successfully");
-          setShowDeleteDialog(false);
-          router.refresh();
-        } else {
-          toast.error(result.error || "Failed to delete paste");
-        }
-      } catch (error) {
-        toast.error("Failed to delete paste");
-        console.error("Delete error:", error);
-      }
-    });
-  }
+  const handleDeletePaste = async () => {
+    await handleDelete(paste.id);
+    setShowDeleteDialog(false);
+    router.refresh();
+  };
 
   const visibilityInfo = getVisibilityInfo(paste.visibility);
 
@@ -293,7 +233,7 @@ export function PasteCard({ paste }: PasteCardProps) {
               className={`h-5 px-2 text-xs font-medium ${visibilityInfo.className}`}
             >
               <span className="flex items-center gap-1">
-                {visibilityInfo.icon}
+                <visibilityInfo.icon className="h-3 w-3" />
                 {visibilityInfo.label}
               </span>
             </Badge>
@@ -398,11 +338,11 @@ export function PasteCard({ paste }: PasteCardProps) {
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
-              onClick={handleDelete}
-              disabled={isPending}
+              onClick={handleDeletePaste}
+              disabled={isDeleting}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              {isPending ? (
+              {isDeleting ? (
                 <div className="flex items-center gap-2">
                   <Loader className="h-3 w-3 animate-spin" />
                   Deleting...

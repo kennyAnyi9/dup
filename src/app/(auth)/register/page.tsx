@@ -18,7 +18,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { SocialLoginButtons } from "../_components/social-login-buttons";
+import { SocialLoginButtons } from "@/features/auth/components/forms/social-login-buttons";
 import { signUp, useAuth } from "@/hooks/use-auth";
 import { toast } from "sonner";
 import { Eye, EyeOff } from "lucide-react";
