@@ -1,11 +1,6 @@
 "use client";
 
-import { useState, useTransition, useEffect } from "react";
-import { PasteTable } from "@/components/shared/paste/paste-table";
-import { usePasteModal } from "@/components/shared/paste/paste-modal-provider";
-import { ColumnToggle } from "./column-toggle";
-import { useIsMobile } from "@/hooks/use-mobile";
-import { Button } from "@/components/ui/button";
+import { deletePaste } from "@/app/actions/paste";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -17,9 +12,14 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { usePasteModal } from "@/features/paste/components/providers/paste-modal-provider";
+import { PasteTable } from "@/features/paste/components/ui/paste-table";
+import { Button } from "@/shared/components/dupui/button";
+import { useIsMobile } from "@/shared/hooks/use-mobile";
 import { Trash2 } from "lucide-react";
+import { useEffect, useState, useTransition } from "react";
 import { toast } from "sonner";
-import { deletePaste } from "@/app/actions/paste";
+import { ColumnToggle } from "./column-toggle";
 
 interface PastesContentWrapperProps {
   pastes: Array<{
@@ -55,7 +55,7 @@ export function PastesContentWrapper({ pastes }: PastesContentWrapperProps) {
   const [isPending, startTransition] = useTransition();
   const [selectedPastes, setSelectedPastes] = useState<Set<string>>(new Set());
   const isMobile = useIsMobile();
-  
+
   const [visibleColumns, setVisibleColumns] = useState({
     avatar: true,
     language: true,
@@ -99,19 +99,19 @@ export function PastesContentWrapper({ pastes }: PastesContentWrapperProps) {
       burnAfterReadViews: paste.burnAfterReadViews,
       expiresAt: paste.expiresAt,
       hasPassword: paste.hasPassword,
-      tags: paste.tags?.map(tag => ({ name: tag.name })) || [],
+      tags: paste.tags?.map((tag) => ({ name: tag.name })) || [],
     });
   };
 
   const handleColumnToggle = (key: string) => {
-    setVisibleColumns(prev => ({
+    setVisibleColumns((prev) => ({
       ...prev,
       [key]: !prev[key as keyof typeof prev],
     }));
   };
 
   const handleSelectPaste = (pasteId: string, selected: boolean) => {
-    setSelectedPastes(prev => {
+    setSelectedPastes((prev) => {
       const newSet = new Set(prev);
       if (selected) {
         newSet.add(pasteId);
@@ -124,7 +124,7 @@ export function PastesContentWrapper({ pastes }: PastesContentWrapperProps) {
 
   const handleSelectAll = (selected: boolean) => {
     if (selected) {
-      setSelectedPastes(new Set(pastes.map(p => p.id)));
+      setSelectedPastes(new Set(pastes.map((p) => p.id)));
     } else {
       setSelectedPastes(new Set());
     }
@@ -135,13 +135,17 @@ export function PastesContentWrapper({ pastes }: PastesContentWrapperProps) {
 
     startTransition(async () => {
       try {
-        const deletePromises = Array.from(selectedPastes).map(pasteId => {
+        const deletePromises = Array.from(selectedPastes).map((pasteId) => {
           return deletePaste({ id: pasteId });
         });
 
         await Promise.all(deletePromises);
-        
-        toast.success(`Successfully deleted ${selectedPastes.size} paste${selectedPastes.size > 1 ? 's' : ''}`);
+
+        toast.success(
+          `Successfully deleted ${selectedPastes.size} paste${
+            selectedPastes.size > 1 ? "s" : ""
+          }`
+        );
         setSelectedPastes(new Set());
       } catch (error) {
         toast.error("Failed to delete pastes");
@@ -158,7 +162,8 @@ export function PastesContentWrapper({ pastes }: PastesContentWrapperProps) {
     { key: "created", label: "Created", visible: visibleColumns.created },
   ];
 
-  const allSelected = selectedPastes.size === pastes.length && pastes.length > 0;
+  const allSelected =
+    selectedPastes.size === pastes.length && pastes.length > 0;
   const someSelected = selectedPastes.size > 0;
 
   return (
@@ -187,8 +192,9 @@ export function PastesContentWrapper({ pastes }: PastesContentWrapperProps) {
                 <AlertDialogHeader>
                   <AlertDialogTitle>Delete Selected Pastes</AlertDialogTitle>
                   <AlertDialogDescription>
-                    Are you sure you want to delete {selectedPastes.size} paste{selectedPastes.size > 1 ? 's' : ''}? 
-                    This action cannot be undone.
+                    Are you sure you want to delete {selectedPastes.size} paste
+                    {selectedPastes.size > 1 ? "s" : ""}? This action cannot be
+                    undone.
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
@@ -197,23 +203,24 @@ export function PastesContentWrapper({ pastes }: PastesContentWrapperProps) {
                     onClick={handleBulkDelete}
                     className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                   >
-                    Delete {selectedPastes.size} Paste{selectedPastes.size > 1 ? 's' : ''}
+                    Delete {selectedPastes.size} Paste
+                    {selectedPastes.size > 1 ? "s" : ""}
                   </AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>
             </AlertDialog>
           </div>
         )}
-        
+
         {/* Column Toggle */}
         <div className="flex items-center gap-2 ml-auto">
           <ColumnToggle columns={columns} onToggle={handleColumnToggle} />
         </div>
       </div>
-      
+
       {/* Responsive Table Layout with Horizontal Scroll */}
       <div className="flex-1 min-h-0 overflow-auto">
-        <PasteTable 
+        <PasteTable
           pastes={pastes}
           onEdit={handleEdit}
           visibleColumns={visibleColumns}

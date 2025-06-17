@@ -1,5 +1,5 @@
-import { PublicPasteClient } from "@/components/shared/paste/public-paste-client";
-import { PasteModalProvider } from "@/components/shared/paste/paste-modal-provider";
+import { PublicPasteClient } from "@/features/paste/components/composite/public-paste-client";
+import { PasteModalProvider } from "@/features/paste/components/providers/paste-modal-provider";
 
 interface PastePageProps {
   params: Promise<{ slug: string }>;

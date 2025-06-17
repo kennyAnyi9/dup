@@ -20,7 +20,7 @@ import {
   CACHE_TTL,
   generateCacheKey,
   deleteFromCache,
-} from "@/lib/cache";
+} from "@/shared/lib/cache";
 import {
   createPasteSchema,
   getPasteSchema,
@@ -377,6 +377,7 @@ export async function getPaste(input: GetPasteInput): Promise<GetPasteResult> {
           views: newViewCount,
           expiresAt: foundPaste.expiresAt || undefined,
           userId: foundPaste.userId || undefined,
+          hasPassword: !!foundPaste.password,
           createdAt: foundPaste.createdAt,
           updatedAt: foundPaste.updatedAt,
         },
@@ -398,6 +399,7 @@ export async function getPaste(input: GetPasteInput): Promise<GetPasteResult> {
         views: newViewCount,
         expiresAt: foundPaste.expiresAt || undefined,
         userId: foundPaste.userId || undefined,
+        hasPassword: !!foundPaste.password,
         createdAt: foundPaste.createdAt,
         updatedAt: foundPaste.updatedAt,
       },
