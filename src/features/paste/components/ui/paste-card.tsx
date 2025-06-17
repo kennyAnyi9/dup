@@ -76,7 +76,7 @@ export function PasteCard({ paste }: PasteCardProps) {
   const router = useRouter();
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const { copied, copyUrl } = useCopyUrl();
-  const { loading: isDeleting, handleDelete } = usePasteActions();
+  const { isDeleting, handleDelete } = usePasteActions();
 
   const isExpired = paste.expiresAt && new Date() > paste.expiresAt;
 
@@ -342,10 +342,10 @@ export function PasteCard({ paste }: PasteCardProps) {
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDeletePaste}
-              disabled={isDeleting}
+              disabled={isDeleting(paste.id)}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              {isDeleting ? (
+              {isDeleting(paste.id) ? (
                 <div className="flex items-center gap-2">
                   <Loader className="h-3 w-3 animate-spin" />
                   Deleting...

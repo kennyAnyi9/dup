@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 export async function getSession() {
   try {
     const session = await auth.api.getSession({
-      headers: headers(),
+      headers: await headers(),
     });
     
     return session;
