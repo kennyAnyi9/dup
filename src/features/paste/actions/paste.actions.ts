@@ -39,7 +39,7 @@ import {
   type CheckUrlAvailabilityInput,
   type UpdatePasteSettingsInput,
   type UpdatePasteInput,
-} from "../types/paste.types";
+} from "@/shared/types/paste";
 import bcrypt from "bcryptjs";
 
 function generateSlug(): string {

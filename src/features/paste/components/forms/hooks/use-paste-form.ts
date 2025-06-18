@@ -11,7 +11,7 @@ import {
   type SupportedLanguage,
   type PasteVisibility,
 } from "@/lib/constants";
-import { createPasteSchema, type CreatePasteInput, type UpdatePasteInput } from "@/types/paste";
+import { createPasteSchema, type CreatePasteInput, type UpdatePasteInput } from "@/shared/types/paste";
 import { createPaste, updatePaste } from "@/features/paste/actions/paste.actions";
 
 interface EditingPaste {

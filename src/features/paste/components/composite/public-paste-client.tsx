@@ -8,7 +8,7 @@ import { Button } from "@/shared/components/dupui/button";
 import { Card, CardContent } from "@/shared/components/dupui/card";
 import { Separator } from "@/shared/components/dupui/separator";
 import { useAuth } from "@/hooks/use-auth";
-import type { PasteResult } from "@/types/paste";
+import type { PasteResult } from "@/shared/types/paste";
 import { format, formatDistanceToNow } from "date-fns";
 import {
   AlertTriangle,

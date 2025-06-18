@@ -1,2 +1,2 @@
 // Paste types
-export * from './paste.types'
+export * from '@/shared/types/paste'
