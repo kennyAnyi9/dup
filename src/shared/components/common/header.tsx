@@ -1,8 +1,8 @@
 "use client";
 
 import { ThemeSwitch } from "@/components/theme/theme-switch";
-import { Button } from "@/components/ui/button";
-import { Panel } from "@/components/ui/panel";
+import { Button } from "@/shared/components/dupui/button";
+import { Panel } from "@/shared/components/dupui/panel";
 import { useAuth } from "@/hooks/use-auth";
 import { motion } from "motion/react";
 import Link from "next/link";

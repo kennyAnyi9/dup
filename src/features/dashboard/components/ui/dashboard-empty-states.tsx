@@ -1,6 +1,6 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
+import { Button } from "@/shared/components/dupui/button";
 import { Search, FolderOpen } from "lucide-react";
 import { usePasteModal } from "@/features/paste/components/providers/paste-modal-provider";
 import { useRouter } from "next/navigation";

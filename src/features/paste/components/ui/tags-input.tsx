@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, KeyboardEvent } from "react";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
+import { Input } from "@/shared/components/dupui/input";
+import { Badge } from "@/shared/components/dupui/badge";
 import { X, Tag } from "lucide-react";
 
 interface TagsInputProps {

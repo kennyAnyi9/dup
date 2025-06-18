@@ -1,6 +1,6 @@
 // Character limits
-export const CHAR_LIMIT_ANONYMOUS = 500;
-export const CHAR_LIMIT_AUTHENTICATED = 5000;
+export const CHAR_LIMIT_ANONYMOUS = 5000;
+export const CHAR_LIMIT_AUTHENTICATED = null; // No limit for authenticated users
 
 // Expiry times
 export const EXPIRY_ANONYMOUS = "30m";

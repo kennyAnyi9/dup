@@ -1,8 +1,8 @@
 import { GridPattern } from "@/components/magicui/grid-pattern";
 import { Logo } from "@/components/common/logo";
-import { Card, CardContent } from "@/components/ui/card";
-import { cn } from "@/lib/utils";
-import { getCurrentUser } from "@/lib/auth-server";
+import { Card, CardContent } from "@/shared/components/dupui/card";
+import { cn } from "@/shared/lib/utils";
+import { getCurrentUser } from "@/shared/lib/auth-server";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { ReactNode } from "react";

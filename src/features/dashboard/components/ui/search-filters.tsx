@@ -2,16 +2,16 @@
 
 import { useState, useTransition, useRef } from "react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { Input } from "@/shared/components/dupui/input";
+import { Button } from "@/shared/components/dupui/button";
+import { Badge } from "@/shared/components/dupui/badge";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
+} from "@/shared/components/dupui/select";
 import { 
   Search, 
   Layers, 

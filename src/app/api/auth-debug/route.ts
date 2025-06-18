@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 export async function GET() {
   try {
     // Import auth here to catch any import errors
-    await import("@/lib/auth");
+    await import("@/shared/lib/auth");
     
     return NextResponse.json({ 
       message: "Better Auth import successful",

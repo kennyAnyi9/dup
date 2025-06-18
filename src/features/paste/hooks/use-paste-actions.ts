@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { toast } from "sonner";
-import { deletePaste } from "@/app/actions/paste";
+import { deletePaste } from "@/features/paste/actions/paste.actions";
 
 export function usePasteActions() {
   const [deletingIds, setDeletingIds] = useState<Set<string>>(new Set());

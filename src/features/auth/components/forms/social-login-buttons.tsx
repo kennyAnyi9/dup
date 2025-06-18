@@ -1,7 +1,7 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import { authClient } from "@/lib/auth-client";
+import { Button } from "@/shared/components/dupui/button";
+import { authClient } from "@/shared/lib/auth-client";
 import { Chrome, Github } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";

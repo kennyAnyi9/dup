@@ -1,15 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/shared/components/dupui/button";
 import {
   Drawer,
   DrawerContent,
   DrawerHeader,
   DrawerTitle,
   DrawerTrigger,
-} from "@/components/ui/drawer";
-import { ScrollArea } from "@/components/ui/scroll-area";
+} from "@/shared/components/dupui/drawer";
+import { ScrollArea } from "@/shared/components/dupui/scroll-area";
 import { formatDistanceToNow } from "date-fns";
 import Link from "next/link";
 import {

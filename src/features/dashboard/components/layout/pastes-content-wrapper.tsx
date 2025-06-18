@@ -11,7 +11,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
+} from "@/shared/components/dupui/alert-dialog";
 import { usePasteModal } from "@/features/paste/components/providers/paste-modal-provider";
 import { PasteTable } from "@/features/paste/components/ui/paste-table";
 import { PasteCardsGrid } from "@/features/paste/components/ui/paste-cards-grid";

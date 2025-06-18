@@ -3,15 +3,15 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/shared/components/dupui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+} from "@/shared/components/dupui/dropdown-menu";
+import { Avatar, AvatarFallback, AvatarImage } from "@/shared/components/dupui/avatar";
 import { useAuth, signOut } from "@/hooks/use-auth";
 import { User, Settings, LogOut, FileText, Plus } from "lucide-react";
 import { toast } from "sonner";

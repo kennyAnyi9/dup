@@ -1,4 +1,4 @@
-import { checkUrlAvailability } from "@/app/actions/paste";
+import { checkUrlAvailability } from "@/features/paste/actions/paste.actions";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(request: NextRequest) {

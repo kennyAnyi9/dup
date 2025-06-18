@@ -1,4 +1,3 @@
 // Auth utilities
-export * from './auth-client'
 export * from './auth-server'
-export * from './auth'
+// auth and auth-client are now in shared/lib

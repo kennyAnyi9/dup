@@ -2,17 +2,17 @@
 
 import { useState, useEffect } from "react";
 import { useKeyboardShortcuts } from "@/hooks/use-keyboard-shortcuts";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Button } from "@/shared/components/dupui/button";
+import { Input } from "@/shared/components/dupui/input";
+import { Label } from "@/shared/components/dupui/label";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+} from "@/shared/components/dupui/dialog";
+import { Alert, AlertDescription } from "@/shared/components/dupui/alert";
 import { Lock, Eye, EyeOff } from "lucide-react";
 
 interface PasswordDialogProps {

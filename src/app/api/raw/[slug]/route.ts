@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getPaste } from "@/app/actions/paste";
+import { getPaste } from "@/features/paste/actions/paste.actions";
 
 export async function GET(
   request: NextRequest,

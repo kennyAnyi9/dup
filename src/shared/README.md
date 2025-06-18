@@ -7,7 +7,7 @@ This directory contains truly shared code that can be used across multiple featu
 ```
 shared/
 ├── components/          # Shared UI components
-│   ├── ui/             # Base UI components (shadcn/ui)
+│   ├── dupui/          # Base UI components (shadcn/ui)
 │   ├── layout/         # Layout components (header, footer)
 │   └── common/         # Common business components
 ├── hooks/              # Generic hooks
