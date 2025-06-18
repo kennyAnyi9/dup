@@ -110,25 +110,12 @@ export function PublicPasteCardsInfinite({
     }
   }, [pagination.limit]);
 
-  // Auto-load on scroll (optional - can be enabled)
+  // Load initial data on component mount
   useEffect(() => {
-    // Uncomment the code below to enable auto-scroll loading
-    /*
-    const handleScroll = () => {
-      if (
-        window.innerHeight + document.documentElement.scrollTop >= 
-        document.documentElement.offsetHeight - 1000 &&
-        pagination.hasMore &&
-        !isLoading
-      ) {
-        loadMorePastes();
-      }
-    };
-
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-    */
-  }, [loadMorePastes, pagination.hasMore, isLoading]);
+    if (pastes.length === 0) {
+      refreshPastes();
+    }
+  }, []);
 
   return (
     <div className="space-y-6">

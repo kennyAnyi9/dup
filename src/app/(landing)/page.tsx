@@ -1,10 +1,6 @@
-// Force dynamic rendering for landing page
-export const dynamic = 'force-dynamic';
-
 import { WarpBackground } from "@/components/magicui/warp-background";
 import { HomeClient } from "@/features/landing/components/sections/home-client";
 import { PublicPasteCardsInfinite } from "@/features/landing/components/ui/public-paste-cards-infinite";
-import { getPublicPastesPaginated } from "@/features/paste/actions/paste.actions";
 import { Badge } from "@/shared/components/dupui/badge";
 import {
   Panel,
@@ -27,24 +23,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 
-export default async function Home() {
-  let recentPastesData;
-  try {
-    recentPastesData = await getPublicPastesPaginated(1, 8);
-  } catch (error) {
-    console.error('Failed to fetch public pastes for landing page:', error);
-    recentPastesData = { 
-      pastes: [], 
-      pagination: { 
-        page: 1, 
-        limit: 8, 
-        total: 0, 
-        totalPages: 0, 
-        hasMore: false 
-      } 
-    };
-  }
-  const recentPastes = recentPastesData.pastes;
+export default function Home() {
 
   return (
     <div className="max-w-4xl mx-auto px-4">
@@ -164,13 +143,7 @@ export default async function Home() {
           </PanelTitle>
         </PanelHeader>
         <PanelContent>
-          <PublicPasteCardsInfinite 
-            initialPastes={recentPastes.map(paste => ({
-              ...paste,
-              createdAt: paste.createdAt.toISOString()
-            }))} 
-            initialPagination={recentPastesData.pagination}
-          />
+          <PublicPasteCardsInfinite />
         </PanelContent>
       </Panel>
       <Pattern />
