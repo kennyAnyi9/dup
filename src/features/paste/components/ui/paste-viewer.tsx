@@ -4,10 +4,10 @@ import { useState } from "react";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { oneDark, oneLight } from "react-syntax-highlighter/dist/esm/styles/prism";
 import { useTheme } from "next-themes";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
+import { Button } from "@/shared/components/dupui/button";
+import { Badge } from "@/shared/components/dupui/badge";
+import { Switch } from "@/shared/components/dupui/switch";
+import { Label } from "@/shared/components/dupui/label";
 import { 
   Clipboard, 
   Check, 

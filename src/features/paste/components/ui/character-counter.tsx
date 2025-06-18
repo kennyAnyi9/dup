@@ -1,10 +1,23 @@
 interface CharacterCounterProps {
   current: number;
-  limit: number;
+  limit: number | null;
   className?: string;
 }
 
 export function CharacterCounter({ current, limit, className }: CharacterCounterProps) {
+  // Handle unlimited scenario
+  if (limit === null) {
+    return (
+      <div className={`space-y-1 ${className}`}>
+        <div className="flex items-center justify-between text-sm">
+          <span className="text-muted-foreground">
+            {current.toLocaleString()} characters
+          </span>
+        </div>
+      </div>
+    );
+  }
+
   const remaining = limit - current;
   const percentage = (current / limit) * 100;
   
@@ -31,11 +44,11 @@ export function CharacterCounter({ current, limit, className }: CharacterCounter
         </span>
         {remaining < 0 ? (
           <span className="text-red-600 font-medium">
-            {Math.abs(remaining).toLocaleString()} over limit
+            • {Math.abs(remaining).toLocaleString()} over limit
           </span>
         ) : (
           <span className="text-muted-foreground">
-            {remaining.toLocaleString()} remaining
+            • {remaining.toLocaleString()} remaining
           </span>
         )}
       </div>

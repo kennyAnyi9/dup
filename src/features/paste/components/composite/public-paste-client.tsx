@@ -1,14 +1,14 @@
 "use client";
 
-import { getPaste } from "@/app/actions/paste";
+import { getPaste } from "@/features/paste/actions/paste.actions";
 import { Logo } from "@/components/common/logo";
-import { Badge } from "@/components/ui/badge";
+import { Badge } from "@/shared/components/dupui/badge";
 import { useRouter } from "next/navigation";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
+import { Button } from "@/shared/components/dupui/button";
+import { Card, CardContent } from "@/shared/components/dupui/card";
+import { Separator } from "@/shared/components/dupui/separator";
 import { useAuth } from "@/hooks/use-auth";
-import type { PasteResult } from "@/types/paste";
+import type { PasteResult } from "@/shared/types/paste";
 import { format, formatDistanceToNow } from "date-fns";
 import {
   AlertTriangle,

@@ -1,8 +1,8 @@
 "use client";
 
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@/shared/components/dupui/avatar";
+import { Badge } from "@/shared/components/dupui/badge";
+import { Button } from "@/shared/components/dupui/button";
 import {
   Table,
   TableBody,
@@ -10,7 +10,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
+} from "@/shared/components/dupui/table";
 import { formatDistanceToNow } from "date-fns";
 import { Clipboard, Eye, FileText } from "lucide-react";
 import Link from "next/link";

@@ -8,9 +8,12 @@ import {
 } from "./constants";
 
 // Helper function to format character limits for display
-function formatCharacterLimit(limit: number): string {
+function formatCharacterLimit(limit: number | null): string {
+  if (limit === null) {
+    return "No character limit";
+  }
   if (limit >= 1000) {
-    return `${(limit / 1000).toLocaleString()} character limit`;
+    return `${(limit / 1000).toLocaleString()}K character limit`;
   }
   return `${limit.toLocaleString()} character limit`;
 }

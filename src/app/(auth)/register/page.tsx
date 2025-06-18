@@ -6,10 +6,10 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Separator } from "@/components/ui/separator";
+import { Button } from "@/shared/components/dupui/button";
+import { Input } from "@/shared/components/dupui/input";
+import { Checkbox } from "@/shared/components/dupui/checkbox";
+import { Separator } from "@/shared/components/dupui/separator";
 import {
   Form,
   FormControl,
@@ -17,7 +17,7 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form";
+} from "@/shared/components/dupui/form";
 import { SocialLoginButtons } from "@/features/auth/components/forms/social-login-buttons";
 import { signUp, useAuth } from "@/hooks/use-auth";
 import { toast } from "sonner";

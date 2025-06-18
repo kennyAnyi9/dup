@@ -4,17 +4,17 @@ import { useState, useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { updatePasteSettings } from "@/app/actions/paste";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Switch } from "@/components/ui/switch";
+import { updatePasteSettings } from "@/features/paste/actions/paste.actions";
+import { Button } from "@/shared/components/dupui/button";
+import { Input } from "@/shared/components/dupui/input";
+import { Switch } from "@/shared/components/dupui/switch";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
+} from "@/shared/components/dupui/select";
 import {
   Form,
   FormControl,
@@ -23,7 +23,7 @@ import {
   FormLabel,
   FormMessage,
   FormDescription,
-} from "@/components/ui/form";
+} from "@/shared/components/dupui/form";
 import {
   Dialog,
   DialogContent,
@@ -32,8 +32,8 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog";
-import { Badge } from "@/components/ui/badge";
+} from "@/shared/components/dupui/dialog";
+import { Badge } from "@/shared/components/dupui/badge";
 import {
   Lock,
   Globe,

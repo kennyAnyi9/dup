@@ -19,6 +19,15 @@ export const createPasteSchema = z.object({
   }),
   tags: z.array(z.string().min(1).max(20)).max(5).optional(),
   expiresIn: z.enum(["30m", "1h", "1d", "7d", "30d", "never"]).default("never"),
+}).refine((data) => {
+  // If burnAfterReadViews is defined, burnAfterRead must be true
+  if (data.burnAfterReadViews !== undefined && !data.burnAfterRead) {
+    return false;
+  }
+  return true;
+}, {
+  message: "burnAfterReadViews can only be set when burnAfterRead is true",
+  path: ["burnAfterReadViews"],
 });
 
 export const getPasteSchema = z.object({
@@ -44,6 +53,15 @@ export const updatePasteSettingsSchema = z.object({
   password: z.string().optional(),
   removePassword: z.boolean().default(false),
   expiresIn: z.enum(["1h", "1d", "7d", "30d", "never", "remove"]).optional(),
+}).refine((data) => {
+  // If removePassword is true, password must be undefined
+  if (data.removePassword && data.password !== undefined) {
+    return false;
+  }
+  return true;
+}, {
+  message: "Cannot set password and removePassword at the same time",
+  path: ["password"],
 });
 
 export const updatePasteSchema = z.object({

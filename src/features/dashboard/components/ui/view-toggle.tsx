@@ -1,6 +1,6 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
+import { Button } from "@/shared/components/dupui/button";
 import { LayoutGrid, Table } from "lucide-react";
 
 type ViewType = "table" | "card";

@@ -10,7 +10,6 @@ import { getCurrentUser } from "@/shared/lib/auth-server";
 import { checkRateLimit } from "@/shared/lib/rate-limit";
 import {
   CHAR_LIMIT_ANONYMOUS,
-  CHAR_LIMIT_AUTHENTICATED,
   EXPIRY_ANONYMOUS,
   APP_URL,
 } from "@/shared/lib/constants";
@@ -40,7 +39,7 @@ import {
   type CheckUrlAvailabilityInput,
   type UpdatePasteSettingsInput,
   type UpdatePasteInput,
-} from "../types/paste.types";
+} from "@/shared/types/paste";
 import bcrypt from "bcryptjs";
 
 function generateSlug(): string {
@@ -95,11 +94,11 @@ export async function createPaste(input: CreatePasteInput): Promise<CreatePasteR
     }
 
     // Check character limits
-    const charLimit = isAuthenticated ? CHAR_LIMIT_AUTHENTICATED : CHAR_LIMIT_ANONYMOUS;
-    if (validatedInput.content.length > charLimit) {
+    const charLimit = isAuthenticated ? null : CHAR_LIMIT_ANONYMOUS;
+    if (charLimit && validatedInput.content.length > charLimit) {
       return {
         success: false,
-        error: `Content exceeds ${charLimit} character limit ${isAuthenticated ? '' : '(sign in for higher limits)'}`,
+        error: `Content exceeds ${charLimit} character limit (sign in for unlimited characters)`,
       };
     }
 
@@ -977,14 +976,7 @@ export async function updatePaste(input: UpdatePasteInput): Promise<UpdatePasteR
       };
     }
 
-    // Check character limits
-    const charLimit = CHAR_LIMIT_AUTHENTICATED;
-    if (validatedInput.content.length > charLimit) {
-      return {
-        success: false,
-        error: `Content exceeds ${charLimit} character limit`,
-      };
-    }
+    // No character limits for authenticated users when editing
 
     // Find the paste and verify ownership
     const existingPaste = await db

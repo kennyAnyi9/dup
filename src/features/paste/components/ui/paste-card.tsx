@@ -12,18 +12,18 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardFooter } from "@/components/ui/card";
+} from "@/shared/components/dupui/alert-dialog";
+import { Avatar, AvatarFallback, AvatarImage } from "@/shared/components/dupui/avatar";
+import { Badge } from "@/shared/components/dupui/badge";
+import { Button } from "@/shared/components/dupui/button";
+import { Card, CardContent, CardFooter } from "@/shared/components/dupui/card";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+} from "@/shared/components/dupui/dropdown-menu";
 import { formatDistanceToNow } from "date-fns";
 import {
   AlertTriangle,

@@ -1,8 +1,8 @@
 import { AppProviders } from "@/components/common/app-providers";
 import { ConditionalFooter } from "@/components/common/conditional-footer";
 import { ConditionalHeader } from "@/components/common/conditional-header";
-import { CommandPalette } from "@/components/ui/command-palette";
-import { Toaster } from "@/components/ui/sonner";
+import { CommandPalette } from "@/shared/components/dupui/command-palette";
+import { Toaster } from "@/shared/components/dupui/sonner";
 import { APP_NAME } from "@/lib/constants";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";

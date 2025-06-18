@@ -1,6 +1,6 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
+import { Button } from "@/shared/components/dupui/button";
 import { usePasteModal } from "@/features/paste/components/providers/paste-modal-provider";
 import { Plus } from "lucide-react";
 

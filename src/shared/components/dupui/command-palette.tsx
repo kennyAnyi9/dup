@@ -10,7 +10,7 @@ import {
   CommandItem,
   CommandList,
   CommandSeparator,
-} from "@/components/ui/command";
+} from "@/shared/components/dupui/command";
 import { useKeyboardShortcuts, getModifierKey } from "@/hooks/use-keyboard-shortcuts";
 import {
   Plus,
