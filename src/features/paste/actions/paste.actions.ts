@@ -788,7 +788,11 @@ export async function getRecentPublicPastes(limit: number = 10) {
   }
 }
 
-export async function getPublicPastesPaginated(page: number = 1, limit: number = 10) {
+export async function getPublicPastesPaginated(page = 1, limit = 10) {
+  // Ensure sane bounds: limit between 1 and 100, page at least 1
+  limit = Math.min(Math.max(limit, 1), 100); // 1-100 hard limit
+  page  = Math.max(page, 1);
+
   const offset = (page - 1) * limit;
   const cacheKey = generateCacheKey(CACHE_KEYS.RECENT_PUBLIC_PASTES, `page_${page}_limit_${limit}`);
   
