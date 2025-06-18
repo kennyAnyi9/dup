@@ -422,7 +422,6 @@ async function seedPublicPastes() {
         visibility: "public" as const,
         views: Math.floor(Math.random() * 1000) + 1,
         userId: null, // Anonymous pastes
-        hasPassword: false,
         burnAfterRead: false,
         burnAfterReadViews: null,
         expiresAt: null,
