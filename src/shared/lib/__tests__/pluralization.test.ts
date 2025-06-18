@@ -2,16 +2,20 @@ import { pluralize, pluralizeAdvanced, formatCount } from '../pluralization';
 
 describe('pluralization helpers', () => {
   describe('pluralize (basic)', () => {
-    it('should return singular for count of 1', () => {
-      expect(pluralize('view', 1)).toBe('view');
-      expect(pluralize('item', 1)).toBe('item');
+    it.each([
+      ['view', 1, 'view'],
+      ['item', 1, 'item'],
+    ])('should return singular "%s" for count %d', (word, count, expected) => {
+      expect(pluralize(word, count)).toBe(expected);
     });
 
-    it('should return plural for count other than 1', () => {
-      expect(pluralize('view', 0)).toBe('views');
-      expect(pluralize('view', 2)).toBe('views');
-      expect(pluralize('view', 100)).toBe('views');
-      expect(pluralize('item', 3)).toBe('items');
+    it.each([
+      ['view', 0, 'views'],
+      ['view', 2, 'views'],
+      ['view', 100, 'views'],
+      ['item', 3, 'items'],
+    ])('should return plural "%s" for count %d', (word, count, expected) => {
+      expect(pluralize(word, count)).toBe(expected);
     });
   });
 
@@ -23,19 +27,23 @@ describe('pluralization helpers', () => {
     });
 
     describe('irregular plurals', () => {
-      it('should handle common irregular plurals', () => {
-        expect(pluralizeAdvanced('child', 2)).toBe('children');
-        expect(pluralizeAdvanced('person', 2)).toBe('people');
-        expect(pluralizeAdvanced('mouse', 2)).toBe('mice');
-        expect(pluralizeAdvanced('foot', 2)).toBe('feet');
-        expect(pluralizeAdvanced('tooth', 2)).toBe('teeth');
-        expect(pluralizeAdvanced('goose', 2)).toBe('geese');
+      it.each([
+        ['child', 2, 'children'],
+        ['person', 2, 'people'],
+        ['mouse', 2, 'mice'],
+        ['foot', 2, 'feet'],
+        ['tooth', 2, 'teeth'],
+        ['goose', 2, 'geese'],
+      ])('should handle irregular plural: %s → %s', (word, count, expected) => {
+        expect(pluralizeAdvanced(word, count)).toBe(expected);
       });
 
-      it('should preserve case for irregular plurals', () => {
-        expect(pluralizeAdvanced('Child', 2)).toBe('Children');
-        expect(pluralizeAdvanced('PERSON', 2)).toBe('PEOPLE');
-        expect(pluralizeAdvanced('Mouse', 2)).toBe('Mice');
+      it.each([
+        ['Child', 2, 'Children'],
+        ['PERSON', 2, 'PEOPLE'],
+        ['Mouse', 2, 'Mice'],
+      ])('should preserve case for irregular plurals: %s → %s', (word, count, expected) => {
+        expect(pluralizeAdvanced(word, count)).toBe(expected);
       });
     });
 
@@ -133,6 +141,15 @@ describe('pluralization helpers', () => {
         expect(pluralizeAdvanced('KNIFE', 2)).toBe('KNIVES');
         expect(pluralizeAdvanced('City', 2)).toBe('Cities');
       });
+
+      it.each([
+        [-1, 'views'],
+        [1.5, 'views'],
+        [0, 'views'],
+        [NaN, 'views'],
+      ])('should treat count %p as plural (anything ≠ 1)', (count, expected) => {
+        expect(pluralizeAdvanced('view', count)).toBe(expected);
+      });
     });
   });
 
@@ -155,6 +172,13 @@ describe('pluralization helpers', () => {
       expect(formatCount('knife', 2)).toBe('2 knives');
       expect(formatCount('city', 1)).toBe('1 city');
       expect(formatCount('city', 2)).toBe('2 cities');
+    });
+
+    it('should format count 0 with irregular plurals correctly', () => {
+      expect(formatCount('child', 0)).toBe('0 children');
+      expect(formatCount('knife', 0)).toBe('0 knives');
+      expect(formatCount('person', 0)).toBe('0 people');
+      expect(formatCount('mouse', 0)).toBe('0 mice');
     });
   });
 });
