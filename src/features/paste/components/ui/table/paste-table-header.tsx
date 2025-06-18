@@ -42,7 +42,7 @@ export function PasteTableHeader({
         <TableHead className="min-w-0 max-w-xs">Title</TableHead>
         {visibleColumns.language && <TableHead>Language</TableHead>}
         {visibleColumns.status && <TableHead>Status</TableHead>}
-        {visibleColumns.views && <TableHead>Reads</TableHead>}
+        {visibleColumns.views && <TableHead>Views</TableHead>}
         {visibleColumns.created && <TableHead>Created</TableHead>}
         <TableHead className="w-12"></TableHead>
       </TableRow>

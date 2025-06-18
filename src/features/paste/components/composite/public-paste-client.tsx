@@ -9,6 +9,7 @@ import { Card, CardContent } from "@/shared/components/dupui/card";
 import { Separator } from "@/shared/components/dupui/separator";
 import { useAuth } from "@/hooks/use-auth";
 import type { PasteResult } from "@/shared/types/paste";
+import { ThemeSwitch } from "@/shared/components/common/theme-switch";
 import { format, formatDistanceToNow } from "date-fns";
 import {
   AlertTriangle,
@@ -142,15 +143,18 @@ export function PublicPasteClient({ slug }: PublicPasteClientProps) {
           >
             <Logo />
           </Link>
-          <Button
-            onClick={() => openModal()}
-            className="flex items-center gap-2"
-            aria-label="Create new paste"
-          >
-            <Plus className="h-4 w-4" />
-            <span className="hidden sm:inline">Create Paste</span>
-            <span className="sm:hidden">New</span>
-          </Button>
+          <div className="flex items-center gap-2">
+            <ThemeSwitch />
+            <Button
+              onClick={() => openModal()}
+              className="flex items-center gap-2"
+              aria-label="Create new paste"
+            >
+              <Plus className="h-4 w-4" />
+              <span className="hidden sm:inline">Create Paste</span>
+              <span className="sm:hidden">New</span>
+            </Button>
+          </div>
         </div>
       </div>
     </header>
@@ -162,12 +166,65 @@ export function PublicPasteClient({ slug }: PublicPasteClientProps) {
       <>
         <Header />
         <div className="container mx-auto px-4 py-8">
-          <div className="max-w-4xl mx-auto">
+          <div className="max-w-4xl mx-auto space-y-6">
+            {/* Title and header skeleton */}
             <div className="animate-pulse space-y-4">
-              <div className="h-8 bg-muted rounded w-1/3"></div>
-              <div className="h-4 bg-muted rounded w-1/4"></div>
-              <div className="h-64 bg-muted rounded"></div>
+              <div className="space-y-2">
+                <div className="h-8 bg-muted rounded w-2/3 max-w-md"></div>
+                <div className="h-4 bg-muted rounded w-1/2 max-w-sm"></div>
+              </div>
+
+              {/* Metadata skeleton */}
+              <div className="flex flex-wrap items-center gap-4">
+                <div className="flex items-center gap-2">
+                  <div className="h-4 w-4 bg-muted rounded"></div>
+                  <div className="h-4 bg-muted rounded w-32"></div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="h-4 w-4 bg-muted rounded"></div>
+                  <div className="h-4 bg-muted rounded w-16"></div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="h-4 w-4 bg-muted rounded"></div>
+                  <div className="h-4 bg-muted rounded w-20"></div>
+                </div>
+              </div>
             </div>
+
+            {/* Code viewer skeleton */}
+            <Card className="overflow-hidden">
+              <CardContent className="p-0">
+                <div className="animate-pulse">
+                  {/* Code header */}
+                  <div className="flex items-center justify-between p-4 border-b bg-muted/20">
+                    <div className="flex items-center gap-2">
+                      <div className="h-4 w-4 bg-muted rounded"></div>
+                      <div className="h-4 bg-muted rounded w-24"></div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="h-8 w-8 bg-muted rounded"></div>
+                      <div className="h-8 w-8 bg-muted rounded"></div>
+                    </div>
+                  </div>
+                  
+                  {/* Code lines */}
+                  <div className="p-4 space-y-2 bg-muted/5">
+                    {Array.from({ length: 12 }).map((_, i) => (
+                      <div key={i} className="flex items-center gap-3">
+                        <div className="h-4 w-6 bg-muted/60 rounded text-right flex-shrink-0"></div>
+                        <div 
+                          className="h-4 bg-muted/40 rounded" 
+                          style={{ 
+                            width: `${Math.random() * 60 + 20}%`,
+                            maxWidth: '90%'
+                          }}
+                        ></div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </div>
         </div>
       </>
@@ -278,8 +335,7 @@ export function PublicPasteClient({ slug }: PublicPasteClientProps) {
                 </h1>
                 <p className="text-sm text-muted-foreground">
                   Created{" "}
-                  {formatDistanceToNow(createdDate, { addSuffix: true })} •
-                  {paste.views} {paste.views === 1 ? "read" : "reads"}
+                  {formatDistanceToNow(createdDate, { addSuffix: true })}
                 </p>
               </div>
 
@@ -302,7 +358,7 @@ export function PublicPasteClient({ slug }: PublicPasteClientProps) {
 
               <div className="flex items-center gap-1">
                 <Eye className="h-4 w-4" />
-                <span>{paste.views} reads</span>
+                <span>{paste.views} views</span>
               </div>
 
               <div className="flex items-center gap-1">
@@ -328,7 +384,7 @@ export function PublicPasteClient({ slug }: PublicPasteClientProps) {
                     {paste.burnAfterReadViews && (
                       <span className="ml-1 font-mono text-xs">
                         ({Math.max(0, paste.burnAfterReadViews - paste.views)}{" "}
-                        reads left)
+                        views left)
                       </span>
                     )}
                   </span>
@@ -348,7 +404,7 @@ export function PublicPasteClient({ slug }: PublicPasteClientProps) {
                       {paste.burnAfterReadViews && (
                         <p className="text-xs text-orange-700 dark:text-orange-300">
                           {Math.max(0, paste.burnAfterReadViews - paste.views)}{" "}
-                          read
+                          view
                           {Math.max(
                             0,
                             paste.burnAfterReadViews - paste.views

@@ -1,7 +1,7 @@
 import { WarpBackground } from "@/components/magicui/warp-background";
 import { HomeClient } from "@/features/landing/components/sections/home-client";
-import { PublicPasteCards } from "@/features/landing/components/ui/public-paste-cards";
-import { getRecentPublicPastes } from "@/features/paste/actions/paste.actions";
+import { PublicPasteCardsInfinite } from "@/features/landing/components/ui/public-paste-cards-infinite";
+import { getPublicPastesPaginated } from "@/features/paste/actions/paste.actions";
 import { Badge } from "@/shared/components/dupui/badge";
 import {
   Panel,
@@ -25,7 +25,7 @@ import {
 import Link from "next/link";
 
 export default async function Home() {
-  const recentPastesData = await getRecentPublicPastes(8);
+  const recentPastesData = await getPublicPastesPaginated(1, 8);
   const recentPastes = recentPastesData.pastes;
 
   return (
@@ -146,7 +146,10 @@ export default async function Home() {
           </PanelTitle>
         </PanelHeader>
         <PanelContent>
-          <PublicPasteCards pastes={recentPastes} />
+          <PublicPasteCardsInfinite 
+            initialPastes={recentPastes} 
+            initialPagination={recentPastesData.pagination}
+          />
         </PanelContent>
       </Panel>
       <Pattern />

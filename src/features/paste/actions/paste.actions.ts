@@ -788,6 +788,117 @@ export async function getRecentPublicPastes(limit: number = 10) {
   }
 }
 
+export async function getPublicPastesPaginated(page: number = 1, limit: number = 10) {
+  const offset = (page - 1) * limit;
+  const cacheKey = generateCacheKey(CACHE_KEYS.RECENT_PUBLIC_PASTES, `page_${page}_limit_${limit}`);
+  
+  try {
+    return await cached(
+      cacheKey,
+      async () => {
+        // Get pastes and total count in parallel
+        const [pastes, totalCountResult] = await Promise.all([
+          db
+            .select({
+              id: paste.id,
+              slug: paste.slug,
+              title: paste.title,
+              description: paste.description,
+              language: paste.language,
+              views: paste.views,
+              createdAt: paste.createdAt,
+              user: {
+                id: user.id,
+                name: user.name,
+                image: user.image,
+              },
+            })
+            .from(paste)
+            .leftJoin(user, eq(paste.userId, user.id))
+            .where(
+              and(
+                eq(paste.visibility, "public"),
+                eq(paste.isDeleted, false),
+                // Only show non-expired pastes
+                or(
+                  isNull(paste.expiresAt),
+                  gt(paste.expiresAt, new Date())
+                )
+              )
+            )
+            .orderBy(desc(paste.createdAt))
+            .limit(limit)
+            .offset(offset),
+          
+          db
+            .select({ count: count() })
+            .from(paste)
+            .where(
+              and(
+                eq(paste.visibility, "public"),
+                eq(paste.isDeleted, false),
+                // Only show non-expired pastes
+                or(
+                  isNull(paste.expiresAt),
+                  gt(paste.expiresAt, new Date())
+                )
+              )
+            )
+        ]);
+
+        // Fetch tags for each paste
+        const pastesWithTags = await Promise.all(
+          pastes.map(async (pasteItem) => {
+            const pasteTags = await db
+              .select({
+                id: tag.id,
+                name: tag.name,
+                slug: tag.slug,
+                color: tag.color,
+              })
+              .from(pasteTag)
+              .innerJoin(tag, eq(pasteTag.tagId, tag.id))
+              .where(eq(pasteTag.pasteId, pasteItem.id));
+
+            return {
+              ...pasteItem,
+              tags: pasteTags,
+            };
+          })
+        );
+
+        const total = totalCountResult[0]?.count || 0;
+        const totalPages = Math.ceil(total / limit);
+        const hasMore = page < totalPages;
+
+        return {
+          pastes: pastesWithTags,
+          pagination: {
+            page,
+            limit,
+            total,
+            totalPages,
+            hasMore,
+          }
+        };
+      },
+      { ttl: CACHE_TTL.RECENT_PUBLIC_PASTES }
+    );
+  } catch (error) {
+    console.error("Get paginated public pastes error:", error);
+    return { 
+      pastes: [], 
+      pagination: { 
+        page, 
+        limit, 
+        total: 0, 
+        totalPages: 0, 
+        hasMore: false 
+      } 
+    };
+  }
+}
+
 export async function updatePasteSettings(input: UpdatePasteSettingsInput): Promise<UpdatePasteSettingsResult> {
   try {
     const validatedInput = updatePasteSettingsSchema.parse(input);

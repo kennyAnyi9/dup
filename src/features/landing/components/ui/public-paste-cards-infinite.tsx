@@ -1,0 +1,182 @@
+"use client";
+
+import { useState, useEffect, useCallback } from "react";
+import { PublicPasteCards } from "./public-paste-cards";
+import { Button } from "@/shared/components/dupui/button";
+import { Loader, RefreshCw } from "lucide-react";
+import { getPublicPastesPaginatedClient } from "@/features/paste/actions/paste.client-actions";
+
+interface Paste {
+  id: string;
+  slug: string;
+  title: string | null;
+  description: string | null;
+  language: string;
+  views: number;
+  createdAt: Date;
+  user: {
+    name: string;
+    image: string | null;
+  } | null;
+  tags?: Array<{
+    id: string;
+    name: string;
+    slug: string;
+    color: string | null;
+  }>;
+}
+
+interface PaginationInfo {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+  hasMore: boolean;
+}
+
+interface PublicPasteCardsInfiniteProps {
+  initialPastes?: Paste[];
+  initialPagination?: PaginationInfo;
+}
+
+export function PublicPasteCardsInfinite({ 
+  initialPastes = [], 
+  initialPagination 
+}: PublicPasteCardsInfiniteProps) {
+  const [pastes, setPastes] = useState<Paste[]>(initialPastes);
+  const [pagination, setPagination] = useState<PaginationInfo>(
+    initialPagination || {
+      page: 1,
+      limit: 10,
+      total: 0,
+      totalPages: 0,
+      hasMore: false
+    }
+  );
+
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const loadMorePastes = useCallback(async () => {
+    if (isLoading || !pagination.hasMore) return;
+
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const nextPage = pagination.page + 1;
+      const result = await getPublicPastesPaginatedClient(nextPage, pagination.limit);
+      
+      if (result.pastes && result.pastes.length > 0) {
+        setPastes(prev => [...prev, ...result.pastes]);
+        setPagination(result.pagination);
+      } else {
+        setPagination(prev => ({ ...prev, hasMore: false }));
+      }
+    } catch (err) {
+      setError('Failed to load more pastes. Please try again.');
+      console.error('Error loading more pastes:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [pagination.page, pagination.limit, pagination.hasMore, isLoading]);
+
+  const refreshPastes = useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const result = await getPublicPastesPaginatedClient(1, pagination.limit);
+      setPastes(result.pastes || []);
+      setPagination(result.pagination);
+    } catch (err) {
+      setError('Failed to refresh pastes. Please try again.');
+      console.error('Error refreshing pastes:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [pagination.limit]);
+
+  // Auto-load on scroll (optional - can be enabled)
+  useEffect(() => {
+    // Uncomment the code below to enable auto-scroll loading
+    /*
+    const handleScroll = () => {
+      if (
+        window.innerHeight + document.documentElement.scrollTop >= 
+        document.documentElement.offsetHeight - 1000 &&
+        pagination.hasMore &&
+        !isLoading
+      ) {
+        loadMorePastes();
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+    */
+  }, [loadMorePastes, pagination.hasMore, isLoading]);
+
+  return (
+    <div className="space-y-6">
+      <PublicPasteCards pastes={pastes} />
+      
+      {error && (
+        <div className="text-center p-4 rounded-lg bg-destructive/10 border border-destructive/20">
+          <p className="text-sm text-destructive mb-2">{error}</p>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={refreshPastes}
+            disabled={isLoading}
+          >
+            <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
+            Try Again
+          </Button>
+        </div>
+      )}
+
+      {pagination.hasMore && (
+        <div className="text-center">
+          <Button
+            variant="outline"
+            onClick={loadMorePastes}
+            disabled={isLoading}
+            className="min-w-32"
+          >
+            {isLoading ? (
+              <>
+                <Loader className="h-4 w-4 mr-2 animate-spin" />
+                Loading...
+              </>
+            ) : (
+              `Load More (${pastes.length} of ${pagination.total})`
+            )}
+          </Button>
+        </div>
+      )}
+
+      {!pagination.hasMore && pastes.length > 0 && (
+        <div className="text-center text-sm text-muted-foreground py-4">
+          <p>You&apos;ve reached the end! 🎉</p>
+          <p>Showing all {pagination.total} public pastes</p>
+        </div>
+      )}
+
+      {pastes.length === 0 && !isLoading && (
+        <div className="text-center py-8">
+          <p className="text-muted-foreground">No public pastes found.</p>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={refreshPastes}
+            className="mt-4"
+          >
+            <RefreshCw className="h-4 w-4 mr-2" />
+            Refresh
+          </Button>
+        </div>
+      )}
+    </div>
+  );
+}
