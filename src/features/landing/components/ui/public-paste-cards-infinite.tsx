@@ -13,7 +13,7 @@ interface Paste {
   description: string | null;
   language: string;
   views: number;
-  createdAt: Date;
+  createdAt: string; // parse with new Date() where needed
   user: {
     name: string;
     image: string | null;
