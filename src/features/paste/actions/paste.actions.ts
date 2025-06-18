@@ -1,6 +1,6 @@
 "use server";
 
-import { eq, and, desc, count, like, or, sql, isNull, gt } from "drizzle-orm";
+import { eq, and, desc, count, like, or, sql, isNull, gt, inArray } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { nanoid } from "nanoid";
@@ -754,26 +754,39 @@ export async function getRecentPublicPastes(limit: number = 10) {
             )
         ]);
 
-        // Fetch tags for each paste
-        const pastesWithTags = await Promise.all(
-          recentPastes.map(async (pasteItem) => {
-            const pasteTags = await db
-              .select({
-                id: tag.id,
-                name: tag.name,
-                slug: tag.slug,
-                color: tag.color,
-              })
-              .from(pasteTag)
-              .innerJoin(tag, eq(pasteTag.tagId, tag.id))
-              .where(eq(pasteTag.pasteId, pasteItem.id));
-
-            return {
-              ...pasteItem,
-              tags: pasteTags,
-            };
+        // Fetch tags for all pastes in a single query to avoid N+1 problem
+        const pasteIds = recentPastes.map(p => p.id);
+        const allTags = pasteIds.length > 0 ? await db
+          .select({
+            pasteId: pasteTag.pasteId,
+            id: tag.id,
+            name: tag.name,
+            slug: tag.slug,
+            color: tag.color,
           })
-        );
+          .from(pasteTag)
+          .innerJoin(tag, eq(pasteTag.tagId, tag.id))
+          .where(inArray(pasteTag.pasteId, pasteIds)) : [];
+
+        // Group tags by pasteId
+        const tagsByPasteId = allTags.reduce((acc, tagItem) => {
+          if (!acc[tagItem.pasteId]) {
+            acc[tagItem.pasteId] = [];
+          }
+          acc[tagItem.pasteId].push({
+            id: tagItem.id,
+            name: tagItem.name,
+            slug: tagItem.slug,
+            color: tagItem.color,
+          });
+          return acc;
+        }, {} as Record<string, Array<{ id: string; name: string; slug: string; color: string | null }>>);
+
+        // Combine pastes with their tags
+        const pastesWithTags = recentPastes.map(pasteItem => ({
+          ...pasteItem,
+          tags: tagsByPasteId[pasteItem.id] || [],
+        }));
 
         return {
           pastes: pastesWithTags,
@@ -785,6 +798,134 @@ export async function getRecentPublicPastes(limit: number = 10) {
   } catch (error) {
     console.error("Get recent public pastes error:", error);
     return { pastes: [], total: 0 };
+  }
+}
+
+export async function getPublicPastesPaginated(page = 1, limit = 10) {
+  // Ensure sane bounds: limit between 1 and 100, page at least 1
+  limit = Math.min(Math.max(limit, 1), 100); // 1-100 hard limit
+  page  = Math.max(page, 1);
+
+  const offset = (page - 1) * limit;
+  const cacheKey = generateCacheKey(CACHE_KEYS.RECENT_PUBLIC_PASTES, `page_${page}_limit_${limit}`);
+  
+  try {
+    return await cached(
+      cacheKey,
+      async () => {
+        // Get pastes and total count in parallel
+        const [pastes, totalCountResult] = await Promise.all([
+          db
+            .select({
+              id: paste.id,
+              slug: paste.slug,
+              title: paste.title,
+              description: paste.description,
+              language: paste.language,
+              views: paste.views,
+              createdAt: paste.createdAt,
+              user: {
+                id: user.id,
+                name: user.name,
+                image: user.image,
+              },
+            })
+            .from(paste)
+            .leftJoin(user, eq(paste.userId, user.id))
+            .where(
+              and(
+                eq(paste.visibility, "public"),
+                eq(paste.isDeleted, false),
+                // Only show non-expired pastes
+                or(
+                  isNull(paste.expiresAt),
+                  gt(paste.expiresAt, new Date())
+                )
+              )
+            )
+            .orderBy(desc(paste.createdAt))
+            .limit(limit)
+            .offset(offset),
+          
+          db
+            .select({ count: count() })
+            .from(paste)
+            .where(
+              and(
+                eq(paste.visibility, "public"),
+                eq(paste.isDeleted, false),
+                // Only show non-expired pastes
+                or(
+                  isNull(paste.expiresAt),
+                  gt(paste.expiresAt, new Date())
+                )
+              )
+            )
+        ]);
+
+        // Fetch tags for all pastes in a single query to avoid N+1 problem
+        const pasteIds = pastes.map(p => p.id);
+        const allTags = pasteIds.length > 0 ? await db
+          .select({
+            pasteId: pasteTag.pasteId,
+            id: tag.id,
+            name: tag.name,
+            slug: tag.slug,
+            color: tag.color,
+          })
+          .from(pasteTag)
+          .innerJoin(tag, eq(pasteTag.tagId, tag.id))
+          .where(inArray(pasteTag.pasteId, pasteIds)) : [];
+
+        // Group tags by pasteId
+        const tagsByPasteId = allTags.reduce((acc, tagItem) => {
+          if (!acc[tagItem.pasteId]) {
+            acc[tagItem.pasteId] = [];
+          }
+          acc[tagItem.pasteId].push({
+            id: tagItem.id,
+            name: tagItem.name,
+            slug: tagItem.slug,
+            color: tagItem.color,
+          });
+          return acc;
+        }, {} as Record<string, Array<{ id: string; name: string; slug: string; color: string | null }>>);
+
+        // Combine pastes with their tags
+        const pastesWithTags = pastes.map(pasteItem => ({
+          ...pasteItem,
+          tags: tagsByPasteId[pasteItem.id] || [],
+        }));
+
+        const total = totalCountResult[0]?.count || 0;
+        const totalPages = Math.ceil(total / limit);
+        const hasMore = page < totalPages;
+
+        return {
+          pastes: pastesWithTags,
+          pagination: {
+            page,
+            limit,
+            total,
+            totalPages,
+            hasMore,
+          }
+        };
+      },
+      { ttl: CACHE_TTL.RECENT_PUBLIC_PASTES }
+    );
+  } catch (error) {
+    console.error("Get paginated public pastes error:", error);
+    return { 
+      pastes: [], 
+      pagination: { 
+        page, 
+        limit, 
+        total: 0, 
+        totalPages: 0, 
+        hasMore: false 
+      } 
+    };
   }
 }
 
