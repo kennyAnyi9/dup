@@ -66,14 +66,16 @@ export async function getPublicPastesPaginatedClient(
     
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 10_000);
-    
-    const response = await fetch(`/api/pastes/public?${params.toString()}`, {
-      method: 'GET',
-      signal: controller.signal,
-    });
-    
-    clearTimeout(timeout);
 
+    let response: Response;
+    try {
+      response = await fetch(`/api/pastes/public?${params.toString()}`, {
+        method: 'GET',
+        signal: controller.signal,
+      });
+    } finally {
+      clearTimeout(timeout);
+    }
     if (!response.ok) {
       const errorText = await response.text();
       throw new Error(`HTTP ${response.status}: ${errorText}`);
