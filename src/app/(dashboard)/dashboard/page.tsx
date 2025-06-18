@@ -1,3 +1,6 @@
+// Force dynamic rendering for dashboard
+export const dynamic = 'force-dynamic';
+
 import { getRecentPublicPastes } from "@/features/paste/actions/paste.actions";
 import { PasteModalProvider } from "@/features/paste/components/providers/paste-modal-provider";
 import { getCurrentUser } from "@/shared/lib/auth-server";
