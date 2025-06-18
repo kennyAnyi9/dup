@@ -3,7 +3,7 @@
 import { getPublicPastesPaginatedClient } from "@/features/paste/actions/paste.client-actions";
 import { Button } from "@/shared/components/dupui/button";
 import { Loader, RefreshCw } from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { PublicPasteCards } from "./public-paste-cards";
 
 interface Paste {
@@ -56,6 +56,7 @@ export function PublicPasteCardsInfinite({
 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const hasInitiallyLoaded = useRef(false);
 
   const loadMorePastes = useCallback(async () => {
     if (!pagination.hasMore) return;
@@ -112,10 +113,11 @@ export function PublicPasteCardsInfinite({
 
   // Load initial data on component mount
   useEffect(() => {
-    if (pastes.length === 0) {
+    if (pastes.length === 0 && !hasInitiallyLoaded.current) {
+      hasInitiallyLoaded.current = true;
       refreshPastes();
     }
-  }, []);
+  }, [refreshPastes]);
 
   return (
     <div className="space-y-6">
@@ -162,7 +164,6 @@ export function PublicPasteCardsInfinite({
           </Button>
         </div>
       )}
-
 
       {pastes.length === 0 && !isLoading && (
         <div className="text-center py-8">

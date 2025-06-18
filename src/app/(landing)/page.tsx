@@ -24,7 +24,6 @@ import {
 import Link from "next/link";
 
 export default function Home() {
-
   return (
     <div className="max-w-4xl mx-auto px-4">
       {/* Hero Section */}
@@ -34,11 +33,14 @@ export default function Home() {
           beamSize={10}
           beamsPerSide={3}
           gridColor="rgba(128, 128, 128, 0.15)"
-          className="min-h-[400px] sm:min-h-[500px] oveflow-hidden border-t-0"
+          className="min-h-[400px] sm:min-h-[500px] overflow-hidden border-t-0"
         >
           <div className="sm:py-20">
             <div className="relative mx-auto flex w-full max-w-none sm:max-w-4xl flex-col items-center  sm:px-8 lg:px-12 text-center">
-              <Badge variant="secondary" className="mb-4 animate-slide-up-fade [--offset:30px] [animation-duration:1s] [animation-fill-mode:both] motion-reduce:animate-fade-in [animation-delay:50ms]">
+              <Badge
+                variant="secondary"
+                className="mb-4 animate-slide-up-fade [--offset:30px] [animation-duration:1s] [animation-fill-mode:both] motion-reduce:animate-fade-in [animation-delay:50ms]"
+              >
                 <Zap className="h-3 w-3 mr-1" />
                 Beta
               </Badge>

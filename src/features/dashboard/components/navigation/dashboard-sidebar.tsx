@@ -71,7 +71,7 @@ export function DashboardSidebar({ recentPublicPastes = [], totalPublicPastes = 
         </div>
         
         {/* Recent Public Pastes Feed */}
-        <div className="hidden lg:block flex-1">
+        <div className="hidden lg:block flex-1 min-h-0">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
               <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
@@ -82,7 +82,7 @@ export function DashboardSidebar({ recentPublicPastes = [], totalPublicPastes = 
             </div>
           </div>
           
-          <ScrollArea className="h-full">
+          <ScrollArea className="h-[calc(100%-3rem)]">
             <div className="space-y-0 font-mono text-xs">
               {recentPublicPastes.length > 0 ? (
                 recentPublicPastes.map((paste, index) => (
