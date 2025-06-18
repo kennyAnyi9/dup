@@ -1,4 +1,4 @@
-// Force dynamic rendering for auth layout  
+// Force dynamic rendering for auth layout
 export const dynamic = 'force-dynamic';
 
 import { GridPattern } from "@/components/magicui/grid-pattern";

@@ -1,4 +1,4 @@
-// Force dynamic rendering for dashboard
+// Force dynamic rendering for dashboard page
 export const dynamic = 'force-dynamic';
 
 import { getRecentPublicPastes } from "@/features/paste/actions/paste.actions";

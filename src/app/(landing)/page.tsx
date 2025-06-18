@@ -1,4 +1,4 @@
-// Force dynamic rendering to avoid static generation issues
+// Force dynamic rendering for landing page
 export const dynamic = 'force-dynamic';
 
 import { WarpBackground } from "@/components/magicui/warp-background";
