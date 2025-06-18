@@ -17,7 +17,7 @@ export async function GET(request: NextRequest) {
 
     const result = await getPublicPastesPaginated(page, limit);
     
-    return NextResponse.json(result);
+    return NextResponse.json(result, { status: 200 });
   } catch (error) {
     console.error('API Error:', error);
     return NextResponse.json(

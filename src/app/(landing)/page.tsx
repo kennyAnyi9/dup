@@ -25,7 +25,22 @@ import {
 import Link from "next/link";
 
 export default async function Home() {
-  const recentPastesData = await getPublicPastesPaginated(1, 8);
+  let recentPastesData;
+  try {
+    recentPastesData = await getPublicPastesPaginated(1, 8);
+  } catch (error) {
+    console.error('Failed to fetch public pastes for landing page:', error);
+    recentPastesData = { 
+      pastes: [], 
+      pagination: { 
+        page: 1, 
+        limit: 8, 
+        total: 0, 
+        totalPages: 0, 
+        hasMore: false 
+      } 
+    };
+  }
   const recentPastes = recentPastesData.pastes;
 
   return (
@@ -147,7 +162,10 @@ export default async function Home() {
         </PanelHeader>
         <PanelContent>
           <PublicPasteCardsInfinite 
-            initialPastes={recentPastes} 
+            initialPastes={recentPastes.map(paste => ({
+              ...paste,
+              createdAt: paste.createdAt.toISOString()
+            }))} 
             initialPagination={recentPastesData.pagination}
           />
         </PanelContent>

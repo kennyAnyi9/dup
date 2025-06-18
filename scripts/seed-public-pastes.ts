@@ -434,8 +434,8 @@ async function seedPublicPastes() {
       pastesToCreate.push(pasteData);
     }
     
-    // Insert in batches to avoid overwhelming the database
-    const batchSize = 10;
+    // Insert in larger batches for better performance
+    const batchSize = 100;
     for (let i = 0; i < pastesToCreate.length; i += batchSize) {
       const batch = pastesToCreate.slice(i, i + batchSize);
       await db.insert(paste).values(batch);

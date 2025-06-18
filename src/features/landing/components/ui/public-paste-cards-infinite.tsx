@@ -13,7 +13,7 @@ interface Paste {
   description: string | null;
   language: string;
   views: number;
-  createdAt: Date;
+  createdAt: string;
   user: {
     name: string;
     image: string | null;
@@ -58,14 +58,20 @@ export function PublicPasteCardsInfinite({
   const [error, setError] = useState<string | null>(null);
 
   const loadMorePastes = useCallback(async () => {
-    if (isLoading || !pagination.hasMore) return;
-
+    if (!pagination.hasMore) return;
+    
+    // Prevent race conditions by setting loading first
     setIsLoading(true);
     setError(null);
 
     try {
       const nextPage = pagination.page + 1;
       const result = await getPublicPastesPaginatedClient(nextPage, pagination.limit);
+      
+      if ('error' in result) {
+        setError(result.error);
+        return;
+      }
       
       if (result.pastes && result.pastes.length > 0) {
         setPastes(prev => [...prev, ...result.pastes]);
@@ -74,12 +80,13 @@ export function PublicPasteCardsInfinite({
         setPagination(prev => ({ ...prev, hasMore: false }));
       }
     } catch (err) {
-      setError('Failed to load more pastes. Please try again.');
+      const errorMessage = err instanceof Error ? err.message : 'Failed to load more pastes. Please try again.';
+      setError(errorMessage);
       console.error('Error loading more pastes:', err);
     } finally {
       setIsLoading(false);
     }
-  }, [pagination.page, pagination.limit, pagination.hasMore, isLoading]);
+  }, [pagination.page, pagination.limit, pagination.hasMore]);
 
   const refreshPastes = useCallback(async () => {
     setIsLoading(true);
@@ -87,10 +94,17 @@ export function PublicPasteCardsInfinite({
 
     try {
       const result = await getPublicPastesPaginatedClient(1, pagination.limit);
+      
+      if ('error' in result) {
+        setError(result.error);
+        return;
+      }
+      
       setPastes(result.pastes || []);
       setPagination(result.pagination);
     } catch (err) {
-      setError('Failed to refresh pastes. Please try again.');
+      const errorMessage = err instanceof Error ? err.message : 'Failed to refresh pastes. Please try again.';
+      setError(errorMessage);
       console.error('Error refreshing pastes:', err);
     } finally {
       setIsLoading(false);
@@ -119,7 +133,10 @@ export function PublicPasteCardsInfinite({
 
   return (
     <div className="space-y-6">
-      <PublicPasteCards pastes={pastes} />
+      <PublicPasteCards pastes={pastes.map(p => ({
+        ...p,
+        createdAt: new Date(p.createdAt)
+      }))} />
       
       {error && (
         <div className="text-center p-4 rounded-lg bg-destructive/10 border border-destructive/20">

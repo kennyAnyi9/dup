@@ -3,6 +3,7 @@
 import { useCopyUrl } from "../../hooks/use-copy-url";
 import { usePasteActions } from "../../hooks/use-paste-actions";
 import { getVisibilityInfo } from "../../lib/paste-utils";
+import { formatCount } from "@/shared/lib/pluralization";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -297,7 +298,7 @@ export function PasteCard({ paste }: PasteCardProps) {
               <div className="flex items-center gap-1">
                 <Eye className="h-3.5 w-3.5" />
                 <span className="font-medium">
-                  {paste.views} {paste.views === 1 ? "view" : "views"}
+                  {formatCount("view", paste.views)}
                 </span>
               </div>
               <div className="hidden sm:block w-1 h-1 rounded-full bg-muted-foreground/40" />

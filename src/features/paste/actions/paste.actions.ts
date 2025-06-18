@@ -1,6 +1,6 @@
 "use server";
 
-import { eq, and, desc, count, like, or, sql, isNull, gt } from "drizzle-orm";
+import { eq, and, desc, count, like, or, sql, isNull, gt, inArray } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { nanoid } from "nanoid";
@@ -754,26 +754,39 @@ export async function getRecentPublicPastes(limit: number = 10) {
             )
         ]);
 
-        // Fetch tags for each paste
-        const pastesWithTags = await Promise.all(
-          recentPastes.map(async (pasteItem) => {
-            const pasteTags = await db
-              .select({
-                id: tag.id,
-                name: tag.name,
-                slug: tag.slug,
-                color: tag.color,
-              })
-              .from(pasteTag)
-              .innerJoin(tag, eq(pasteTag.tagId, tag.id))
-              .where(eq(pasteTag.pasteId, pasteItem.id));
-
-            return {
-              ...pasteItem,
-              tags: pasteTags,
-            };
+        // Fetch tags for all pastes in a single query to avoid N+1 problem
+        const pasteIds = recentPastes.map(p => p.id);
+        const allTags = pasteIds.length > 0 ? await db
+          .select({
+            pasteId: pasteTag.pasteId,
+            id: tag.id,
+            name: tag.name,
+            slug: tag.slug,
+            color: tag.color,
           })
-        );
+          .from(pasteTag)
+          .innerJoin(tag, eq(pasteTag.tagId, tag.id))
+          .where(inArray(pasteTag.pasteId, pasteIds)) : [];
+
+        // Group tags by pasteId
+        const tagsByPasteId = allTags.reduce((acc, tagItem) => {
+          if (!acc[tagItem.pasteId]) {
+            acc[tagItem.pasteId] = [];
+          }
+          acc[tagItem.pasteId].push({
+            id: tagItem.id,
+            name: tagItem.name,
+            slug: tagItem.slug,
+            color: tagItem.color,
+          });
+          return acc;
+        }, {} as Record<string, Array<{ id: string; name: string; slug: string; color: string | null }>>);
+
+        // Combine pastes with their tags
+        const pastesWithTags = recentPastes.map(pasteItem => ({
+          ...pasteItem,
+          tags: tagsByPasteId[pasteItem.id] || [],
+        }));
 
         return {
           pastes: pastesWithTags,
@@ -846,26 +859,39 @@ export async function getPublicPastesPaginated(page: number = 1, limit: number =
             )
         ]);
 
-        // Fetch tags for each paste
-        const pastesWithTags = await Promise.all(
-          pastes.map(async (pasteItem) => {
-            const pasteTags = await db
-              .select({
-                id: tag.id,
-                name: tag.name,
-                slug: tag.slug,
-                color: tag.color,
-              })
-              .from(pasteTag)
-              .innerJoin(tag, eq(pasteTag.tagId, tag.id))
-              .where(eq(pasteTag.pasteId, pasteItem.id));
-
-            return {
-              ...pasteItem,
-              tags: pasteTags,
-            };
+        // Fetch tags for all pastes in a single query to avoid N+1 problem
+        const pasteIds = pastes.map(p => p.id);
+        const allTags = pasteIds.length > 0 ? await db
+          .select({
+            pasteId: pasteTag.pasteId,
+            id: tag.id,
+            name: tag.name,
+            slug: tag.slug,
+            color: tag.color,
           })
-        );
+          .from(pasteTag)
+          .innerJoin(tag, eq(pasteTag.tagId, tag.id))
+          .where(inArray(pasteTag.pasteId, pasteIds)) : [];
+
+        // Group tags by pasteId
+        const tagsByPasteId = allTags.reduce((acc, tagItem) => {
+          if (!acc[tagItem.pasteId]) {
+            acc[tagItem.pasteId] = [];
+          }
+          acc[tagItem.pasteId].push({
+            id: tagItem.id,
+            name: tagItem.name,
+            slug: tagItem.slug,
+            color: tagItem.color,
+          });
+          return acc;
+        }, {} as Record<string, Array<{ id: string; name: string; slug: string; color: string | null }>>);
+
+        // Combine pastes with their tags
+        const pastesWithTags = pastes.map(pasteItem => ({
+          ...pasteItem,
+          tags: tagsByPasteId[pasteItem.id] || [],
+        }));
 
         const total = totalCountResult[0]?.count || 0;
         const totalPages = Math.ceil(total / limit);
