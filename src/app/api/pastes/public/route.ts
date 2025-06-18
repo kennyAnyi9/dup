@@ -4,10 +4,17 @@ import { getPublicPastesPaginated } from '@/features/paste/actions/paste.actions
 export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;
-    const page = parseInt(searchParams.get('page') || '1', 10);
-    const limit = parseInt(searchParams.get('limit') || '10', 10);
+    const page = Number(searchParams.get('page') ?? 1);
+    const limit = Number(searchParams.get('limit') ?? 10);
 
-    // Validate parameters
+    if (!Number.isInteger(page) || !Number.isInteger(limit)) {
+      return NextResponse.json(
+        { error: 'Pagination parameters must be integers' },
+        { status: 400 },
+      );
+    }
+
+    // Range validation
     if (page < 1 || limit < 1 || limit > 50) {
       return NextResponse.json(
         { error: 'Invalid pagination parameters' },

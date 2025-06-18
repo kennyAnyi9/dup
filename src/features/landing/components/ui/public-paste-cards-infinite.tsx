@@ -1,10 +1,10 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
-import { PublicPasteCards } from "./public-paste-cards";
+import { getPublicPastesPaginatedClient } from "@/features/paste/actions/paste.client-actions";
 import { Button } from "@/shared/components/dupui/button";
 import { Loader, RefreshCw } from "lucide-react";
-import { getPublicPastesPaginatedClient } from "@/features/paste/actions/paste.client-actions";
+import { useCallback, useEffect, useState } from "react";
+import { PublicPasteCards } from "./public-paste-cards";
 
 interface Paste {
   id: string;
@@ -13,7 +13,7 @@ interface Paste {
   description: string | null;
   language: string;
   views: number;
-  createdAt: string;
+  createdAt: string; // parse with new Date() where needed
   user: {
     name: string;
     image: string | null;
@@ -39,9 +39,9 @@ interface PublicPasteCardsInfiniteProps {
   initialPagination?: PaginationInfo;
 }
 
-export function PublicPasteCardsInfinite({ 
-  initialPastes = [], 
-  initialPagination 
+export function PublicPasteCardsInfinite({
+  initialPastes = [],
+  initialPagination,
 }: PublicPasteCardsInfiniteProps) {
   const [pastes, setPastes] = useState<Paste[]>(initialPastes);
   const [pagination, setPagination] = useState<PaginationInfo>(
@@ -50,7 +50,7 @@ export function PublicPasteCardsInfinite({
       limit: 10,
       total: 0,
       totalPages: 0,
-      hasMore: false
+      hasMore: false,
     }
   );
 
@@ -59,30 +59,36 @@ export function PublicPasteCardsInfinite({
 
   const loadMorePastes = useCallback(async () => {
     if (!pagination.hasMore) return;
-    
+
     // Prevent race conditions by setting loading first
     setIsLoading(true);
     setError(null);
 
     try {
       const nextPage = pagination.page + 1;
-      const result = await getPublicPastesPaginatedClient(nextPage, pagination.limit);
-      
-      if ('error' in result) {
+      const result = await getPublicPastesPaginatedClient(
+        nextPage,
+        pagination.limit
+      );
+
+      if ("error" in result) {
         setError(result.error);
         return;
       }
-      
+
       if (result.pastes && result.pastes.length > 0) {
-        setPastes(prev => [...prev, ...result.pastes]);
+        setPastes((prev) => [...prev, ...result.pastes]);
         setPagination(result.pagination);
       } else {
-        setPagination(prev => ({ ...prev, hasMore: false }));
+        setPagination((prev) => ({ ...prev, hasMore: false }));
       }
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to load more pastes. Please try again.';
+      const errorMessage =
+        err instanceof Error
+          ? err.message
+          : "Failed to load more pastes. Please try again.";
       setError(errorMessage);
-      console.error('Error loading more pastes:', err);
+      console.error("Error loading more pastes:", err);
     } finally {
       setIsLoading(false);
     }
@@ -94,18 +100,21 @@ export function PublicPasteCardsInfinite({
 
     try {
       const result = await getPublicPastesPaginatedClient(1, pagination.limit);
-      
-      if ('error' in result) {
+
+      if ("error" in result) {
         setError(result.error);
         return;
       }
-      
+
       setPastes(result.pastes || []);
       setPagination(result.pagination);
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to refresh pastes. Please try again.';
+      const errorMessage =
+        err instanceof Error
+          ? err.message
+          : "Failed to refresh pastes. Please try again.";
       setError(errorMessage);
-      console.error('Error refreshing pastes:', err);
+      console.error("Error refreshing pastes:", err);
     } finally {
       setIsLoading(false);
     }
@@ -133,11 +142,13 @@ export function PublicPasteCardsInfinite({
 
   return (
     <div className="space-y-6">
-      <PublicPasteCards pastes={pastes.map(p => ({
-        ...p,
-        createdAt: new Date(p.createdAt)
-      }))} />
-      
+      <PublicPasteCards
+        pastes={pastes.map((p) => ({
+          ...p,
+          createdAt: new Date(p.createdAt),
+        }))}
+      />
+
       {error && (
         <div className="text-center p-4 rounded-lg bg-destructive/10 border border-destructive/20">
           <p className="text-sm text-destructive mb-2">{error}</p>
@@ -147,7 +158,9 @@ export function PublicPasteCardsInfinite({
             onClick={refreshPastes}
             disabled={isLoading}
           >
-            <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
+            <RefreshCw
+              className={`h-4 w-4 mr-2 ${isLoading ? "animate-spin" : ""}`}
+            />
             Try Again
           </Button>
         </div>
