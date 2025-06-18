@@ -71,11 +71,6 @@ export function PublicPasteCardsInfinite({
         pagination.limit
       );
 
-      if ("error" in result) {
-        setError(result.error);
-        return;
-      }
-
       if (result.pastes && result.pastes.length > 0) {
         setPastes((prev) => [...prev, ...result.pastes]);
         setPagination(result.pagination);
@@ -100,11 +95,6 @@ export function PublicPasteCardsInfinite({
 
     try {
       const result = await getPublicPastesPaginatedClient(1, pagination.limit);
-
-      if ("error" in result) {
-        setError(result.error);
-        return;
-      }
 
       setPastes(result.pastes || []);
       setPagination(result.pagination);
@@ -186,12 +176,6 @@ export function PublicPasteCardsInfinite({
         </div>
       )}
 
-      {!pagination.hasMore && pastes.length > 0 && (
-        <div className="text-center text-sm text-muted-foreground py-4">
-          <p>You&apos;ve reached the end! 🎉</p>
-          <p>Showing all {pagination.total} public pastes</p>
-        </div>
-      )}
 
       {pastes.length === 0 && !isLoading && (
         <div className="text-center py-8">

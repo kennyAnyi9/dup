@@ -34,25 +34,18 @@ export interface PaginatedPastesResponse {
   pagination: PaginationInfo;
 }
 
-export interface PaginatedPastesError {
-  error: string;
-  pastes: never[];
-  pagination: PaginationInfo;
-}
-
-export type PaginatedPastesResult = PaginatedPastesResponse | PaginatedPastesError;
-
 
 export async function getPublicPastesPaginatedClient(
   page: number = 1, 
   limit: number = 10
-): Promise<PaginatedPastesResult> {
+): Promise<PaginatedPastesResponse> {
   try {
-    const response = await fetch(`/api/pastes/public?page=${page}&limit=${limit}`, {
+    const params = new URLSearchParams({
+      page: String(page),
+      limit: String(limit),
+    });
+    const response = await fetch(`/api/pastes/public?${params.toString()}`, {
       method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
     });
 
     if (!response.ok) {
@@ -62,9 +55,31 @@ export async function getPublicPastesPaginatedClient(
 
     const data = await response.json();
     
-    // Validate response structure
-    if (!data.pastes || !Array.isArray(data.pastes) || !data.pagination) {
+    // Comprehensive response validation
+    if (
+      !Array.isArray(data.pastes) ||
+      !data.pagination ||
+      typeof data.pagination?.page !== 'number' ||
+      typeof data.pagination?.limit !== 'number' ||
+      typeof data.pagination?.total !== 'number' ||
+      typeof data.pagination?.totalPages !== 'number' ||
+      typeof data.pagination?.hasMore !== 'boolean'
+    ) {
       throw new Error('Invalid response structure from API');
+    }
+
+    // Validate individual paste structure
+    for (const paste of data.pastes) {
+      if (
+        typeof paste.id !== 'string' ||
+        typeof paste.slug !== 'string' ||
+        typeof paste.language !== 'string' ||
+        typeof paste.views !== 'number' ||
+        typeof paste.createdAt !== 'string' ||
+        !Array.isArray(paste.tags)
+      ) {
+        throw new Error('Invalid paste structure in API response');
+      }
     }
 
     return data as PaginatedPastesResponse;
