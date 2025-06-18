@@ -22,17 +22,17 @@ const PasteSchema = z.object({
   title: z.string().nullable(),
   description: z.string().nullable(),
   language: z.string(),
-  views: z.number(),
-  createdAt: z.string(),
+  views: z.number().int().nonnegative(),
+  createdAt: z.string().datetime({ offset: true }),
   user: UserSchema.nullable(),
   tags: z.array(TagSchema),
 });
 
 const PaginationInfoSchema = z.object({
-  page: z.number(),
-  limit: z.number(),
-  total: z.number(),
-  totalPages: z.number(),
+  page: z.number().int().positive(),
+  limit: z.number().int().positive().max(100),
+  total: z.number().int().nonnegative(),
+  totalPages: z.number().int().nonnegative(),
   hasMore: z.boolean(),
 });
 
@@ -41,16 +41,23 @@ const PaginatedPastesResponseSchema = z.object({
   pagination: PaginationInfoSchema,
 });
 
+// Parameter validation schema
+const ParamsSchema = z.object({
+  page: z.number().int().positive(),
+  limit: z.number().int().positive().max(100),
+});
+
 // Export types for use in components
 export type Paste = z.infer<typeof PasteSchema>;
 export type PaginationInfo = z.infer<typeof PaginationInfoSchema>;
 export type PaginatedPastesResponse = z.infer<typeof PaginatedPastesResponseSchema>;
 
-
 export async function getPublicPastesPaginatedClient(
-  page: number = 1, 
-  limit: number = 10
+  page = 1,
+  limit = 10,
 ): Promise<PaginatedPastesResponse> {
+  // Validate parameters before building query string
+  ParamsSchema.parse({ page, limit });
   try {
     const params = new URLSearchParams({
       page: String(page),
@@ -89,6 +96,13 @@ export async function getPublicPastesPaginatedClient(
     console.error('Error fetching public pastes:', error);
     
     // Re-throw with user-friendly message for error boundaries
-    throw new Error('Unable to load pastes. Please try again later.', { cause: error });
+    // Feature detection for Error cause (Node ≥ 16.9 / modern browsers)
+    const userError = new Error('Unable to load pastes. Please try again later.');
+    if ('cause' in Error.prototype) {
+      throw new Error('Unable to load pastes. Please try again later.', { cause: error });
+    } else {
+      userError.cause = error;
+      throw userError;
+    }
   }
 }

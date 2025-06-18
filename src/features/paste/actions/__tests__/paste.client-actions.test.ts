@@ -1,18 +1,57 @@
-import { describe, it, expect, beforeEach, afterEach } from 'bun:test';
+import { describe, it, expect, afterEach } from 'bun:test';
 import { getPublicPastesPaginatedClient } from '../paste.client-actions';
 
 // Mock fetch globally
 const originalFetch = globalThis.fetch;
 
 describe('getPublicPastesPaginatedClient', () => {
-  beforeEach(() => {
-    // Reset fetch mock before each test
+  afterEach(() => {
+    // Restore original fetch to ensure clean slate
     globalThis.fetch = originalFetch;
   });
 
-  afterEach(() => {
-    // Restore original fetch
-    globalThis.fetch = originalFetch;
+  describe('parameter validation', () => {
+    it('should reject invalid page parameters', async () => {
+      await expect(getPublicPastesPaginatedClient(NaN, 10)).rejects.toThrow();
+      await expect(getPublicPastesPaginatedClient(Infinity, 10)).rejects.toThrow();
+      await expect(getPublicPastesPaginatedClient(-1, 10)).rejects.toThrow();
+      await expect(getPublicPastesPaginatedClient(0, 10)).rejects.toThrow();
+      await expect(getPublicPastesPaginatedClient(1.5, 10)).rejects.toThrow();
+    });
+
+    it('should reject invalid limit parameters', async () => {
+      await expect(getPublicPastesPaginatedClient(1, NaN)).rejects.toThrow();
+      await expect(getPublicPastesPaginatedClient(1, Infinity)).rejects.toThrow();
+      await expect(getPublicPastesPaginatedClient(1, -1)).rejects.toThrow();
+      await expect(getPublicPastesPaginatedClient(1, 0)).rejects.toThrow();
+      await expect(getPublicPastesPaginatedClient(1, 1.5)).rejects.toThrow();
+      await expect(getPublicPastesPaginatedClient(1, 101)).rejects.toThrow(); // Over max limit
+    });
+
+    it('should accept valid parameters and call correct URL', async () => {
+      let calledUrl: string | undefined;
+      
+      // Mock successful response for valid params and capture URL
+      globalThis.fetch = async (input) => {
+        calledUrl = input as string;
+        return new Response(JSON.stringify({
+          pastes: [],
+          pagination: { page: 1, limit: 10, total: 0, totalPages: 0, hasMore: false }
+        }), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
+        });
+      };
+
+      await expect(getPublicPastesPaginatedClient(1, 10)).resolves.toBeDefined();
+      expect(calledUrl).toBe('/api/pastes/public?page=1&limit=10');
+
+      await expect(getPublicPastesPaginatedClient(5, 50)).resolves.toBeDefined();
+      expect(calledUrl).toBe('/api/pastes/public?page=5&limit=50');
+
+      await expect(getPublicPastesPaginatedClient(1, 100)).resolves.toBeDefined(); // Max limit
+      expect(calledUrl).toBe('/api/pastes/public?page=1&limit=100');
+    });
   });
 
   it('should validate and parse a valid API response', async () => {
@@ -25,7 +64,7 @@ describe('getPublicPastesPaginatedClient', () => {
           description: 'A test paste',
           language: 'javascript',
           views: 42,
-          createdAt: '2023-01-01T00:00:00Z',
+          createdAt: '2023-01-01T00:00:00.000Z',
           user: {
             id: 'user-1',
             name: 'Test User',
@@ -74,7 +113,7 @@ describe('getPublicPastesPaginatedClient', () => {
           description: null,
           language: 'javascript',
           views: 0,
-          createdAt: '2023-01-01T00:00:00Z',
+          createdAt: '2023-01-01T00:00:00.000Z',
           user: null,
           tags: [],
         },
@@ -172,11 +211,10 @@ describe('getPublicPastesPaginatedClient', () => {
 
   it('should handle timeout errors', async () => {
     globalThis.fetch = async () => {
-      // Simulate timeout
+      // Simulate timeout - promise rejects, no return needed
       await new Promise((_, reject) => {
         setTimeout(() => reject(new DOMException('Aborted', 'AbortError')), 100);
       });
-      return new Response('{}');
     };
 
     await expect(getPublicPastesPaginatedClient(1, 10)).rejects.toThrow(
