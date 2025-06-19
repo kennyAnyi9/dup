@@ -2,6 +2,24 @@
 
 import { formatDistanceToNow } from "date-fns";
 import Link from "next/link";
+
+// Mobile-optimized time formatting for compact display
+const formatMobileTime = (date: Date): string => {
+  const distance = formatDistanceToNow(date, { addSuffix: false });
+  
+  // Convert to concise mobile format
+  return distance
+    .replace(/(\d+) hours?/, '$1h')
+    .replace(/(\d+) days?/, '$1d')
+    .replace(/(\d+) minutes?/, '$1m')
+    .replace(/(\d+) seconds?/, '$1s')
+    .replace(/(\d+) months?/, '$1mo')
+    .replace(/(\d+) years?/, '$1y')
+    .replace(/about /, '')
+    .replace(/less than a /, '<1')
+    .replace(/over /, '>')
+    .replace(/almost /, '~');
+};
 import {
   Globe,
   Eye,
@@ -39,7 +57,7 @@ export function RecentPastesSection({
                   {paste.title || `untitled-${paste.slug.slice(-6)}`}
                 </div>
                 <div className="text-muted-foreground text-xs shrink-0">
-                  {formatDistanceToNow(paste.createdAt, { addSuffix: true }).replace(' ago', '')}
+                  {formatMobileTime(paste.createdAt)}
                 </div>
               </div>
               

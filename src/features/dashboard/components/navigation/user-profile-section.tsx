@@ -3,6 +3,7 @@
 import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/shared/components/dupui/button";
+import { IconButton } from "@/shared/components/dupui/icon-button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/shared/components/dupui/avatar";
 import { ThemeSwitch } from "@/components/theme/theme-switch";
 import { signOut } from "@/hooks/use-auth";
@@ -70,14 +71,9 @@ export function UserProfileSection({ user, onClose }: UserProfileSectionProps) {
       <div className="p-4 rounded-lg bg-muted/30 border space-y-4 relative">
         {/* Theme Toggle - Top Right Corner */}
         <div className="absolute top-3 right-3">
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            className="h-8 w-8 p-0 rounded-full"
-            aria-label="Toggle theme"
-          >
+          <IconButton aria-label="Toggle theme">
             <ThemeSwitch />
-          </Button>
+          </IconButton>
         </div>
         
         {/* User Info */}
