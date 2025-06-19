@@ -47,7 +47,7 @@ export function BasicSettings({
         name="language"
         render={({ field }) => (
           <FormItem>
-            <FormLabel className={`${isMobile ? 'text-xs' : 'text-sm'} flex items-center gap-1.5`}>
+            <FormLabel className={`text-sm flex items-center gap-1.5`}>
               <Code className="h-3 w-3" />
               Language
             </FormLabel>
@@ -79,7 +79,7 @@ export function BasicSettings({
         name="visibility"
         render={({ field }) => (
           <FormItem>
-            <FormLabel className={`${isMobile ? 'text-xs' : 'text-sm'} flex items-center gap-1.5`}>
+            <FormLabel className={`text-sm flex items-center gap-1.5`}>
               <Eye className="h-3 w-3" />
               Visibility
             </FormLabel>
@@ -127,7 +127,7 @@ export function BasicSettings({
         name="expiresIn"
         render={({ field }) => (
           <FormItem>
-            <FormLabel className={`${isMobile ? 'text-xs' : 'text-sm'} flex items-center gap-1.5`}>
+            <FormLabel className={`text-sm flex items-center gap-1.5`}>
               <Calendar className="h-3 w-3" />
               Expires
             </FormLabel>

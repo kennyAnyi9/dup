@@ -44,7 +44,7 @@ export function AdvancedOptions({
 }: AdvancedOptionsProps) {
   return (
     <div className={`${isMobile ? 'space-y-3' : 'space-y-4'}`}>
-      <h4 className={`${isMobile ? 'text-xs' : 'text-sm'} font-medium text-muted-foreground`}>Advanced Options</h4>
+      <h4 className={`text-sm font-medium text-muted-foreground`}>Advanced Options</h4>
       
       <div className={`grid grid-cols-1 ${isMobile ? 'gap-3' : 'sm:grid-cols-2 gap-4'}`}>
         {/* Password Protection */}
@@ -53,7 +53,7 @@ export function AdvancedOptions({
           name="password"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className={`${isMobile ? 'text-xs' : 'text-sm'} flex items-center gap-1.5`}>
+              <FormLabel className={`text-sm flex items-center gap-1.5`}>
                 <Lock className="h-3 w-3" />
                 Password (optional)
               </FormLabel>
@@ -92,7 +92,7 @@ export function AdvancedOptions({
             name="customUrl"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className={`${isMobile ? 'text-xs' : 'text-sm'} flex items-center gap-1.5`}>
+                <FormLabel className={`text-sm flex items-center gap-1.5`}>
                   <Type className="h-3 w-3" />
                   Custom URL (optional)
                 </FormLabel>
@@ -164,7 +164,7 @@ export function AdvancedOptions({
                 />
               </FormControl>
               <div className="space-y-1 leading-none">
-                <FormLabel className={`${isMobile ? 'text-xs' : 'text-sm'} flex items-center gap-1.5`}>
+                <FormLabel className={`text-sm flex items-center gap-1.5`}>
                   <Zap className="h-3 w-3" />
                   Burn After Read
                 </FormLabel>
@@ -182,7 +182,7 @@ export function AdvancedOptions({
             name="burnAfterReadViews"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className={`${isMobile ? 'text-xs' : 'text-sm'}`}>
+                <FormLabel className={`text-sm`}>
                   Delete after how many views?
                 </FormLabel>
                 <FormControl>

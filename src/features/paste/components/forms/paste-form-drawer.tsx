@@ -42,6 +42,7 @@ export function PasteFormDrawer({
   editingPaste = null,
 }: PasteFormDrawerProps) {
   const [isVisible, setIsVisible] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
 
   const formHook = usePasteForm({
     initialContent,
@@ -74,6 +75,14 @@ export function PasteFormDrawer({
       return () => clearTimeout(timer);
     }
   }, [open]);
+
+  // Mobile detection
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   const HeaderContent = () => (
     <div className="flex items-center justify-between w-full">
@@ -123,7 +132,7 @@ export function PasteFormDrawer({
               isAuthenticated={isAuthenticated}
               watchedContent={watchedContent}
               watchedBurnAfterRead={watchedBurnAfterRead}
-              isMobile={true}
+              isMobile={isMobile}
             />
           </ScrollArea>
         </div>
@@ -138,7 +147,7 @@ export function PasteFormDrawer({
           onSubmit={form.handleSubmit(onSubmit)}
           isSubmitDisabled={isSubmitDisabled}
           onCancel={() => onOpenChange(false)}
-          isMobile={true}
+          isMobile={isMobile}
         />
       </DrawerContent>
     </Drawer>

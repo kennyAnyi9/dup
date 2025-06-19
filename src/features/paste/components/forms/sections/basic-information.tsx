@@ -40,7 +40,7 @@ export function BasicInformation({
         name="title"
         render={({ field }) => (
           <FormItem>
-            <FormLabel className={`${isMobile ? 'text-xs' : 'text-sm'} font-medium flex items-center gap-1.5`}>
+            <FormLabel className={`text-sm font-medium flex items-center gap-1.5`}>
               <Type className={`${isMobile ? 'h-3 w-3' : 'h-4 w-4'}`} />
               Title (optional)
             </FormLabel>
@@ -64,7 +64,7 @@ export function BasicInformation({
           name="description"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className={`${isMobile ? 'text-xs' : 'text-sm'} font-medium flex items-center gap-1.5`}>
+              <FormLabel className={`text-sm font-medium flex items-center gap-1.5`}>
                 <Type className={`${isMobile ? 'h-3 w-3' : 'h-4 w-4'}`} />
                 Description (optional)
               </FormLabel>
@@ -87,7 +87,7 @@ export function BasicInformation({
           name="tags"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className={`${isMobile ? 'text-xs' : 'text-sm'} font-medium flex items-center gap-1.5`}>
+              <FormLabel className={`text-sm font-medium flex items-center gap-1.5`}>
                 <Tag className={`${isMobile ? 'h-3 w-3' : 'h-4 w-4'}`} />
                 Tags (optional)
               </FormLabel>
@@ -112,7 +112,7 @@ export function BasicInformation({
         render={({ field }) => (
           <FormItem>
             <div className="flex items-center justify-between">
-              <FormLabel className={`${isMobile ? 'text-xs' : 'text-sm'} font-medium flex items-center gap-1.5`}>
+              <FormLabel className={`text-sm font-medium flex items-center gap-1.5`}>
                 <Code className={`${isMobile ? 'h-3 w-3' : 'h-4 w-4'}`} />
                 Content
               </FormLabel>
