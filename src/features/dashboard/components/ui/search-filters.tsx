@@ -157,8 +157,8 @@ export function SearchFilters({
 
   return (
     <div className="space-y-3 md:space-y-4">
-      {/* Search and Filters - Single Row */}
-      <div className="flex gap-3">
+      {/* Search and Filters - Responsive Layout */}
+      <div className="flex flex-col sm:flex-row gap-3">
         {/* Search Form */}
         <form onSubmit={handleSearchSubmit} className="flex-1">
           <div className="relative">
@@ -184,36 +184,39 @@ export function SearchFilters({
           </div>
         </form>
 
-        {/* Filter Dropdown */}
-        <Select value={filter} onValueChange={handleFilterChange}>
-          <SelectTrigger className="w-[130px] h-9 md:h-10 [&>svg]:hidden">
-            <div className="flex items-center gap-2">
-              {getFilterIcon(filter)}
-              <SelectValue />
-            </div>
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Pastes</SelectItem>
-            <SelectItem value="public">Public</SelectItem>
-            <SelectItem value="unlisted">Unlisted</SelectItem>
-            <SelectItem value="private">Private</SelectItem>
-          </SelectContent>
-        </Select>
+        {/* Filter and Sort Controls */}
+        <div className="flex gap-3 sm:contents">
+          {/* Filter Dropdown */}
+          <Select value={filter} onValueChange={handleFilterChange}>
+            <SelectTrigger className="w-[130px] sm:w-[130px] h-9 md:h-10 [&>svg]:hidden">
+              <div className="flex items-center gap-2">
+                {getFilterIcon(filter)}
+                <SelectValue />
+              </div>
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Pastes</SelectItem>
+              <SelectItem value="public">Public</SelectItem>
+              <SelectItem value="unlisted">Unlisted</SelectItem>
+              <SelectItem value="private">Private</SelectItem>
+            </SelectContent>
+          </Select>
 
-        {/* Sort Dropdown */}
-        <Select value={sort} onValueChange={handleSortChange}>
-          <SelectTrigger className="w-[110px] h-9 md:h-10 [&>svg]:hidden">
-            <div className="flex items-center gap-2">
-              <ArrowUpDown className="h-3 w-3" />
-              <SelectValue />
-            </div>
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="newest">Newest</SelectItem>
-            <SelectItem value="oldest">Oldest</SelectItem>
-            <SelectItem value="views">Most Viewed</SelectItem>
-          </SelectContent>
-        </Select>
+          {/* Sort Dropdown */}
+          <Select value={sort} onValueChange={handleSortChange}>
+            <SelectTrigger className="w-[110px] sm:w-[110px] h-9 md:h-10 [&>svg]:hidden">
+              <div className="flex items-center gap-2">
+                <ArrowUpDown className="h-3 w-3" />
+                <SelectValue />
+              </div>
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="newest">Newest</SelectItem>
+              <SelectItem value="oldest">Oldest</SelectItem>
+              <SelectItem value="views">Most Viewed</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
       {/* Active Filters */}

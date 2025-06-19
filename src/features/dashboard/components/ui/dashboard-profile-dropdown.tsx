@@ -16,14 +16,10 @@ import { ThemeSwitch } from "@/components/theme/theme-switch";
 import { signOut } from "@/hooks/use-auth";
 import { Settings, LogOut, Palette } from "lucide-react";
 import { toast } from "sonner";
+import { User } from "@/features/dashboard/types";
 
 interface DashboardProfileDropdownProps {
-  user: {
-    id: string;
-    name?: string | null;
-    email: string;
-    image?: string | null;
-  };
+  user: User;
 }
 
 export function DashboardProfileDropdown({ user }: DashboardProfileDropdownProps) {

@@ -52,6 +52,7 @@ export default async function DashboardPage({
         <DashboardHeader
           recentPublicPastes={recentPublicPastesData.pastes}
           totalPublicPastes={recentPublicPastesData.total}
+          user={user}
         />
 
         {/* Main Content */}

@@ -1,23 +1,13 @@
 import { Logo } from "@/shared/components/common/logo";
 import { DashboardHeaderButton } from "@/features/dashboard/components/ui/dashboard-header-button";
 import { DashboardMobileSidebar } from "@/features/dashboard/components/navigation/dashboard-mobile-sidebar";
+import { DashboardHeaderProps } from "@/features/dashboard/types";
 import Link from "next/link";
-
-interface DashboardHeaderProps {
-  recentPublicPastes: Array<{
-    id: string;
-    slug: string;
-    title: string | null;
-    language: string;
-    views: number;
-    createdAt: Date;
-  }>;
-  totalPublicPastes: number;
-}
 
 export function DashboardHeader({
   recentPublicPastes,
   totalPublicPastes,
+  user,
 }: DashboardHeaderProps) {
   return (
     <header className="sticky top-2 z-50 w-full">
@@ -27,6 +17,7 @@ export function DashboardHeader({
             <DashboardMobileSidebar
               recentPublicPastes={recentPublicPastes}
               totalPublicPastes={totalPublicPastes}
+              user={user}
             />
             <Link className="shrink-0" href="/">
               <Logo width={240} height={64} className="h-16 w-auto" />
