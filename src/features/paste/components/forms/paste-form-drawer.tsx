@@ -102,9 +102,9 @@ export function PasteFormDrawer({
 
   return (
     <Drawer open={open} onOpenChange={onOpenChange}>
-      <DrawerContent className="h-[95vh] max-h-[95vh] flex flex-col">
-        {/* Fixed Header */}
-        <DrawerHeader className="px-4 py-3 border-b shrink-0 bg-background">
+      <DrawerContent className="h-[92vh] max-h-[92vh] flex flex-col">
+        {/* Fixed Header - More Compact */}
+        <DrawerHeader className="px-3 py-2 border-b shrink-0 bg-background">
           <DrawerTitle asChild>
             <HeaderContent />
           </DrawerTitle>
@@ -112,7 +112,7 @@ export function PasteFormDrawer({
 
         {/* Scrollable Content Area */}
         <div className="flex-1 overflow-hidden">
-          <ScrollArea className="h-full">
+          <ScrollArea className="h-full overflow-y-auto touch-pan-y overscroll-contain">
             <PasteFormContent
               form={form}
               showPassword={showPassword}
@@ -128,7 +128,7 @@ export function PasteFormDrawer({
           </ScrollArea>
         </div>
 
-        {/* Fixed Footer */}
+        {/* Fixed Footer - More Compact */}
         <PasteFormFooter
           form={form}
           isPending={isPending}

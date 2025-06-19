@@ -42,8 +42,8 @@ export function PasteFormFooter({
   };
 
   return (
-    <div className={`${isMobile ? 'px-4 py-3' : 'px-3 sm:px-4 py-3'} border-t bg-background shrink-0`}>
-      <div className={`flex ${isMobile ? 'flex-col' : 'flex-col sm:flex-row'} items-start sm:items-center justify-between gap-3`}>
+    <div className={`${isMobile ? 'px-3 py-2' : 'px-3 sm:px-4 py-3'} border-t bg-background shrink-0`}>
+      <div className={`flex ${isMobile ? 'flex-col gap-2' : 'flex-col sm:flex-row'} items-start sm:items-center justify-between gap-3`}>
         <div className={`flex items-center gap-2 text-xs text-muted-foreground ${isMobile ? 'hidden' : ''}`}>
           {getVisibilityIcon(watchedVisibility)}
           <span className="capitalize">{watchedVisibility}</span>
@@ -68,14 +68,15 @@ export function PasteFormFooter({
             type="button"
             variant="outline"
             onClick={onCancel}
-            className={`h-8 ${isMobile ? 'flex-1' : 'flex-1 sm:flex-none'} text-sm`}
+            className={`${isMobile ? 'h-7 flex-1 text-xs' : 'h-8 flex-1 sm:flex-none text-sm'}`}
           >
             Cancel
           </Button>
           <Button
+            type="submit"
             onClick={onSubmit}
             disabled={isSubmitDisabled}
-            className={`h-8 ${isMobile ? 'flex-1' : 'flex-1 sm:flex-none'} text-sm`}
+            className={`${isMobile ? 'h-7 flex-1 text-xs' : 'h-8 flex-1 sm:flex-none text-sm'}`}
           >
             {isPending ? (
               <div className="flex items-center gap-1.5">

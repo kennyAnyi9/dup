@@ -43,17 +43,17 @@ export function AdvancedOptions({
   isMobile = false,
 }: AdvancedOptionsProps) {
   return (
-    <div className="space-y-4">
-      <h4 className="text-sm font-medium text-muted-foreground">Advanced Options</h4>
+    <div className={`${isMobile ? 'space-y-3' : 'space-y-4'}`}>
+      <h4 className={`${isMobile ? 'text-xs' : 'text-sm'} font-medium text-muted-foreground`}>Advanced Options</h4>
       
-      <div className={`grid grid-cols-1 ${isMobile ? 'gap-4' : 'sm:grid-cols-2 gap-4'}`}>
+      <div className={`grid grid-cols-1 ${isMobile ? 'gap-3' : 'sm:grid-cols-2 gap-4'}`}>
         {/* Password Protection */}
         <FormField
           control={form.control}
           name="password"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="text-sm flex items-center gap-1.5">
+              <FormLabel className={`${isMobile ? 'text-xs' : 'text-sm'} flex items-center gap-1.5`}>
                 <Lock className="h-3 w-3" />
                 Password (optional)
               </FormLabel>
@@ -62,14 +62,14 @@ export function AdvancedOptions({
                   <Input
                     type={showPassword ? "text" : "password"}
                     placeholder="Protect with password..."
-                    className="h-9 pr-8"
+                    className={`${isMobile ? 'h-8 text-sm pr-8' : 'h-9 pr-8'}`}
                     {...field}
                   />
                   <Button
                     type="button"
                     variant="ghost"
                     size="sm"
-                    className="absolute right-0 top-0 h-9 w-9 hover:bg-transparent"
+                    className={`absolute right-0 top-0 ${isMobile ? 'h-8 w-8' : 'h-9 w-9'} hover:bg-transparent`}
                     onClick={() => setShowPassword(!showPassword)}
                   >
                     {showPassword ? (
@@ -92,18 +92,18 @@ export function AdvancedOptions({
             name="customUrl"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-sm flex items-center gap-1.5">
+                <FormLabel className={`${isMobile ? 'text-xs' : 'text-sm'} flex items-center gap-1.5`}>
                   <Type className="h-3 w-3" />
                   Custom URL (optional)
                 </FormLabel>
                 <FormControl>
                   <div className="relative">
-                    <span className="absolute left-2 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">
+                    <span className={`absolute left-2 top-1/2 -translate-y-1/2 text-xs text-muted-foreground`}>
                       /p/
                     </span>
                     <Input
                       placeholder="my-custom-url"
-                      className={`h-9 pl-8 pr-8 ${
+                      className={`${isMobile ? 'h-8 text-sm pl-8 pr-8' : 'h-9 pl-8 pr-8'} ${
                         field.value && urlAvailability.available === false
                           ? "border-destructive focus-visible:ring-destructive"
                           : field.value && urlAvailability.available === true
@@ -143,20 +143,28 @@ export function AdvancedOptions({
       </div>
 
       {/* Burn After Read - Enhanced */}
-      <div className="space-y-3">
+      <div className={`${isMobile ? 'space-y-2' : 'space-y-3'}`}>
         <FormField
           control={form.control}
           name="burnAfterRead"
           render={({ field }) => (
-            <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-3">
+            <FormItem className={`flex flex-row items-start space-x-3 space-y-0 rounded-md border ${isMobile ? 'p-2' : 'p-3'}`}>
               <FormControl>
                 <Checkbox
                   checked={field.value}
-                  onCheckedChange={field.onChange}
+                  onCheckedChange={(checked) => {
+                    field.onChange(checked);
+                    // Automatically set/unset burnAfterReadViews based on burnAfterRead
+                    if (checked) {
+                      form.setValue("burnAfterReadViews", 1);
+                    } else {
+                      form.setValue("burnAfterReadViews", undefined);
+                    }
+                  }}
                 />
               </FormControl>
               <div className="space-y-1 leading-none">
-                <FormLabel className="text-sm flex items-center gap-1.5">
+                <FormLabel className={`${isMobile ? 'text-xs' : 'text-sm'} flex items-center gap-1.5`}>
                   <Zap className="h-3 w-3" />
                   Burn After Read
                 </FormLabel>
@@ -174,7 +182,7 @@ export function AdvancedOptions({
             name="burnAfterReadViews"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-sm">
+                <FormLabel className={`${isMobile ? 'text-xs' : 'text-sm'}`}>
                   Delete after how many views?
                 </FormLabel>
                 <FormControl>
@@ -183,7 +191,7 @@ export function AdvancedOptions({
                     min="1"
                     max="100"
                     placeholder="1"
-                    className="h-9"
+                    className={`${isMobile ? 'h-8 text-sm' : 'h-9'}`}
                     {...field}
                     onChange={(e) => field.onChange(parseInt(e.target.value) || 1)}
                   />

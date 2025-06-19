@@ -28,25 +28,26 @@ export function BasicInformation({
   charLimit,
   isMobile = false,
 }: BasicInformationProps) {
-  const contentAreaHeight = isMobile ? "h-32" : "h-52";
-  const textareaMinHeight = isMobile ? "min-h-[120px]" : "min-h-[200px]";
+  const contentAreaHeight = isMobile ? "h-28" : "h-52";
+  const textareaMinHeight = isMobile ? "min-h-[104px]" : "min-h-[200px]";
+  const spacing = isMobile ? "space-y-3" : "space-y-4";
 
   return (
-    <div className="space-y-4">
+    <div className={spacing}>
       {/* Title */}
       <FormField
         control={form.control}
         name="title"
         render={({ field }) => (
           <FormItem>
-            <FormLabel className="text-sm font-medium flex items-center gap-2">
-              <Type className="h-4 w-4" />
+            <FormLabel className={`${isMobile ? 'text-xs' : 'text-sm'} font-medium flex items-center gap-1.5`}>
+              <Type className={`${isMobile ? 'h-3 w-3' : 'h-4 w-4'}`} />
               Title (optional)
             </FormLabel>
             <FormControl>
               <Input
                 placeholder="Give your paste a descriptive title..."
-                className="h-9"
+                className={`${isMobile ? 'h-8 text-sm' : 'h-9'}`}
                 {...field}
               />
             </FormControl>
@@ -55,22 +56,22 @@ export function BasicInformation({
         )}
       />
 
-      {/* Description and Tags Row */}
-      <div className={`grid grid-cols-1 ${isMobile ? '' : 'lg:grid-cols-2'} gap-4`}>
+      {/* Description and Tags Row - Stack on mobile for space */}
+      <div className={`grid grid-cols-1 ${isMobile ? 'gap-3' : 'lg:grid-cols-2 gap-4'}`}>
         {/* Description */}
         <FormField
           control={form.control}
           name="description"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="text-sm font-medium flex items-center gap-2">
-                <Type className="h-4 w-4" />
+              <FormLabel className={`${isMobile ? 'text-xs' : 'text-sm'} font-medium flex items-center gap-1.5`}>
+                <Type className={`${isMobile ? 'h-3 w-3' : 'h-4 w-4'}`} />
                 Description (optional)
               </FormLabel>
               <FormControl>
                 <Textarea
                   placeholder="Brief description of your paste..."
-                  className="h-20 resize-none"
+                  className={`${isMobile ? 'h-16 text-sm' : 'h-20'} resize-none`}
                   maxLength={500}
                   {...field}
                 />
@@ -86,8 +87,8 @@ export function BasicInformation({
           name="tags"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="text-sm font-medium flex items-center gap-2">
-                <Tag className="h-4 w-4" />
+              <FormLabel className={`${isMobile ? 'text-xs' : 'text-sm'} font-medium flex items-center gap-1.5`}>
+                <Tag className={`${isMobile ? 'h-3 w-3' : 'h-4 w-4'}`} />
                 Tags (optional)
               </FormLabel>
               <FormControl>
@@ -111,8 +112,8 @@ export function BasicInformation({
         render={({ field }) => (
           <FormItem>
             <div className="flex items-center justify-between">
-              <FormLabel className="text-sm font-medium flex items-center gap-2">
-                <Code className="h-4 w-4" />
+              <FormLabel className={`${isMobile ? 'text-xs' : 'text-sm'} font-medium flex items-center gap-1.5`}>
+                <Code className={`${isMobile ? 'h-3 w-3' : 'h-4 w-4'}`} />
                 Content
               </FormLabel>
               <CharacterCounter
@@ -124,7 +125,7 @@ export function BasicInformation({
               <ScrollArea className={`${contentAreaHeight} border rounded-md`}>
                 <Textarea
                   placeholder="Paste your content here..."
-                  className={`${textareaMinHeight} border-0 resize-none focus-visible:ring-0 font-mono text-sm leading-relaxed`}
+                  className={`${textareaMinHeight} border-0 resize-none focus-visible:ring-0 font-mono ${isMobile ? 'text-xs' : 'text-sm'} leading-relaxed`}
                   {...field}
                 />
               </ScrollArea>
