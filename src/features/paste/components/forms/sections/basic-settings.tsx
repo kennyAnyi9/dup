@@ -40,14 +40,14 @@ export function BasicSettings({
   isMobile = false,
 }: BasicSettingsProps) {
   return (
-    <div className={`grid grid-cols-1 ${isMobile ? 'gap-4' : 'sm:grid-cols-3 gap-4'}`}>
+    <div className={`grid grid-cols-1 ${isMobile ? 'gap-3' : 'sm:grid-cols-3 gap-4'}`}>
       {/* Language */}
       <FormField
         control={form.control}
         name="language"
         render={({ field }) => (
           <FormItem>
-            <FormLabel className="text-sm flex items-center gap-1.5">
+            <FormLabel className={`text-sm flex items-center gap-1.5`}>
               <Code className="h-3 w-3" />
               Language
             </FormLabel>
@@ -56,7 +56,7 @@ export function BasicSettings({
               defaultValue={field.value}
             >
               <FormControl>
-                <SelectTrigger className="h-9">
+                <SelectTrigger className={`${isMobile ? 'h-8 text-sm' : 'h-9'}`}>
                   <SelectValue />
                 </SelectTrigger>
               </FormControl>
@@ -79,7 +79,7 @@ export function BasicSettings({
         name="visibility"
         render={({ field }) => (
           <FormItem>
-            <FormLabel className="text-sm flex items-center gap-1.5">
+            <FormLabel className={`text-sm flex items-center gap-1.5`}>
               <Eye className="h-3 w-3" />
               Visibility
             </FormLabel>
@@ -88,7 +88,7 @@ export function BasicSettings({
               defaultValue={field.value}
             >
               <FormControl>
-                <SelectTrigger className="h-9">
+                <SelectTrigger className={`${isMobile ? 'h-8 text-sm' : 'h-9'}`}>
                   <SelectValue />
                 </SelectTrigger>
               </FormControl>
@@ -127,7 +127,7 @@ export function BasicSettings({
         name="expiresIn"
         render={({ field }) => (
           <FormItem>
-            <FormLabel className="text-sm flex items-center gap-1.5">
+            <FormLabel className={`text-sm flex items-center gap-1.5`}>
               <Calendar className="h-3 w-3" />
               Expires
             </FormLabel>
@@ -136,7 +136,7 @@ export function BasicSettings({
               defaultValue={field.value}
             >
               <FormControl>
-                <SelectTrigger className="h-9">
+                <SelectTrigger className={`${isMobile ? 'h-8 text-sm' : 'h-9'}`}>
                   <SelectValue />
                 </SelectTrigger>
               </FormControl>

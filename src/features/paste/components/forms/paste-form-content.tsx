@@ -41,7 +41,7 @@ export function PasteFormContent({
       <AuthNotice isAuthenticated={isAuthenticated} />
 
       <Form {...form}>
-        <div className="space-y-4 p-4">
+        <div className={`${isMobile ? 'space-y-3 p-3' : 'space-y-4 p-4'}`}>
           {/* Basic Information Section */}
           <BasicInformation
             form={form}
@@ -50,17 +50,20 @@ export function PasteFormContent({
             isMobile={isMobile}
           />
 
-          <Separator />
+          {isMobile ? (
+            <div className="h-px bg-border" />
+          ) : (
+            <Separator />
+          )}
 
-          {/* Settings Card */}
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base flex items-center gap-2">
-                <Settings className="h-4 w-4" />
+          {/* Settings Section - Simplified for Mobile */}
+          {isMobile ? (
+            <div className="space-y-3">
+              <div className="flex items-center gap-2 text-sm font-medium">
+                <Settings className="h-3 w-3" />
                 Settings
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
+              </div>
+              
               {/* Basic Settings */}
               <BasicSettings
                 form={form}
@@ -68,7 +71,7 @@ export function PasteFormContent({
                 isMobile={isMobile}
               />
 
-              <Separator />
+              <div className="h-px bg-border" />
 
               {/* Advanced Options */}
               <AdvancedOptions
@@ -81,8 +84,39 @@ export function PasteFormContent({
                 watchedBurnAfterRead={watchedBurnAfterRead}
                 isMobile={isMobile}
               />
-            </CardContent>
-          </Card>
+            </div>
+          ) : (
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <Settings className="h-4 w-4" />
+                  Settings
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {/* Basic Settings */}
+                <BasicSettings
+                  form={form}
+                  isAuthenticated={isAuthenticated}
+                  isMobile={isMobile}
+                />
+
+                <Separator />
+
+                {/* Advanced Options */}
+                <AdvancedOptions
+                  form={form}
+                  showPassword={showPassword}
+                  setShowPassword={setShowPassword}
+                  urlAvailability={urlAvailability}
+                  isEditing={isEditing}
+                  isAuthenticated={isAuthenticated}
+                  watchedBurnAfterRead={watchedBurnAfterRead}
+                  isMobile={isMobile}
+                />
+              </CardContent>
+            </Card>
+          )}
         </div>
       </Form>
     </>

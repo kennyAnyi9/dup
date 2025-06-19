@@ -59,7 +59,7 @@ export function usePasteForm({ initialContent = "", editingPaste = null, onSucce
       customUrl: "",
       tags: [],
       burnAfterRead: false,
-      burnAfterReadViews: 1,
+      burnAfterReadViews: undefined,
       expiresIn: isAuthenticated ? "never" : "30m",
     },
   });
@@ -112,7 +112,7 @@ export function usePasteForm({ initialContent = "", editingPaste = null, onSucce
         customUrl: "",
         tags: [],
         burnAfterRead: false,
-        burnAfterReadViews: 1,
+        burnAfterReadViews: undefined,
         expiresIn: isAuthenticated ? "never" : "30m",
       });
     }

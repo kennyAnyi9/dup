@@ -42,6 +42,7 @@ export function PasteFormDrawer({
   editingPaste = null,
 }: PasteFormDrawerProps) {
   const [isVisible, setIsVisible] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
 
   const formHook = usePasteForm({
     initialContent,
@@ -75,6 +76,14 @@ export function PasteFormDrawer({
     }
   }, [open]);
 
+  // Mobile detection
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
   const HeaderContent = () => (
     <div className="flex items-center justify-between w-full">
       <div className="flex items-center gap-2 text-lg font-semibold">
@@ -102,9 +111,9 @@ export function PasteFormDrawer({
 
   return (
     <Drawer open={open} onOpenChange={onOpenChange}>
-      <DrawerContent className="h-[95vh] max-h-[95vh] flex flex-col">
-        {/* Fixed Header */}
-        <DrawerHeader className="px-4 py-3 border-b shrink-0 bg-background">
+      <DrawerContent className="h-[92vh] max-h-[92vh] flex flex-col">
+        {/* Fixed Header - More Compact */}
+        <DrawerHeader className="px-3 py-2 border-b shrink-0 bg-background">
           <DrawerTitle asChild>
             <HeaderContent />
           </DrawerTitle>
@@ -112,7 +121,7 @@ export function PasteFormDrawer({
 
         {/* Scrollable Content Area */}
         <div className="flex-1 overflow-hidden">
-          <ScrollArea className="h-full">
+          <ScrollArea className="h-full overflow-y-auto touch-pan-y overscroll-contain">
             <PasteFormContent
               form={form}
               showPassword={showPassword}
@@ -123,12 +132,12 @@ export function PasteFormDrawer({
               isAuthenticated={isAuthenticated}
               watchedContent={watchedContent}
               watchedBurnAfterRead={watchedBurnAfterRead}
-              isMobile={true}
+              isMobile={isMobile}
             />
           </ScrollArea>
         </div>
 
-        {/* Fixed Footer */}
+        {/* Fixed Footer - More Compact */}
         <PasteFormFooter
           form={form}
           isPending={isPending}
@@ -138,7 +147,7 @@ export function PasteFormDrawer({
           onSubmit={form.handleSubmit(onSubmit)}
           isSubmitDisabled={isSubmitDisabled}
           onCancel={() => onOpenChange(false)}
-          isMobile={true}
+          isMobile={isMobile}
         />
       </DrawerContent>
     </Drawer>
