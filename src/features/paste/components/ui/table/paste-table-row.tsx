@@ -48,6 +48,7 @@ interface PasteTableRowProps {
   onRowClick: (slug: string) => void;
   onEdit?: (paste: PasteTableRowProps["paste"]) => void;
   onDelete: (pasteId: string) => void;
+  onShowQrCode?: (paste: PasteTableRowProps["paste"]) => void;
   copied: string | null;
   setCopied: (id: string | null) => void;
 }
@@ -60,6 +61,7 @@ export function PasteTableRow({
   onRowClick,
   onEdit,
   onDelete,
+  onShowQrCode,
   copied,
   setCopied,
 }: PasteTableRowProps) {
@@ -183,6 +185,7 @@ export function PasteTableRow({
           paste={paste}
           onEdit={onEdit}
           onDelete={onDelete}
+          onShowQrCode={onShowQrCode}
           copied={copied}
           setCopied={setCopied}
         />

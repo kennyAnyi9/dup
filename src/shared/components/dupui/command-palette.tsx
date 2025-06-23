@@ -11,7 +11,6 @@ import {
   CommandList,
   CommandSeparator,
 } from "@/shared/components/dupui/command";
-import { useKeyboardShortcuts, getModifierKey } from "@/hooks/use-keyboard-shortcuts";
 import {
   Plus,
   Search,
@@ -44,25 +43,6 @@ export function CommandPalette() {
   const { isAuthenticated } = useAuth();
   const { setTheme } = useTheme();
 
-  useKeyboardShortcuts([
-    {
-      key: 'k',
-      metaKey: true,
-      callback: () => setOpen(true),
-      description: 'Open command palette',
-    },
-    {
-      key: 'k',
-      ctrlKey: true,
-      callback: () => setOpen(true),
-      description: 'Open command palette',
-    },
-    {
-      key: 'Escape',
-      callback: () => setOpen(false),
-      description: 'Close command palette',
-    },
-  ]);
 
   const commands: Command[] = [
     // Navigation
@@ -223,27 +203,6 @@ export function CommandPalette() {
           </div>
         ))}
         
-        <CommandSeparator />
-        <CommandGroup heading="Shortcuts">
-          <CommandItem className="flex items-center justify-between px-2 py-1.5 text-xs text-muted-foreground">
-            <span>Open command palette</span>
-            <kbd className="pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-100">
-              {getModifierKey()}K
-            </kbd>
-          </CommandItem>
-          <CommandItem className="flex items-center justify-between px-2 py-1.5 text-xs text-muted-foreground">
-            <span>Submit paste form</span>
-            <kbd className="pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-100">
-              {getModifierKey()}↵
-            </kbd>
-          </CommandItem>
-          <CommandItem className="flex items-center justify-between px-2 py-1.5 text-xs text-muted-foreground">
-            <span>Close dialogs</span>
-            <kbd className="pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-100">
-              Esc
-            </kbd>
-          </CommandItem>
-        </CommandGroup>
       </CommandList>
     </CommandDialog>
   );

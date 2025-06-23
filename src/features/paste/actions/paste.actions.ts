@@ -321,6 +321,18 @@ export async function getPaste(input: GetPasteInput): Promise<GetPasteResult> {
 
     const foundPaste = pasteData[0];
 
+    // Get paste tags
+    const pasteTags = await db
+      .select({
+        id: tag.id,
+        name: tag.name,
+        slug: tag.slug,
+        color: tag.color,
+      })
+      .from(tag)
+      .innerJoin(pasteTag, eq(tag.id, pasteTag.tagId))
+      .where(eq(pasteTag.pasteId, foundPaste.id));
+
     // Check if paste has expired
     if (foundPaste.expiresAt && new Date() > foundPaste.expiresAt) {
       return {
@@ -409,6 +421,7 @@ export async function getPaste(input: GetPasteInput): Promise<GetPasteResult> {
           hasPassword: !!foundPaste.password,
           createdAt: foundPaste.createdAt,
           updatedAt: foundPaste.updatedAt,
+          tags: pasteTags,
         },
         burnedAfterRead: true,
       };
@@ -431,6 +444,7 @@ export async function getPaste(input: GetPasteInput): Promise<GetPasteResult> {
         hasPassword: !!foundPaste.password,
         createdAt: foundPaste.createdAt,
         updatedAt: foundPaste.updatedAt,
+        tags: pasteTags,
       },
     };
   } catch (error) {

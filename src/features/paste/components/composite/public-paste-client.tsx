@@ -22,7 +22,7 @@ import {
   Lock,
   Plus,
   Shield,
-  User,
+  Tag,
   Zap,
 } from "lucide-react";
 import Link from "next/link";
@@ -339,12 +339,31 @@ export function PublicPasteClient({ slug }: PublicPasteClientProps) {
                 </p>
               </div>
 
-              {isOwner && (
-                <div className="flex items-center gap-2">
-                  <Badge variant="secondary" className="text-xs">
-                    <User className="h-3 w-3 mr-1" />
-                    Your paste
-                  </Badge>
+              {/* Tags */}
+              {paste.tags && paste.tags.length > 0 && (
+                <div className="flex items-center gap-2 flex-wrap">
+                  <Tag className="h-4 w-4 text-muted-foreground" />
+                  <div className="flex gap-1 flex-wrap">
+                    {paste.tags.slice(0, 3).map((tag) => (
+                      <Badge
+                        key={tag.id}
+                        variant="secondary"
+                        className="text-xs px-2 py-1 h-6"
+                        style={{
+                          backgroundColor: tag.color ? `${tag.color}20` : undefined,
+                          borderColor: tag.color || undefined,
+                          color: tag.color || undefined,
+                        }}
+                      >
+                        {tag.name}
+                      </Badge>
+                    ))}
+                    {paste.tags.length > 3 && (
+                      <Badge variant="secondary" className="text-xs px-2 py-1 h-6">
+                        +{paste.tags.length - 3} more
+                      </Badge>
+                    )}
+                  </div>
                 </div>
               )}
             </div>

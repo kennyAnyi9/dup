@@ -12,11 +12,9 @@ import {
   Download,
   ExternalLink,
   Eye,
-  Globe,
-  Lock,
   MoreVertical,
   Pencil,
-  Share,
+  QrCode,
   Trash2,
 } from "lucide-react";
 import Link from "next/link";
@@ -34,6 +32,7 @@ interface PasteCardActionsProps {
   onCopyUrl: () => void;
   onEditPaste: () => void;
   onDeletePaste: () => void;
+  onShowQrCode: () => void;
 }
 
 export function PasteCardActions({
@@ -44,6 +43,7 @@ export function PasteCardActions({
   onCopyUrl,
   onEditPaste,
   onDeletePaste,
+  onShowQrCode,
 }: PasteCardActionsProps) {
   const formatViews = (count: number) => {
     if (count >= 1000) {
@@ -119,22 +119,13 @@ export function PasteCardActions({
             </div>
             {copied ? "Copied!" : "Copy URL"}
           </DropdownMenuItem>
-          <DropdownMenuItem>
-            <Share className="h-4 w-4" />
-            Share Paste
+          <DropdownMenuItem onClick={onShowQrCode}>
+            <QrCode className="h-4 w-4" />
+            Show QR Code
           </DropdownMenuItem>
           <DropdownMenuItem>
             <Download className="h-4 w-4" />
             Download
-          </DropdownMenuItem>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem>
-            <Globe className="h-4 w-4" />
-            Change Visibility
-          </DropdownMenuItem>
-          <DropdownMenuItem>
-            <Lock className="h-4 w-4" />
-            Add Password
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem

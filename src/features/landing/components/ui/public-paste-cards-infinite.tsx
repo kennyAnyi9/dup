@@ -117,7 +117,7 @@ export function PublicPasteCardsInfinite({
       hasInitiallyLoaded.current = true;
       refreshPastes();
     }
-  }, [refreshPastes]);
+  }, [pastes.length, refreshPastes]);
 
   return (
     <div className="space-y-6">
