@@ -23,7 +23,6 @@ import {
   Plus,
   Shield,
   Tag,
-  User,
   Zap,
 } from "lucide-react";
 import Link from "next/link";

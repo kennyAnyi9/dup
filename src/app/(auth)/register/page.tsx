@@ -8,7 +8,6 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Button } from "@/shared/components/dupui/button";
 import { Input } from "@/shared/components/dupui/input";
-import { Checkbox } from "@/shared/components/dupui/checkbox";
 import { Separator } from "@/shared/components/dupui/separator";
 import {
   Form,

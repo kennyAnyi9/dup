@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useCallback } from "react";
 import QRCode from "qrcode";
 import { Button } from "@/shared/components/dupui/button";
 import {
@@ -33,18 +33,11 @@ export function QRCodeModal({ open, onOpenChange, paste }: QRCodeModalProps) {
   const [qrCodeDataUrl, setQrCodeDataUrl] = useState<string>("");
   const [copied, setCopied] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
 
   const pasteUrl = `${getBaseUrl()}/p/${paste.slug}`;
   const displayTitle = paste.title || `Untitled Paste`;
 
-  useEffect(() => {
-    if (open) {
-      generateQRCode();
-    }
-  }, [open, paste.slug]);
-
-  const generateQRCode = async () => {
+  const generateQRCode = useCallback(async () => {
     try {
       setIsGenerating(true);
       const dataUrl = await QRCode.toDataURL(pasteUrl, {
@@ -63,7 +56,13 @@ export function QRCodeModal({ open, onOpenChange, paste }: QRCodeModalProps) {
     } finally {
       setIsGenerating(false);
     }
-  };
+  }, [pasteUrl]);
+
+  useEffect(() => {
+    if (open) {
+      generateQRCode();
+    }
+  }, [open, generateQRCode]);
 
   const handleDownload = () => {
     if (!qrCodeDataUrl) return;
@@ -122,6 +121,8 @@ export function QRCodeModal({ open, onOpenChange, paste }: QRCodeModalProps) {
                   src={qrCodeDataUrl}
                   alt="QR Code"
                   className="w-64 h-64"
+                  width={256}
+                  height={256}
                 />
               ) : (
                 <div className="w-64 h-64 flex items-center justify-center text-muted-foreground">
@@ -136,7 +137,7 @@ export function QRCodeModal({ open, onOpenChange, paste }: QRCodeModalProps) {
             <Smartphone className="h-4 w-4 mt-0.5 text-muted-foreground" />
             <div className="text-xs text-muted-foreground">
               <p className="font-medium mb-1">How to use:</p>
-              <p>Open your phone's camera app and point it at the QR code above. Tap the notification that appears to open the paste.</p>
+              <p>Open your phone&apos;s camera app and point it at the QR code above. Tap the notification that appears to open the paste.</p>
             </div>
           </div>
 
