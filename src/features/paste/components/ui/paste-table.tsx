@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { PasteTableHeader } from "./table/paste-table-header";
 import { PasteTableRow } from "./table/paste-table-row";
 import { DeletePasteDialog } from "./table/delete-paste-dialog";
+import { QRCodeModal } from "./qr-code-modal";
 
 interface PasteTableProps {
   pastes: Array<{
@@ -67,6 +68,7 @@ export function PasteTable({
 }: PasteTableProps) {
   const router = useRouter();
   const [showDeleteDialog, setShowDeleteDialog] = useState<string | null>(null);
+  const [showQrCode, setShowQrCode] = useState<{ slug: string; title: string | null } | null>(null);
   const [copied, setCopied] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
@@ -76,6 +78,10 @@ export function PasteTable({
 
   const handleDelete = useCallback((pasteId: string) => {
     setShowDeleteDialog(pasteId);
+  }, []);
+
+  const handleShowQrCode = useCallback((paste: PasteTableProps["pastes"][0]) => {
+    setShowQrCode({ slug: paste.slug, title: paste.title });
   }, []);
 
   const confirmDelete = useCallback(() => {
@@ -130,6 +136,7 @@ export function PasteTable({
                 onRowClick={handleRowClick}
                 onEdit={onEdit}
                 onDelete={handleDelete}
+                onShowQrCode={handleShowQrCode}
                 copied={copied}
                 setCopied={setCopied}
               />
@@ -146,6 +153,14 @@ export function PasteTable({
         isPending={isPending}
         onConfirm={confirmDelete}
       />
+
+      {showQrCode && (
+        <QRCodeModal
+          open={!!showQrCode}
+          onOpenChange={(open) => !open && setShowQrCode(null)}
+          paste={showQrCode}
+        />
+      )}
     </>
   );
 }

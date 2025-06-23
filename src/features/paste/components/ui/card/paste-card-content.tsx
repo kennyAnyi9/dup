@@ -13,6 +13,7 @@ import {
 import Link from "next/link";
 import { getVisibilityInfo } from "../../../lib/paste-utils";
 import { getBaseUrl } from "@/lib/utils/url";
+import { useQrDownload } from "../../../hooks/use-qr-download";
 
 interface PasteCardContentProps {
   paste: {
@@ -39,6 +40,13 @@ export function PasteCardContent({
   onCopyUrl,
 }: PasteCardContentProps) {
   const visibilityInfo = getVisibilityInfo(paste.visibility);
+  const { downloadQrCode, isGenerating } = useQrDownload();
+
+  const handleQrDownload = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    downloadQrCode(paste.slug, paste.title);
+  };
 
   return (
     <div className="min-w-0 overflow-hidden flex-1">
@@ -82,10 +90,16 @@ export function PasteCardContent({
           <Button
             variant="ghost"
             size="sm"
+            onClick={handleQrDownload}
+            disabled={isGenerating}
             className="h-6 w-6 p-0 rounded-full border border-border bg-muted hover:bg-muted/80 transition-all duration-200"
-            aria-label="Show QR code"
+            aria-label="Download QR code"
           >
-            <QrCode className="h-3.5 w-3.5" />
+            {isGenerating ? (
+              <div className="h-3.5 w-3.5 animate-spin rounded-full border border-current border-t-transparent" />
+            ) : (
+              <QrCode className="h-3.5 w-3.5" />
+            )}
           </Button>
         </div>
       </div>

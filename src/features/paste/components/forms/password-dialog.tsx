@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useKeyboardShortcuts } from "@/hooks/use-keyboard-shortcuts";
 import { Button } from "@/shared/components/dupui/button";
 import { Input } from "@/shared/components/dupui/input";
 import { Label } from "@/shared/components/dupui/label";
@@ -44,19 +43,6 @@ export function PasswordDialog({
     }
   }, [open]);
 
-  // Keyboard shortcuts
-  useKeyboardShortcuts([
-    {
-      key: 'Enter',
-      callback: (e) => {
-        if (open && password.trim() && !isLoading) {
-          e.preventDefault();
-          onSubmit(password.trim());
-        }
-      },
-      description: 'Submit password',
-    },
-  ]);
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();

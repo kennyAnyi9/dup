@@ -14,6 +14,7 @@ import {
   ExternalLink,
   MoreHorizontal,
   Pencil,
+  QrCode,
   Trash2,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -48,6 +49,7 @@ interface PasteRowActionsProps {
   };
   onEdit?: (paste: PasteRowActionsProps["paste"]) => void;
   onDelete: (pasteId: string) => void;
+  onShowQrCode?: (paste: PasteRowActionsProps["paste"]) => void;
   copied: string | null;
   setCopied: (id: string | null) => void;
 }
@@ -56,6 +58,7 @@ export function PasteRowActions({
   paste,
   onEdit,
   onDelete,
+  onShowQrCode,
   copied,
   setCopied,
 }: PasteRowActionsProps) {
@@ -98,6 +101,17 @@ export function PasteRowActions({
           )}
           Copy URL
         </DropdownMenuItem>
+        {onShowQrCode && (
+          <DropdownMenuItem
+            onClick={(e) => {
+              e.stopPropagation();
+              onShowQrCode(paste);
+            }}
+          >
+            <QrCode className="h-4 w-4 mr-2" />
+            Show QR Code
+          </DropdownMenuItem>
+        )}
         <DropdownMenuItem
           onClick={(e) => {
             e.stopPropagation();

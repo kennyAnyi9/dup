@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition, useRef } from "react";
+import { useState, useTransition } from "react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { Input } from "@/shared/components/dupui/input";
 import { Button } from "@/shared/components/dupui/button";
@@ -22,7 +22,6 @@ import {
   EyeOff,
   Loader
 } from "lucide-react";
-import { useKeyboardShortcuts, isMac } from "@/hooks/use-keyboard-shortcuts";
 
 interface SearchFiltersProps {
   defaultSearch?: string;
@@ -39,25 +38,11 @@ export function SearchFilters({
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [isPending, startTransition] = useTransition();
-  const searchInputRef = useRef<HTMLInputElement>(null);
   
   const [search, setSearch] = useState(defaultSearch);
   const [filter, setFilter] = useState(defaultFilter);
   const [sort, setSort] = useState(defaultSort);
 
-  // Keyboard shortcuts
-  useKeyboardShortcuts([
-    {
-      key: 'k',
-      metaKey: isMac(),
-      ctrlKey: !isMac(),
-      callback: () => {
-        searchInputRef.current?.focus();
-        searchInputRef.current?.select();
-      },
-      description: 'Focus search'
-    }
-  ]);
 
   function updateFilters(newSearch?: string, newFilter?: string, newSort?: string) {
     const params = new URLSearchParams(searchParams);
@@ -164,7 +149,6 @@ export function SearchFilters({
           <div className="relative">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
-              ref={searchInputRef}
               placeholder="Search pastes..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}

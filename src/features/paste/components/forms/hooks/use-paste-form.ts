@@ -96,7 +96,7 @@ export function usePasteForm({ initialContent = "", editingPaste = null, onSucce
         password: "",
         tags: editingPaste.tags?.map(tag => tag.name) || [],
         burnAfterRead: editingPaste.burnAfterRead,
-        burnAfterReadViews: editingPaste.burnAfterReadViews || 1,
+        burnAfterReadViews: editingPaste.burnAfterRead ? (editingPaste.burnAfterReadViews || 1) : undefined,
         expiresIn: getExpiresInValue(editingPaste.expiresAt),
       };
       

@@ -9,6 +9,7 @@ import { PasteCardContent } from "./card/paste-card-content";
 import { PasteCardTags } from "./card/paste-card-tags";
 import { PasteCardActions } from "./card/paste-card-actions";
 import { PasteCardDeleteDialog } from "./card/paste-card-delete-dialog";
+import { QRCodeModal } from "./qr-code-modal";
 
 interface PasteCardViewProps {
   paste: {
@@ -50,6 +51,7 @@ export function PasteCardView({
 }: PasteCardViewProps) {
   const router = useRouter();
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [showQrCode, setShowQrCode] = useState(false);
   const { copied, copyUrl } = useCopyUrl();
   const { isDeleting, handleDelete } = usePasteActions();
 
@@ -108,6 +110,7 @@ export function PasteCardView({
           onCopyUrl={handleCopyUrl}
           onEditPaste={handleEditPaste}
           onDeletePaste={() => setShowDeleteDialog(true)}
+          onShowQrCode={() => setShowQrCode(true)}
         />
       </div>
 
@@ -118,6 +121,13 @@ export function PasteCardView({
         displayTitle={displayTitle}
         isDeleting={isDeleting(paste.id)}
         onConfirm={handleDeletePaste}
+      />
+
+      {/* QR Code Modal */}
+      <QRCodeModal
+        open={showQrCode}
+        onOpenChange={setShowQrCode}
+        paste={{ slug: paste.slug, title: paste.title }}
       />
     </>
   );

@@ -14,9 +14,11 @@ import {
   Download, 
   ExternalLink,
   Hash,
+  QrCode,
   WrapText
 } from "lucide-react";
 import { toast } from "sonner";
+import { useQrDownload } from "../../hooks/use-qr-download";
 
 interface PasteViewerProps {
   content: string;
@@ -30,6 +32,7 @@ export function PasteViewer({ content, language, title, slug }: PasteViewerProps
   const [copied, setCopied] = useState(false);
   const [showLineNumbers, setShowLineNumbers] = useState(true);
   const [wrapText, setWrapText] = useState(false);
+  const { downloadQrCode, isGenerating } = useQrDownload();
 
   async function copyToClipboard() {
     try {
@@ -91,6 +94,10 @@ export function PasteViewer({ content, language, title, slug }: PasteViewerProps
 
   function openRawView() {
     window.open(`/api/raw/${slug}`, "_blank");
+  }
+
+  function handleQrDownload() {
+    downloadQrCode(slug, title);
   }
 
   // Map our language names to SyntaxHighlighter language names
@@ -197,6 +204,23 @@ export function PasteViewer({ content, language, title, slug }: PasteViewerProps
             >
               <Download className="h-3 w-3" />
               <span className="hidden sm:inline ml-1">Download</span>
+            </Button>
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleQrDownload}
+              disabled={isGenerating}
+              className="text-xs"
+            >
+              {isGenerating ? (
+                <div className="h-3 w-3 animate-spin rounded-full border border-current border-t-transparent" />
+              ) : (
+                <QrCode className="h-3 w-3" />
+              )}
+              <span className="hidden sm:inline ml-1">
+                {isGenerating ? "Generating..." : "QR Code"}
+              </span>
             </Button>
 
             <Button

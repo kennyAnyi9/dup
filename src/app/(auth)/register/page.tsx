@@ -31,9 +31,6 @@ const registerSchema = z.object({
     .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/, 
       "Password must contain at least one uppercase letter, one lowercase letter, and one number"),
   confirmPassword: z.string(),
-  acceptTerms: z.boolean().refine(val => val === true, {
-    message: "You must accept the terms and conditions",
-  }),
 }).refine(data => data.password === data.confirmPassword, {
   message: "Passwords don't match",
   path: ["confirmPassword"],
@@ -55,7 +52,6 @@ export default function RegisterPage() {
       email: "",
       password: "",
       confirmPassword: "",
-      acceptTerms: false,
     },
   });
 
@@ -217,33 +213,6 @@ export default function RegisterPage() {
               )}
             />
 
-            <FormField
-              control={form.control}
-              name="acceptTerms"
-              render={({ field }) => (
-                <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                  <FormControl>
-                    <Checkbox
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                    />
-                  </FormControl>
-                  <div className="space-y-1 leading-none">
-                    <FormLabel className="text-sm font-normal">
-                      I agree to the{" "}
-                      <Button variant="link" size="sm" asChild className="p-0 h-auto">
-                        <Link href="/terms">Terms of Service</Link>
-                      </Button>{" "}
-                      and{" "}
-                      <Button variant="link" size="sm" asChild className="p-0 h-auto">
-                        <Link href="/privacy">Privacy Policy</Link>
-                      </Button>
-                    </FormLabel>
-                    <FormMessage />
-                  </div>
-                </FormItem>
-              )}
-            />
 
             <Button type="submit" className="w-full" disabled={isLoading}>
               {isLoading ? (

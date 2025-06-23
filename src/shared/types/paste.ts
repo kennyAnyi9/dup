@@ -81,6 +81,15 @@ export const updatePasteSchema = z.object({
   burnAfterReadViews: z.number().min(1).max(100).optional(),
   tags: z.array(z.string().min(1).max(20)).max(5).optional(),
   expiresIn: z.enum(["1h", "1d", "7d", "30d", "never", "remove"]).optional(),
+}).refine((data) => {
+  // If burnAfterReadViews is defined, burnAfterRead must be true
+  if (data.burnAfterReadViews !== undefined && !data.burnAfterRead) {
+    return false;
+  }
+  return true;
+}, {
+  message: "burnAfterReadViews can only be set when burnAfterRead is true",
+  path: ["burnAfterReadViews"],
 });
 
 export type CreatePasteInput = z.infer<typeof createPasteSchema>;
@@ -106,6 +115,12 @@ export interface PasteResult {
   hasPassword: boolean;
   createdAt: Date;
   updatedAt: Date;
+  tags?: Array<{
+    id: string;
+    name: string;
+    slug: string;
+    color: string | null;
+  }>;
 }
 
 export interface CreatePasteResult {
