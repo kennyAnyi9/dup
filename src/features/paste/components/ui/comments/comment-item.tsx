@@ -193,6 +193,8 @@ export function CommentItem({ comment, onCommentUpdated, onCommentLikeToggle, on
               fill="none" 
               stroke="currentColor" 
               strokeWidth="1"
+              aria-hidden="true"
+              focusable="false"
             >
               <path d="M0 0v8a4 4 0 0 0 4 4h8" strokeLinecap="round" />
             </svg>
@@ -255,7 +257,7 @@ export function CommentItem({ comment, onCommentUpdated, onCommentLikeToggle, on
                 </div>
               </div>
             ) : (
-              <p className="text-sm text-foreground whitespace-pre-wrap break-words overflow-wrap-anywhere">
+              <p className="text-sm text-foreground whitespace-pre-wrap break-words [overflow-wrap:anywhere] break-all">
                 {optimisticContent}
               </p>
             )}
