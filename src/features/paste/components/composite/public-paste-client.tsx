@@ -284,20 +284,26 @@ export function PublicPasteClient({ slug }: PublicPasteClientProps) {
                 <div className="relative">
                   {/* Line numbers and code */}
                   <div className="p-4 space-y-3 bg-muted/5 font-mono text-sm">
-                    {Array.from({ length: 15 }).map((_, i) => (
-                      <div key={i} className="flex items-center gap-4">
-                        {/* Line number */}
-                        <Skeleton className="h-4 w-6 flex-shrink-0" />
-                        {/* Code line with realistic varying widths */}
-                        <Skeleton 
-                          className="h-4" 
-                          style={{ 
-                            width: `${Math.random() * 70 + 15}%`,
-                            maxWidth: '95%'
-                          }}
-                        />
-                      </div>
-                    ))}
+                    {Array.from({ length: 15 }).map((_, i) => {
+                      // Deterministic width based on line index for consistent SSR/client rendering
+                      const widths = [85, 60, 40, 75, 45, 90, 35, 80, 55, 70, 25, 95, 50, 65, 30];
+                      const width = widths[i % widths.length];
+                      
+                      return (
+                        <div key={i} className="flex items-center gap-4">
+                          {/* Line number */}
+                          <Skeleton className="h-4 w-6 flex-shrink-0" />
+                          {/* Code line with realistic varying widths */}
+                          <Skeleton 
+                            className="h-4" 
+                            style={{ 
+                              width: `${width}%`,
+                              maxWidth: '95%'
+                            }}
+                          />
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               </CardContent>

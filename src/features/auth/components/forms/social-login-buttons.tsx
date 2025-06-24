@@ -5,6 +5,8 @@ import { authClient } from "@/shared/lib/auth-client";
 import { Chrome, Github } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+import { useSearchParams } from "next/navigation";
+import { getValidatedRedirectUrl } from "@/shared/lib/auth-utils";
 
 interface SocialLoginButtonsProps {
   className?: string;
@@ -13,13 +15,15 @@ interface SocialLoginButtonsProps {
 export function SocialLoginButtons({ className }: SocialLoginButtonsProps) {
   const [googleLoading, setGoogleLoading] = useState(false);
   const [githubLoading, setGithubLoading] = useState(false);
+  const searchParams = useSearchParams();
+  const redirectUrl = getValidatedRedirectUrl(searchParams);
 
   async function handleGoogleSignIn() {
     try {
       setGoogleLoading(true);
       await authClient.signIn.social({
         provider: "google",
-        callbackURL: "/dashboard",
+        callbackURL: redirectUrl,
       });
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : "Failed to sign in with Google";
@@ -34,7 +38,7 @@ export function SocialLoginButtons({ className }: SocialLoginButtonsProps) {
       setGithubLoading(true);
       await authClient.signIn.social({
         provider: "github",
-        callbackURL: "/dashboard",
+        callbackURL: redirectUrl,
       });
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : "Failed to sign in with GitHub";

@@ -180,10 +180,28 @@ export function CommentItem({ comment, onCommentUpdated, onCommentLikeToggle, on
   const shouldNest = level < maxNestingLevel;
 
   return (
-    <div className={`space-y-3 ${level > 0 ? 'ml-6 pl-4 border-l-2 border-muted' : ''}`}>
-      <div className="space-y-3">
-        <div className="flex items-start gap-3">
-          <Avatar className="h-8 w-8 flex-shrink-0">
+    <div className={`space-y-3 ${level > 0 ? 'relative ml-4 sm:ml-6 lg:ml-8' : ''}`}>
+      {level > 0 && (
+        <>
+          {/* Vertical line */}
+          <div className="absolute left-0 top-0 bottom-0 w-px bg-border/40"></div>
+          {/* Curved connector at top */}
+          <div className="absolute left-0 top-4 w-4 h-4">
+            <svg 
+              viewBox="0 0 16 16" 
+              className="w-4 h-4 text-border/40"
+              fill="none" 
+              stroke="currentColor" 
+              strokeWidth="1"
+            >
+              <path d="M0 0v8a4 4 0 0 0 4 4h8" strokeLinecap="round" />
+            </svg>
+          </div>
+        </>
+      )}
+      <div className={`space-y-3 ${level > 0 ? 'pl-6' : ''}`}>
+        <div className="flex items-start gap-2 sm:gap-3 min-w-0">
+          <Avatar className="h-6 w-6 sm:h-8 sm:w-8 flex-shrink-0">
             <AvatarImage src={comment.author?.image || undefined} />
             <AvatarFallback className="text-xs">
               {comment.author?.name?.charAt(0).toUpperCase() || "?"}
@@ -191,15 +209,15 @@ export function CommentItem({ comment, onCommentUpdated, onCommentLikeToggle, on
           </Avatar>
 
           <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 mb-1">
-              <span className="font-medium text-sm">{comment.author?.name || "Unknown User"}</span>
-              <span className="text-xs text-muted-foreground">·</span>
-              <span className="text-xs text-muted-foreground">
+            <div className="flex items-center gap-1 sm:gap-2 mb-1 flex-wrap">
+              <span className="font-medium text-xs sm:text-sm truncate">{comment.author?.name || "Unknown User"}</span>
+              <span className="text-xs text-muted-foreground hidden sm:inline">·</span>
+              <span className="text-xs text-muted-foreground truncate">
                 {formatDistanceToNow(new Date(comment.createdAt), { addSuffix: true })}
               </span>
               {new Date(comment.updatedAt).getTime() !== new Date(comment.createdAt).getTime() && (
                 <>
-                  <span className="text-xs text-muted-foreground">·</span>
+                  <span className="text-xs text-muted-foreground hidden sm:inline">·</span>
                   <span className="text-xs text-muted-foreground italic">edited</span>
                 </>
               )}
@@ -210,9 +228,9 @@ export function CommentItem({ comment, onCommentUpdated, onCommentLikeToggle, on
                 <Textarea
                   value={editContent}
                   onChange={(e) => setEditContent(e.target.value)}
-                  className="min-h-[60px] text-sm"
+                  className="min-h-[60px] text-sm w-full"
                 />
-                <div className="flex gap-2">
+                <div className="flex gap-2 flex-wrap">
                   <Button
                     size="sm"
                     onClick={handleEdit}
@@ -237,22 +255,22 @@ export function CommentItem({ comment, onCommentUpdated, onCommentLikeToggle, on
                 </div>
               </div>
             ) : (
-              <p className="text-sm text-foreground whitespace-pre-wrap break-words">
+              <p className="text-sm text-foreground whitespace-pre-wrap break-words overflow-wrap-anywhere">
                 {optimisticContent}
               </p>
             )}
 
-            <div className="flex items-center gap-1 mt-2">
+            <div className="flex items-center gap-1 sm:gap-2 mt-2 flex-wrap">
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={handleLike}
-                className={`h-7 px-2 text-xs gap-1 ${
+                className={`h-6 sm:h-7 px-1 sm:px-2 text-xs gap-1 min-w-0 ${
                   optimisticIsLiked ? 'text-red-600 hover:text-red-700' : 'text-muted-foreground'
                 }`}
               >
                 <Heart className={`h-3 w-3 ${optimisticIsLiked ? 'fill-current' : ''}`} />
-                {optimisticLikeCount > 0 && optimisticLikeCount}
+                {optimisticLikeCount > 0 && <span className="text-xs">{optimisticLikeCount}</span>}
               </Button>
 
               {level < maxNestingLevel && (
@@ -260,10 +278,10 @@ export function CommentItem({ comment, onCommentUpdated, onCommentLikeToggle, on
                   variant="ghost"
                   size="sm"
                   onClick={() => setShowReplyForm(!showReplyForm)}
-                  className="h-7 px-2 text-xs gap-1 text-muted-foreground"
+                  className="h-6 sm:h-7 px-1 sm:px-2 text-xs gap-1 text-muted-foreground min-w-0"
                 >
                   <Reply className="h-3 w-3" />
-                  Reply
+                  <span className="hidden sm:inline">Reply</span>
                 </Button>
               )}
 
@@ -306,7 +324,7 @@ export function CommentItem({ comment, onCommentUpdated, onCommentLikeToggle, on
         </div>
 
         {showReplyForm && (
-          <div className="ml-11">
+          <div className="ml-4 sm:ml-8 lg:ml-11">
             <CommentForm
               pasteId={comment.pasteId}
               parentId={comment.id}
@@ -321,7 +339,7 @@ export function CommentItem({ comment, onCommentUpdated, onCommentLikeToggle, on
 
       {/* Render replies */}
       {comment.replies && comment.replies.length > 0 && (
-        <div className={shouldNest ? '' : 'space-y-3'}>
+        <div className={`${shouldNest ? 'space-y-3' : 'space-y-3 ml-0'} overflow-hidden`}>
           {comment.replies.map((reply) => (
             <CommentItem
               key={reply.id}
