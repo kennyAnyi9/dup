@@ -111,21 +111,21 @@ export const CommentForm = forwardRef<CommentFormRef, CommentFormProps>(
     }
 
     return (
-      <div className="space-y-3">
+      <div className="space-y-3 w-full">
         <Textarea
           ref={textareaRef}
           value={content}
           onChange={(e) => setContent(e.target.value)}
           onKeyDown={handleKeyDown}
           placeholder={placeholder}
-          className="min-h-[100px] resize-none"
+          className="min-h-[80px] sm:min-h-[100px] resize-none w-full"
           disabled={isSubmitting}
         />
-        <div className="flex items-center justify-between">
-          <div className="text-xs text-muted-foreground">
+        <div className="flex items-center justify-between flex-wrap gap-2">
+          <div className="text-xs text-muted-foreground hidden sm:block">
             Press Cmd/Ctrl+Enter to post
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap">
             {showCancel && (
               <Button
                 variant="outline"

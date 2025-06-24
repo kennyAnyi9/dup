@@ -13,9 +13,9 @@ interface LogoProps {
 }
 
 export function Logo({
-  width = 240,
-  height = 64,
-  className = "h-16 w-auto",
+  width = 60,
+  height = 16,
+  className = "h-4",
   priority = false,
 }: LogoProps) {
   const { theme, systemTheme } = useTheme();
@@ -33,8 +33,9 @@ export function Logo({
         alt={APP_NAME}
         width={width}
         height={height}
-        className={className}
+        className={`${className} w-auto`}
         priority={priority}
+        style={{ width: 'auto', height: 'auto' }}
       />
     );
   }
@@ -48,8 +49,9 @@ export function Logo({
       alt={APP_NAME}
       width={width}
       height={height}
-      className={className}
+      className={`${className} w-auto`}
       priority={priority}
+      style={{ width: 'auto', height: 'auto' }}
     />
   );
 }

@@ -174,15 +174,15 @@ export const CommentsSection = forwardRef<CommentsSectionRef, CommentsSectionPro
     // We'll rely on the database count from the server instead of client-side calculation
 
     return (
-      <div ref={sectionRef} id="comments-section">
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
+      <div ref={sectionRef} id="comments-section" className="w-full overflow-hidden">
+        <Card className="w-full">
+          <CardHeader className="pb-4">
+            <CardTitle className="flex items-center gap-2 text-lg">
               <MessageCircle className="h-5 w-5" />
               Comments
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-6">
+          <CardContent className="space-y-4 sm:space-y-6 px-3 sm:px-6">
             {/* Comment Form */}
             <CommentForm
               ref={commentFormRef}
