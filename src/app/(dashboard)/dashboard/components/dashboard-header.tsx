@@ -1,14 +1,39 @@
+"use client";
+
 import { Logo } from "@/shared/components/common/logo";
 import { DashboardHeaderButton } from "@/features/dashboard/components/ui/dashboard-header-button";
 import { DashboardMobileSidebar } from "@/features/dashboard/components/navigation/dashboard-mobile-sidebar";
 import { DashboardHeaderProps } from "@/features/dashboard/types";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { BarChart3, FileText, Settings } from "lucide-react";
+import { cn } from "@/shared/lib/utils";
 
 export function DashboardHeader({
   recentPublicPastes,
   totalPublicPastes,
   user,
 }: DashboardHeaderProps) {
+  const pathname = usePathname();
+
+  const navigationItems = [
+    {
+      href: "/dashboard",
+      label: "My Pastes",
+      icon: FileText,
+    },
+    {
+      href: "/dashboard/analytics",
+      label: "Analytics",
+      icon: BarChart3,
+    },
+    {
+      href: "/dashboard/settings",
+      label: "Settings",
+      icon: Settings,
+    },
+  ];
+
   return (
     <header className="sticky top-2 z-50 w-full">
       <div className="w-full rounded-lg border border-border bg-background/70 px-4 py-2 backdrop-blur-lg">
@@ -22,26 +47,34 @@ export function DashboardHeader({
             <Link className="shrink-0" href="/">
               <Logo width={240} height={64} className="h-16 w-auto" />
             </Link>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="lucide lucide-slash -rotate-12 mr-0.5 ml-2.5 h-4 w-4 text-muted-foreground hidden sm:block"
-            >
-              <path d="M22 2 2 22"></path>
-            </svg>
-            <div className="w-20 sm:w-40 hidden sm:block">
-              <span className="truncate text-sm font-medium">
-                My Pastes
-              </span>
+            
+            {/* Navigation tabs - hidden on mobile */}
+            <div className="hidden lg:flex items-center ml-6">
+              <nav className="flex items-center space-x-1 bg-muted/50 rounded-lg p-1">
+                {navigationItems.map((item) => {
+                  const Icon = item.icon;
+                  const isActive = pathname === item.href;
+                  
+                  return (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      className={cn(
+                        "flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-all duration-200",
+                        isActive
+                          ? "bg-background text-foreground shadow-sm border border-border/50"
+                          : "text-muted-foreground hover:text-foreground hover:bg-background/50"
+                      )}
+                    >
+                      <Icon className="h-4 w-4" />
+                      <span className="hidden xl:inline">{item.label}</span>
+                    </Link>
+                  );
+                })}
+              </nav>
             </div>
           </div>
+          
           <div className="flex items-center gap-2 sm:gap-4">
             <DashboardHeaderButton />
           </div>

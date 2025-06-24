@@ -1,16 +1,10 @@
 "use client";
 
-import Link from "next/link";
-import { formatDistanceToNow } from "date-fns";
 import { ScrollArea } from "@/shared/components/dupui/scroll-area";
 import { DashboardProfileDropdown } from "../ui/dashboard-profile-dropdown";
-import {
-  BarChart3,
-  FileText,
-  Settings,
-  Globe,
-  Eye,
-} from "lucide-react";
+import { PublicPasteFeedCard } from "../ui/public-paste-feed-card";
+import { PublicPasteFeedSkeleton } from "../ui/public-paste-feed-skeleton";
+import { Globe } from "lucide-react";
 import { User } from "better-auth";
 
 interface DashboardSidebarProps {
@@ -24,124 +18,64 @@ interface DashboardSidebarProps {
   }>;
   totalPublicPastes?: number;
   user?: User;
+  isLoading?: boolean;
 }
 
-export function DashboardSidebar({ recentPublicPastes = [], totalPublicPastes = 0, user }: DashboardSidebarProps) {
-
-  const navigationItems = [
-    {
-      href: "/dashboard",
-      label: "My Pastes",
-      icon: FileText,
-    },
-    {
-      href: "/dashboard/analytics",
-      label: "Analytics",
-      icon: BarChart3,
-    },
-    {
-      href: "/dashboard/settings",
-      label: "Settings",
-      icon: Settings,
-    },
-  ];
-
+export function DashboardSidebar({ recentPublicPastes = [], totalPublicPastes = 0, user, isLoading = false }: DashboardSidebarProps) {
   return (
     <div className="basis-1/5 rounded-lg border border-border px-3 py-4 backdrop-blur-[2px] md:p-4 hidden max-h-full shrink-0 lg:block overflow-hidden">
-      <div className="flex flex-col gap-12 h-full">
-        <div className="grid gap-2">
-          <p className="hidden px-3 font-medium text-foreground text-lg lg:block">Navigation</p>
-          <ul className="grid gap-2">
-            {navigationItems.map((item) => {
-              const Icon = item.icon;
-              
-              return (
-                <li key={item.href} className="w-full">
-                  <Link
-                    href={item.href}
-                    className="group flex w-full items-center rounded-md px-3 py-1 transition-colors text-muted-foreground hover:bg-muted/50 hover:text-foreground"
-                  >
-                    <Icon className="mr-2 h-4 w-4" />
-                    {item.label}
-                  </Link>
-                </li>
-              );
-            })}
-          </ul>
-        </div>
-        
-        {/* Recent Public Pastes Feed */}
-        <div className="hidden lg:block flex-1 min-h-0">
-          <div className="flex items-center justify-between mb-4">
+      <div className="flex flex-col h-full">
+        {/* Public Pastes Feed - Now takes full height */}
+        <div className="flex-1 min-h-0">
+          <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
-              <p className="font-medium text-sm text-foreground">Public Pastes</p>
+              <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse shadow-sm" />
+              <p className="font-semibold text-base text-foreground">Recent Public Pastes</p>
             </div>
-            <div className="text-xs text-muted-foreground font-mono">
+            <div className="px-2 py-1 text-xs text-muted-foreground font-mono bg-muted/50 rounded-md border border-border/50">
               {recentPublicPastes.length}/{totalPublicPastes}
             </div>
           </div>
           
-          <ScrollArea className="h-[calc(100%-3rem)]">
-            <div className="space-y-0 font-mono text-xs">
-              {recentPublicPastes.length > 0 ? (
-                recentPublicPastes.map((paste, index) => (
-                  <Link 
-                    key={paste.id} 
-                    href={`/p/${paste.slug}`} 
-                    className="block py-3 px-2 hover:bg-muted/50 transition-all duration-200 border-l-2 border-transparent hover:border-primary group"
-                  >
-                    <div className="flex items-center justify-between mb-1">
-                      <div className="text-foreground font-medium truncate flex-1 mr-2 group-hover:text-primary transition-colors">
-                        {paste.title || `untitled-${paste.slug.slice(-6)}`}
-                      </div>
-                      <div className="text-muted-foreground text-[10px] shrink-0">
-                        {formatDistanceToNow(paste.createdAt, { addSuffix: true }).replace(' ago', '')}
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <span className="text-muted-foreground bg-muted px-1.5 py-0.5 rounded text-[10px] font-semibold uppercase tracking-wide">
-                          {paste.language}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-1 text-muted-foreground">
-                        <Eye className="h-2.5 w-2.5" />
-                        <span className="text-[10px] font-medium">{paste.views}</span>
-                      </div>
-                    </div>
-                    
-                    {index < recentPublicPastes.length - 1 && (
-                      <div className="mt-3 border-b border-border" />
-                    )}
-                  </Link>
-                ))
+          <ScrollArea className="h-[calc(100%-4rem)]">
+            {isLoading ? (
+              <PublicPasteFeedSkeleton count={5} compact={false} />
+            ) : (
+              <div className="space-y-3">
+                {recentPublicPastes.length > 0 ? (
+                  recentPublicPastes.map((paste) => (
+                    <PublicPasteFeedCard
+                      key={paste.id}
+                      paste={paste}
+                      compact={false}
+                    />
+                  ))
               ) : (
-                <div className="text-center py-8 space-y-3">
+                <div className="text-center py-16 space-y-6">
                   <div className="flex justify-center">
-                    <div className="relative">
-                      <Globe className="h-6 w-6 text-muted-foreground" />
-                      <div className="absolute -top-1 -right-1 w-2 h-2 bg-muted rounded-full animate-ping" />
+                    <div className="relative p-4 rounded-2xl bg-gradient-to-br from-muted/40 to-muted/20 border border-muted">
+                      <Globe className="h-10 w-10 text-muted-foreground" />
+                      <div className="absolute -top-1 -right-1 w-4 h-4 bg-gradient-to-br from-green-400 to-green-500 rounded-full animate-pulse shadow-sm" />
                     </div>
                   </div>
-                  <div className="space-y-1">
-                    <p className="text-xs text-muted-foreground font-medium">
+                  <div className="space-y-3">
+                    <p className="text-base text-foreground font-semibold">
                       Waiting for activity
                     </p>
-                    <p className="text-[10px] text-muted-foreground/70 font-mono">
-                      No public pastes yet
+                    <p className="text-sm text-muted-foreground leading-relaxed">
+                      Live public pastes will<br />appear here in real-time
                     </p>
                   </div>
                 </div>
               )}
-            </div>
+              </div>
+            )}
           </ScrollArea>
         </div>
         
         {/* User Profile at bottom */}
         {user && (
-          <div className="mt-auto pt-4 border-t border-border">
+          <div className="mt-auto pt-6 border-t border-border">
             <DashboardProfileDropdown user={user} />
           </div>
         )}

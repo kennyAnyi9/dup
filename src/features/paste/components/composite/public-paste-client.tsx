@@ -3,6 +3,7 @@
 import { getPaste } from "@/features/paste/actions/paste.actions";
 import { Logo } from "@/components/common/logo";
 import { Badge } from "@/shared/components/dupui/badge";
+import { Skeleton } from "@/shared/components/dupui/skeleton";
 import { useRouter } from "next/navigation";
 import { Button } from "@/shared/components/dupui/button";
 import { Card, CardContent } from "@/shared/components/dupui/card";
@@ -20,17 +21,20 @@ import {
   FileX,
   Globe,
   Lock,
+  MessageCircle,
   Plus,
   Shield,
   Tag,
   Zap,
 } from "lucide-react";
 import Link from "next/link";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, useRef } from "react";
 import { toast } from "sonner";
 import { PasswordDialog } from "../forms/password-dialog";
 import { usePasteModal } from "../providers/paste-modal-provider";
 import { PasteViewer } from "../ui/paste-viewer";
+import { CommentsSection, CommentsSectionRef } from "../ui/comments/comments-section";
+import { getCommentCount } from "../../actions/comment.actions";
 
 interface PublicPasteClientProps {
   slug: string;
@@ -47,6 +51,8 @@ export function PublicPasteClient({ slug }: PublicPasteClientProps) {
   const [showPasswordDialog, setShowPasswordDialog] = useState(false);
   const [passwordError, setPasswordError] = useState<string | null>(null);
   const [passwordLoading, setPasswordLoading] = useState(false);
+  const [commentCount, setCommentCount] = useState(0);
+  const commentsSectionRef = useRef<CommentsSectionRef>(null);
 
   const loadPaste = useCallback(async (password?: string) => {
     try {
@@ -59,6 +65,9 @@ export function PublicPasteClient({ slug }: PublicPasteClientProps) {
         setPaste(result.paste);
         setShowPasswordDialog(false);
         setPasswordError(null);
+
+        // Load comment count
+        loadCommentCount(result.paste.id);
 
         // Show burn after read notification
         if (result.burnedAfterRead) {
@@ -79,6 +88,36 @@ export function PublicPasteClient({ slug }: PublicPasteClientProps) {
       setLoading(false);
     }
   }, [slug]);
+
+  const loadCommentCount = async (pasteId: string) => {
+    try {
+      const result = await getCommentCount(pasteId);
+      
+      if (result.success && result.count !== undefined) {
+        const count = typeof result.count === 'string' ? parseInt(result.count, 10) : result.count;
+        setCommentCount(count);
+      } else {
+        // Fallback to 0 if result is not successful
+        setCommentCount(0);
+      }
+    } catch (error) {
+      console.error("Failed to load comment count:", error);
+      // Set to 0 on error to show something
+      setCommentCount(0);
+    }
+  };
+
+  const handleCommentIconClick = () => {
+    commentsSectionRef.current?.scrollToComments();
+    // Small delay to ensure scroll completes before focusing
+    setTimeout(() => {
+      commentsSectionRef.current?.focusCommentForm();
+    }, 300);
+  };
+
+  const handleCommentCountUpdate = (newCount: number) => {
+    setCommentCount(newCount);
+  };
 
   useEffect(() => {
     loadPaste();
@@ -166,59 +205,97 @@ export function PublicPasteClient({ slug }: PublicPasteClientProps) {
       <>
         <Header />
         <div className="container mx-auto px-4 py-8">
-          <div className="max-w-4xl mx-auto space-y-6">
-            {/* Title and header skeleton */}
-            <div className="animate-pulse space-y-4">
-              <div className="space-y-2">
-                <div className="h-8 bg-muted rounded w-2/3 max-w-md"></div>
-                <div className="h-4 bg-muted rounded w-1/2 max-w-sm"></div>
+          <div className="max-w-5xl mx-auto space-y-6">
+            {/* Header section skeleton */}
+            <div className="space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div className="space-y-1">
+                  {/* Title */}
+                  <Skeleton className="h-8 w-64" />
+                  {/* Created time */}
+                  <Skeleton className="h-4 w-32" />
+                </div>
+
+                {/* Tags skeleton */}
+                <div className="flex items-center gap-2 flex-wrap">
+                  <Skeleton className="h-4 w-4" />
+                  <div className="flex gap-1 flex-wrap">
+                    <Skeleton className="h-6 w-16 rounded-full" />
+                    <Skeleton className="h-6 w-20 rounded-full" />
+                    <Skeleton className="h-6 w-12 rounded-full" />
+                  </div>
+                </div>
               </div>
 
               {/* Metadata skeleton */}
-              <div className="flex flex-wrap items-center gap-4">
-                <div className="flex items-center gap-2">
-                  <div className="h-4 w-4 bg-muted rounded"></div>
-                  <div className="h-4 bg-muted rounded w-32"></div>
+              <div className="flex flex-wrap items-center gap-4 text-sm">
+                {/* Calendar */}
+                <div className="flex items-center gap-1">
+                  <Skeleton className="h-4 w-4" />
+                  <Skeleton className="h-4 w-32" />
                 </div>
-                <div className="flex items-center gap-2">
-                  <div className="h-4 w-4 bg-muted rounded"></div>
-                  <div className="h-4 bg-muted rounded w-16"></div>
+                
+                {/* Views */}
+                <div className="flex items-center gap-1">
+                  <Skeleton className="h-4 w-4" />
+                  <Skeleton className="h-4 w-16" />
                 </div>
-                <div className="flex items-center gap-2">
-                  <div className="h-4 w-4 bg-muted rounded"></div>
-                  <div className="h-4 bg-muted rounded w-20"></div>
+                
+                {/* Visibility */}
+                <div className="flex items-center gap-1">
+                  <Skeleton className="h-4 w-4" />
+                  <Skeleton className="h-4 w-12" />
+                </div>
+                
+                {/* Expiry */}
+                <div className="flex items-center gap-1">
+                  <Skeleton className="h-4 w-4" />
+                  <Skeleton className="h-4 w-20" />
+                </div>
+                
+                {/* Burn after read */}
+                <div className="flex items-center gap-1">
+                  <Skeleton className="h-4 w-4" />
+                  <Skeleton className="h-4 w-24" />
                 </div>
               </div>
             </div>
 
+            {/* Separator */}
+            <Skeleton className="h-px w-full" />
+
             {/* Code viewer skeleton */}
             <Card className="overflow-hidden">
               <CardContent className="p-0">
-                <div className="animate-pulse">
-                  {/* Code header */}
-                  <div className="flex items-center justify-between p-4 border-b bg-muted/20">
-                    <div className="flex items-center gap-2">
-                      <div className="h-4 w-4 bg-muted rounded"></div>
-                      <div className="h-4 bg-muted rounded w-24"></div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className="h-8 w-8 bg-muted rounded"></div>
-                      <div className="h-8 w-8 bg-muted rounded"></div>
-                    </div>
+                {/* Code header - matches PasteViewer header exactly */}
+                <div className="flex items-center justify-between p-4 border-b bg-muted/20">
+                  <div className="flex items-center gap-2">
+                    <Skeleton className="h-4 w-4" />
+                    <Skeleton className="h-4 w-24" />
                   </div>
-                  
-                  {/* Code lines */}
-                  <div className="p-4 space-y-2 bg-muted/5">
-                    {Array.from({ length: 12 }).map((_, i) => (
-                      <div key={i} className="flex items-center gap-3">
-                        <div className="h-4 w-6 bg-muted/60 rounded text-right flex-shrink-0"></div>
-                        <div 
-                          className="h-4 bg-muted/40 rounded" 
+                  <div className="flex items-center gap-2">
+                    <Skeleton className="h-8 w-8 rounded" />
+                    <Skeleton className="h-8 w-8 rounded" />
+                    <Skeleton className="h-8 w-8 rounded" />
+                  </div>
+                </div>
+                
+                {/* Code content area */}
+                <div className="relative">
+                  {/* Line numbers and code */}
+                  <div className="p-4 space-y-3 bg-muted/5 font-mono text-sm">
+                    {Array.from({ length: 15 }).map((_, i) => (
+                      <div key={i} className="flex items-center gap-4">
+                        {/* Line number */}
+                        <Skeleton className="h-4 w-6 flex-shrink-0" />
+                        {/* Code line with realistic varying widths */}
+                        <Skeleton 
+                          className="h-4" 
                           style={{ 
-                            width: `${Math.random() * 60 + 20}%`,
-                            maxWidth: '90%'
+                            width: `${Math.random() * 70 + 15}%`,
+                            maxWidth: '95%'
                           }}
-                        ></div>
+                        />
                       </div>
                     ))}
                   </div>
@@ -380,6 +457,14 @@ export function PublicPasteClient({ slug }: PublicPasteClientProps) {
                 <span>{paste.views} views</span>
               </div>
 
+              <button
+                onClick={handleCommentIconClick}
+                className="flex items-center gap-1 hover:text-foreground transition-colors cursor-pointer"
+              >
+                <MessageCircle className="h-4 w-4" />
+                <span>{commentCount} comments</span>
+              </button>
+
               <div className="flex items-center gap-1">
                 {getVisibilityIcon(paste.visibility)}
                 <span>{getVisibilityLabel(paste.visibility)}</span>
@@ -448,6 +533,13 @@ export function PublicPasteClient({ slug }: PublicPasteClientProps) {
             language={paste.language}
             title={paste.title}
             slug={paste.slug}
+          />
+
+          {/* Comments Section */}
+          <CommentsSection
+            ref={commentsSectionRef}
+            pasteId={paste.id}
+            onCommentCountChange={handleCommentCountUpdate}
           />
         </div>
       </div>

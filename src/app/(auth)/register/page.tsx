@@ -5,7 +5,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/shared/components/dupui/button";
 import { Input } from "@/shared/components/dupui/input";
 import { Separator } from "@/shared/components/dupui/separator";
@@ -21,6 +21,7 @@ import { SocialLoginButtons } from "@/features/auth/components/forms/social-logi
 import { signUp, useAuth } from "@/hooks/use-auth";
 import { toast } from "sonner";
 import { Eye, EyeOff } from "lucide-react";
+import { getValidatedRedirectUrl } from "@/shared/lib/auth-utils";
 
 const registerSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
@@ -42,7 +43,9 @@ export default function RegisterPage() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { isAuthenticated, isLoading: authLoading } = useAuth();
+  const redirectUrl = getValidatedRedirectUrl(searchParams);
 
   const form = useForm<RegisterForm>({
     resolver: zodResolver(registerSchema),
@@ -56,9 +59,9 @@ export default function RegisterPage() {
 
   useEffect(() => {
     if (isAuthenticated && !authLoading) {
-      router.push("/dashboard");
+      router.push(redirectUrl);
     }
-  }, [isAuthenticated, authLoading, router]);
+  }, [isAuthenticated, authLoading, router, redirectUrl]);
 
   async function onSubmit(data: RegisterForm) {
     try {
@@ -75,8 +78,8 @@ export default function RegisterPage() {
       }
       
       toast.success("Account created successfully! Welcome aboard!");
-      // Redirect to dashboard after successful registration
-      window.location.href = "/dashboard";
+      // Redirect to the specified URL after successful registration
+      window.location.href = redirectUrl;
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : "Failed to create account. Please try again.";
       toast.error(message);
@@ -226,7 +229,7 @@ export default function RegisterPage() {
         <div className="text-center text-sm">
           <span className="text-muted-foreground">Already have an account? </span>
           <Button variant="link" size="sm" asChild className="p-0">
-            <Link href="/login">Sign in</Link>
+            <Link href={`/login${redirectUrl !== '/dashboard' ? `?redirect=${encodeURIComponent(redirectUrl)}` : ''}`}>Sign in</Link>
           </Button>
         </div>
       </div>

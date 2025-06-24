@@ -43,6 +43,13 @@
       "when": 1749763983115,
       "tag": "0005_good_millenium_guard",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1750748143151,
+      "tag": "0006_silent_tomorrow_man",
+      "breakpoints": true
     }
   ]
 }
