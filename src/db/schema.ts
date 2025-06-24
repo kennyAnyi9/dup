@@ -129,7 +129,8 @@ export const comment = pgTable("comment", {
   userId: text("user_id")
     .notNull()
     .references(() => user.id, { onDelete: "cascade" }),
-  parentId: text("parent_id"), // for threaded replies - will add reference after table creation
+  parentId: text("parent_id")
+    .references(() => comment.id, { onDelete: "cascade" }), // for threaded replies with self-referential foreign key
   likeCount: integer("like_count").default(0).notNull(),
   isDeleted: boolean("is_deleted").default(false).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),

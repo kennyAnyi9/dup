@@ -23,6 +23,16 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/shared/components/dupui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/shared/components/dupui/alert-dialog";
 import { Textarea } from "@/shared/components/dupui/textarea";
 import { CommentForm } from "./comment-form";
 import type { Comment } from "@/shared/types/comment";
@@ -41,6 +51,7 @@ export function CommentItem({ comment, onCommentUpdated, onCommentLikeToggle, on
   const [isEditing, setIsEditing] = useState(false);
   const [editContent, setEditContent] = useState(comment.content);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   
   // Local state for optimistic updates
   const [optimisticLikeCount, setOptimisticLikeCount] = useState(comment.likeCount);
@@ -87,7 +98,9 @@ export function CommentItem({ comment, onCommentUpdated, onCommentLikeToggle, on
       setOptimisticIsLiked(!newIsLiked);
       setOptimisticLikeCount(newIsLiked ? optimisticLikeCount - 1 : optimisticLikeCount + 1);
       onCommentLikeToggle?.(comment.id, !newIsLiked, newIsLiked ? optimisticLikeCount - 1 : optimisticLikeCount + 1);
-      console.error("Failed to toggle like:", error);
+      if (process.env.NODE_ENV === 'development') {
+        console.error("Failed to toggle like:", error);
+      }
       toast.error("Failed to toggle like");
     }
   };
@@ -122,17 +135,20 @@ export function CommentItem({ comment, onCommentUpdated, onCommentLikeToggle, on
       // Revert optimistic update on error
       setOptimisticContent(comment.content);
       onCommentContentUpdate?.(comment.id, comment.content);
-      console.error("Failed to update comment:", error);
+      if (process.env.NODE_ENV === 'development') {
+        console.error("Failed to update comment:", error);
+      }
       toast.error("Failed to update comment");
     }
   };
 
-  const handleDelete = async () => {
-    if (!confirm("Are you sure you want to delete this comment?")) {
-      return;
-    }
+  const handleDeleteClick = () => {
+    setShowDeleteDialog(true);
+  };
 
+  const handleDelete = async () => {
     setIsDeleting(true);
+    setShowDeleteDialog(false);
     try {
       const result = await deleteComment(comment.id);
       if (result.success) {
@@ -142,7 +158,9 @@ export function CommentItem({ comment, onCommentUpdated, onCommentLikeToggle, on
         toast.error(result.error || "Failed to delete comment");
       }
     } catch (error) {
-      console.error("Failed to delete comment:", error);
+      if (process.env.NODE_ENV === 'development') {
+        console.error("Failed to delete comment:", error);
+      }
       toast.error("Failed to delete comment");
     } finally {
       setIsDeleting(false);
@@ -205,7 +223,7 @@ export function CommentItem({ comment, onCommentUpdated, onCommentLikeToggle, on
                     variant="outline"
                     onClick={() => {
                       setIsEditing(false);
-                      setEditContent(comment.content);
+                      setEditContent(optimisticContent);
                     }}
                     className="h-7 px-2 text-xs gap-1"
                   >
@@ -265,7 +283,7 @@ export function CommentItem({ comment, onCommentUpdated, onCommentLikeToggle, on
                       Edit
                     </DropdownMenuItem>
                     <DropdownMenuItem
-                      onClick={handleDelete}
+                      onClick={handleDeleteClick}
                       disabled={isDeleting}
                       className="text-xs gap-2 text-red-600 focus:text-red-600"
                     >
@@ -312,6 +330,35 @@ export function CommentItem({ comment, onCommentUpdated, onCommentLikeToggle, on
           ))}
         </div>
       )}
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Comment</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this comment? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDelete}
+              disabled={isDeleting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {isDeleting ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Deleting...
+                </>
+              ) : (
+                "Delete"
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

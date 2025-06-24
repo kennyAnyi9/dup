@@ -123,7 +123,7 @@ export const CommentForm = forwardRef<CommentFormRef, CommentFormProps>(
         />
         <div className="flex items-center justify-between">
           <div className="text-xs text-muted-foreground">
-            Press Cmd+Enter to post
+            Press Cmd/Ctrl+Enter to post
           </div>
           <div className="flex gap-2">
             {showCancel && (

@@ -2,13 +2,36 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/dupui/card";
 import { Separator } from "@/shared/components/dupui/separator";
-import { getComments } from "@/features/paste/actions/comment.actions";
+import { getComments, getCommentCount } from "@/features/paste/actions/comment.actions";
 import { useState, useEffect, useRef, useImperativeHandle, forwardRef, useCallback } from "react";
 import { CommentForm, CommentFormRef } from "./comment-form";
 import { CommentItem } from "./comment-item";
 import { Skeleton } from "@/shared/components/dupui/skeleton";
 import { MessageCircle } from "lucide-react";
 import type { Comment } from "@/shared/types/comment";
+
+// Type guard for validating new comment data
+function isValidNewComment(value: unknown): value is {
+  id: string;
+  parentId?: string;
+  userId: string;
+  content: string;
+  pasteId: string;
+} {
+  if (typeof value !== 'object' || value === null) {
+    return false;
+  }
+  
+  const obj = value as Record<string, unknown>;
+  
+  return (
+    typeof obj.id === 'string' &&
+    typeof obj.userId === 'string' &&
+    typeof obj.content === 'string' &&
+    typeof obj.pasteId === 'string' &&
+    (obj.parentId === undefined || typeof obj.parentId === 'string')
+  );
+}
 
 interface CommentsSectionProps {
   pasteId: string;
@@ -83,19 +106,24 @@ export const CommentsSection = forwardRef<CommentsSectionRef, CommentsSectionPro
     };
 
     const handleCommentAdded = (newComment: unknown) => {
-      const comment = newComment as { id: string; parentId?: string; userId: string; content: string; pasteId: string } | undefined;
+      if (!isValidNewComment(newComment)) {
+        // Fallback to reload if comment data is invalid
+        loadComments();
+        updateCommentCountFromServer();
+        return;
+      }
       
-      if (comment?.parentId) {
+      if (newComment.parentId) {
         // For replies, we still need to reload to get the proper tree structure
         loadComments();
         // Update comment count from database
         updateCommentCountFromServer();
-      } else if (comment) {
+      } else {
         // For top-level comments, add optimistically
         const optimisticComment: Comment = {
-          ...comment,
-          parentId: comment.parentId || null,
-          author: { id: comment.userId, name: "You", image: null }, // We'll get real data on next reload
+          ...newComment,
+          parentId: newComment.parentId || null,
+          author: { id: newComment.userId, name: "You", image: null }, // We'll get real data on next reload
           replies: [],
           isLikedByUser: false,
           likeCount: 0,
@@ -110,22 +138,19 @@ export const CommentsSection = forwardRef<CommentsSectionRef, CommentsSectionPro
         
         // Refresh after a short delay to get accurate data
         setTimeout(() => loadComments(), 1000);
-      } else {
-        // Fallback to reload if no comment data
-        loadComments();
-        updateCommentCountFromServer();
       }
     };
 
     const updateCommentCountFromServer = async () => {
       try {
-        const { getCommentCount } = await import("@/features/paste/actions/comment.actions");
         const result = await getCommentCount(pasteId);
         if (result.success && typeof result.count === 'number') {
           onCommentCountChange?.(result.count);
         }
       } catch (error) {
-        console.error("Failed to update comment count:", error);
+        if (process.env.NODE_ENV === 'development') {
+          console.error("Failed to update comment count:", error);
+        }
       }
     };
 

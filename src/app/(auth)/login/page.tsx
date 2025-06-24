@@ -22,6 +22,7 @@ import { SocialLoginButtons } from "@/features/auth/components/forms/social-logi
 import { signIn, useAuth } from "@/hooks/use-auth";
 import { toast } from "sonner";
 import { Eye, EyeOff } from "lucide-react";
+import { getValidatedRedirectUrl } from "@/shared/lib/auth-utils";
 
 const loginSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
@@ -37,9 +38,7 @@ export default function LoginPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { isAuthenticated, isLoading: authLoading } = useAuth();
-  const redirectParam = searchParams.get('redirect');
-  // Only redirect to paste URLs when they come from paste pages, otherwise go to dashboard
-  const redirectUrl = (redirectParam && redirectParam.startsWith('/p/')) ? redirectParam : '/dashboard';
+  const redirectUrl = getValidatedRedirectUrl(searchParams);
 
   const form = useForm<LoginForm>({
     resolver: zodResolver(loginSchema),
