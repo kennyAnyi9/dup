@@ -5,7 +5,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/shared/components/dupui/button";
 import { Input } from "@/shared/components/dupui/input";
 import { Checkbox } from "@/shared/components/dupui/checkbox";
@@ -35,7 +35,11 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { isAuthenticated, isLoading: authLoading } = useAuth();
+  const redirectParam = searchParams.get('redirect');
+  // Only redirect to paste URLs when they come from paste pages, otherwise go to dashboard
+  const redirectUrl = (redirectParam && redirectParam.startsWith('/p/')) ? redirectParam : '/dashboard';
 
   const form = useForm<LoginForm>({
     resolver: zodResolver(loginSchema),
@@ -48,9 +52,9 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (isAuthenticated && !authLoading) {
-      router.push("/dashboard");
+      router.push(redirectUrl);
     }
-  }, [isAuthenticated, authLoading, router]);
+  }, [isAuthenticated, authLoading, router, redirectUrl]);
 
   async function onSubmit(data: LoginForm) {
     try {
@@ -67,8 +71,8 @@ export default function LoginPage() {
       }
       
       toast.success("Welcome back!");
-      // Redirect to dashboard after successful login
-      window.location.href = "/dashboard";
+      // Redirect to the specified URL after successful login
+      window.location.href = redirectUrl;
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : "Invalid email or password";
       toast.error(message);
@@ -187,7 +191,7 @@ export default function LoginPage() {
         <div className="text-center text-sm">
           <span className="text-muted-foreground">Don&apos;t have an account? </span>
           <Button variant="link" size="sm" asChild className="p-0">
-            <Link href="/register">Sign up</Link>
+            <Link href={`/register${redirectUrl !== '/dashboard' ? `?redirect=${encodeURIComponent(redirectUrl)}` : ''}`}>Sign up</Link>
           </Button>
         </div>
       </div>

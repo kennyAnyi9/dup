@@ -119,3 +119,47 @@ export const pasteTag = pgTable("paste_tag", {
     tagIdIdx: index("idx_paste_tag_tag_id").on(table.tagId),
   };
 });
+
+export const comment = pgTable("comment", {
+  id: text("id").primaryKey(),
+  content: text("content").notNull(),
+  pasteId: text("paste_id")
+    .notNull()
+    .references(() => paste.id, { onDelete: "cascade" }),
+  userId: text("user_id")
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade" }),
+  parentId: text("parent_id"), // for threaded replies - will add reference after table creation
+  likeCount: integer("like_count").default(0).notNull(),
+  isDeleted: boolean("is_deleted").default(false).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => {
+  return {
+    // Performance indexes
+    pasteIdIdx: index("idx_comment_paste_id").on(table.pasteId),
+    userIdIdx: index("idx_comment_user_id").on(table.userId),
+    parentIdIdx: index("idx_comment_parent_id").on(table.parentId),
+    createdAtIdx: index("idx_comment_created_at").on(table.createdAt.desc()),
+    isDeletedIdx: index("idx_comment_is_deleted").on(table.isDeleted),
+    // Composite index for paste comments ordered by date
+    pasteCreatedIdx: index("idx_comment_paste_created").on(table.pasteId, table.isDeleted, table.createdAt.asc()),
+  };
+});
+
+export const commentLike = pgTable("comment_like", {
+  commentId: text("comment_id")
+    .notNull()
+    .references(() => comment.id, { onDelete: "cascade" }),
+  userId: text("user_id")
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade" }),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => {
+  return {
+    pk: primaryKey({ columns: [table.commentId, table.userId] }),
+    // Performance indexes
+    commentIdIdx: index("idx_comment_like_comment_id").on(table.commentId),
+    userIdIdx: index("idx_comment_like_user_id").on(table.userId),
+  };
+});

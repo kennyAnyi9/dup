@@ -5,22 +5,15 @@ import { GridPattern } from "@/components/magicui/grid-pattern";
 import { Logo } from "@/components/common/logo";
 import { Card, CardContent } from "@/shared/components/dupui/card";
 import { cn } from "@/shared/lib/utils";
-import { getCurrentUser } from "@/shared/lib/auth-server";
 import Link from "next/link";
-import { redirect } from "next/navigation";
 import { ReactNode } from "react";
 
 interface AuthLayoutProps {
   children: ReactNode;
 }
 
-export default async function AuthLayout({ children }: AuthLayoutProps) {
-  // Check if user is already authenticated
-  const user = await getCurrentUser();
-  
-  if (user) {
-    redirect("/dashboard");
-  }
+export default function AuthLayout({ children }: AuthLayoutProps) {
+  // Let client-side logic handle redirects to preserve URL parameters
   return (
     <div className="min-h-screen flex flex-col items-center justify-center px-4 relative">
       <GridPattern

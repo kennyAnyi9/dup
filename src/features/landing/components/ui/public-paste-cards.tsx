@@ -3,6 +3,7 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/shared/components/dupui/avatar";
 import { Badge } from "@/shared/components/dupui/badge";
 import { Button } from "@/shared/components/dupui/button";
+import { Skeleton } from "@/shared/components/dupui/skeleton";
 import { formatDistanceToNow } from "date-fns";
 import {
   Check,
@@ -32,6 +33,61 @@ interface Paste {
 
 interface PublicPasteCardsProps {
   pastes: Paste[];
+}
+
+interface PublicPasteCardsSkeletonProps {
+  count?: number;
+}
+
+export function PublicPasteCardsSkeleton({ count = 5 }: PublicPasteCardsSkeletonProps) {
+  return (
+    <div className="space-y-3">
+      {Array.from({ length: count }).map((_, i) => (
+        <div
+          key={i}
+          className="relative flex items-stretch justify-between gap-2 rounded-xl border border-border bg-background p-3 max-w-full"
+        >
+          {/* Left section with avatar, title, and metadata */}
+          <div className="flex min-w-0 items-center gap-x-3 flex-1">
+            {/* Avatar skeleton */}
+            <Skeleton className="h-8 w-8 rounded-full shrink-0" />
+
+            {/* Title and metadata skeleton */}
+            <div className="min-w-0 overflow-hidden flex-1">
+              {/* Title with copy button */}
+              <div className="flex items-center gap-1 sm:gap-2 mb-1">
+                <Skeleton className="h-4 w-32 sm:w-48" />
+                <Skeleton className="h-6 w-6 rounded-full" />
+              </div>
+
+              {/* Metadata skeleton */}
+              <div className="flex items-center gap-2 flex-wrap">
+                <div className="flex items-center gap-1">
+                  <Skeleton className="h-3.5 w-3.5" />
+                  <Skeleton className="h-3 w-24" />
+                </div>
+                
+                <Skeleton className="h-3 w-16" />
+                
+                <Skeleton className="h-3 w-12" />
+
+                {/* Language badge skeleton */}
+                <Skeleton className="h-4 w-12 rounded-full" />
+              </div>
+            </div>
+          </div>
+
+          {/* Right section with stats skeleton */}
+          <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1 px-2 py-1 rounded-md border border-border bg-muted">
+              <Skeleton className="h-3.5 w-3.5" />
+              <Skeleton className="h-3 w-8" />
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
 }
 
 export function PublicPasteCards({ pastes }: PublicPasteCardsProps) {

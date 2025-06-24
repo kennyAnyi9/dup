@@ -1,30 +1,8 @@
 "use client";
 
-import { formatDistanceToNow } from "date-fns";
-import Link from "next/link";
-
-// Mobile-optimized time formatting for compact display
-const formatMobileTime = (date: Date): string => {
-  const distance = formatDistanceToNow(date, { addSuffix: false });
-  
-  // Convert to concise mobile format
-  return distance
-    .replace(/(\d+) hours?/, '$1h')
-    .replace(/(\d+) days?/, '$1d')
-    .replace(/(\d+) minutes?/, '$1m')
-    .replace(/(\d+) seconds?/, '$1s')
-    .replace(/(\d+) months?/, '$1mo')
-    .replace(/(\d+) years?/, '$1y')
-    .replace(/about /, '')
-    .replace(/less than a /, '<1')
-    .replace(/over /, '>')
-    .replace(/almost /, '~');
-};
-import {
-  Globe,
-  Eye,
-} from "lucide-react";
+import { Globe } from "lucide-react";
 import { RecentPastesSectionProps } from "@/features/dashboard/types";
+import { PublicPasteFeedCard } from "../ui/public-paste-feed-card";
 
 export function RecentPastesSection({ 
   recentPublicPastes, 
@@ -43,55 +21,30 @@ export function RecentPastesSection({
         </div>
       </div>
       
-      <div className="space-y-0">
+      <div className="space-y-2">
         {recentPublicPastes.length > 0 ? (
-          recentPublicPastes.map((paste, index) => (
-            <Link 
-              key={paste.id} 
-              href={`/p/${paste.slug}`}
+          recentPublicPastes.map((paste) => (
+            <PublicPasteFeedCard
+              key={paste.id}
+              paste={paste}
               onClick={onClose}
-              className="block py-3 px-3 hover:bg-muted/50 transition-all duration-200 border-l-2 border-transparent hover:border-primary group rounded-r-md"
-            >
-              <div className="flex items-center justify-between mb-2">
-                <div className="text-foreground font-medium truncate flex-1 mr-2 group-hover:text-primary transition-colors text-sm">
-                  {paste.title || `untitled-${paste.slug.slice(-6)}`}
-                </div>
-                <div className="text-muted-foreground text-xs shrink-0">
-                  {formatMobileTime(paste.createdAt)}
-                </div>
-              </div>
-              
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <span className="text-muted-foreground bg-muted px-2 py-1 rounded text-xs font-semibold uppercase tracking-wide">
-                    {paste.language}
-                  </span>
-                </div>
-                <div className="flex items-center gap-1 text-muted-foreground">
-                  <Eye className="h-3 w-3" />
-                  <span className="text-xs font-medium">{paste.views}</span>
-                </div>
-              </div>
-              
-              {index < recentPublicPastes.length - 1 && (
-                <div className="mt-3 border-b border-border" />
-              )}
-            </Link>
+              compact={true}
+            />
           ))
         ) : (
-          <div className="text-center py-8 space-y-3">
+          <div className="text-center py-12 space-y-4">
             <div className="flex justify-center">
-              <div className="relative">
+              <div className="relative p-3 rounded-2xl bg-gradient-to-br from-muted/40 to-muted/20 border border-muted">
                 <Globe className="h-8 w-8 text-muted-foreground" />
-                <div className="absolute -top-1 -right-1 w-3 h-3 bg-muted rounded-full animate-ping" />
+                <div className="absolute -top-1 -right-1 w-3 h-3 bg-gradient-to-br from-green-400 to-green-500 rounded-full animate-pulse shadow-sm" />
               </div>
             </div>
-            <div className="space-y-1">
-              <p className="text-sm text-muted-foreground font-medium">
+            <div className="space-y-2">
+              <p className="text-sm text-foreground font-semibold">
                 Waiting for activity
               </p>
-              <p className="text-xs text-muted-foreground/70">
-                No public pastes yet
+              <p className="text-xs text-muted-foreground">
+                Live public pastes will appear here
               </p>
             </div>
           </div>
