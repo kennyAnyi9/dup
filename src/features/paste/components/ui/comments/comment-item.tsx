@@ -74,9 +74,13 @@ export function CommentItem({ comment, onCommentUpdated, onCommentLikeToggle, on
       return;
     }
 
+    // Store original values for potential reversion
+    const originalIsLiked = optimisticIsLiked;
+    const originalLikeCount = optimisticLikeCount;
+    
     // Optimistic update
-    const newIsLiked = !optimisticIsLiked;
-    const newLikeCount = newIsLiked ? optimisticLikeCount + 1 : optimisticLikeCount - 1;
+    const newIsLiked = !originalIsLiked;
+    const newLikeCount = newIsLiked ? originalLikeCount + 1 : originalLikeCount - 1;
     
     setOptimisticIsLiked(newIsLiked);
     setOptimisticLikeCount(newLikeCount);
@@ -87,17 +91,17 @@ export function CommentItem({ comment, onCommentUpdated, onCommentLikeToggle, on
     try {
       const result = await toggleCommentLike(comment.id);
       if (!result.success) {
-        // Revert optimistic update on failure
-        setOptimisticIsLiked(!newIsLiked);
-        setOptimisticLikeCount(newIsLiked ? optimisticLikeCount - 1 : optimisticLikeCount + 1);
-        onCommentLikeToggle?.(comment.id, !newIsLiked, newIsLiked ? optimisticLikeCount - 1 : optimisticLikeCount + 1);
+        // Revert optimistic update on failure using original values
+        setOptimisticIsLiked(originalIsLiked);
+        setOptimisticLikeCount(originalLikeCount);
+        onCommentLikeToggle?.(comment.id, originalIsLiked, originalLikeCount);
         toast.error(result.error || "Failed to toggle like");
       }
     } catch (error) {
-      // Revert optimistic update on error
-      setOptimisticIsLiked(!newIsLiked);
-      setOptimisticLikeCount(newIsLiked ? optimisticLikeCount - 1 : optimisticLikeCount + 1);
-      onCommentLikeToggle?.(comment.id, !newIsLiked, newIsLiked ? optimisticLikeCount - 1 : optimisticLikeCount + 1);
+      // Revert optimistic update on error using original values
+      setOptimisticIsLiked(originalIsLiked);
+      setOptimisticLikeCount(originalLikeCount);
+      onCommentLikeToggle?.(comment.id, originalIsLiked, originalLikeCount);
       if (process.env.NODE_ENV === 'development') {
         console.error("Failed to toggle like:", error);
       }
