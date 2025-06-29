@@ -33,9 +33,9 @@ export function Logo({
         alt={APP_NAME}
         width={width}
         height={height}
-        className={`${className} w-auto`}
+        className={`${className} w-auto -ml-2`}
         priority={priority}
-        style={{ width: 'auto', height: 'auto' }}
+        style={{ width: "auto", height: "auto" }}
       />
     );
   }
@@ -49,9 +49,9 @@ export function Logo({
       alt={APP_NAME}
       width={width}
       height={height}
-      className={`${className} w-auto`}
+      className={`${className} w-auto -ml-2`}
       priority={priority}
-      style={{ width: 'auto', height: 'auto' }}
+      style={{ width: "auto", height: "auto" }}
     />
   );
 }

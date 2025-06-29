@@ -34,7 +34,7 @@ export function Header() {
         <motion.div layout transition={{ duration: 0.3 }}>
           <Panel className="p-1">
             <motion.nav
-              className={`w-full overflow-hidden bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 transition-all duration-300 ${
+              className={`w-full overflow-x-hidden bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 transition-all duration-300 ${
                 isScrolled
                   ? "mt-2 bg-background border rounded-2xl"
                   : "rounded-none"

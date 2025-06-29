@@ -50,3 +50,11 @@ next-env.d.ts
 
 # claude
 CLAUDE.md
+
+# marketing
+/marketing/
+marketing-assets/
+*.marketing.md
+marketing-docs/
+brand-guidelines/
+marketing-materials/
