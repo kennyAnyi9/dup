@@ -55,6 +55,7 @@ export function Combobox({
         <button
           role="combobox"
           aria-expanded={open}
+          aria-controls="combobox-list"
           disabled={disabled}
           className={cn(
             "file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input flex h-9 w-full min-w-0 rounded-md border bg-transparent px-3 py-1 text-base shadow-xs transition-[color,box-shadow] outline-none md:text-sm",
@@ -79,7 +80,7 @@ export function Combobox({
       <PopoverContent className="w-[200px] p-0">
         <Command>
           <CommandInput placeholder={searchPlaceholder} />
-          <CommandList>
+          <CommandList id="combobox-list">
             <CommandEmpty>{emptyText}</CommandEmpty>
             <CommandGroup>
               {options.map((option) => (

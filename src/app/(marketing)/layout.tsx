@@ -1,4 +1,3 @@
-import { MarketingHeader } from "@/app/(marketing)/_components/marketing-header";
 import { ReactNode } from "react";
 
 interface MarketingLayoutProps {
