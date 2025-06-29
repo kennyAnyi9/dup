@@ -27,7 +27,7 @@ export default function Home() {
   return (
     <div className="max-w-4xl mx-auto px-4">
       {/* Hero Section */}
-      <Panel className="grid-section relative overflow-hidden  [.grid-section_~_&]:border-t-0">
+      <Panel className="grid-section relative overflow-hidden border-none [.grid-section_~_&]:border-t-0">
         <WarpBackground
           perspective={300}
           beamSize={10}
@@ -36,7 +36,7 @@ export default function Home() {
           className="min-h-[400px] sm:min-h-[500px] overflow-hidden border-t-0"
         >
           <div className="sm:py-20">
-            <div className="relative mx-auto flex w-full max-w-none sm:max-w-4xl flex-col items-center  sm:px-8 lg:px-12 text-center">
+            <div className="relative mx-auto flex w-full max-w-4xl flex-col items-center sm:px-8 lg:px-12 text-center">
               <Badge
                 variant="secondary"
                 className="mb-4 animate-slide-up-fade [--offset:30px] [animation-duration:1s] [animation-fill-mode:both] motion-reduce:animate-fade-in [animation-delay:50ms]"
@@ -47,7 +47,7 @@ export default function Home() {
               <h1 className="text-center text-3xl font-medium leading-tight max-w-lg sm:text-4xl md:text-5xl sm:leading-[1.15] animate-slide-up-fade [--offset:20px] [animation-duration:1s] [animation-fill-mode:both] motion-reduce:animate-fade-in [animation-delay:100ms]">
                 The Pastebin Reimagined
               </h1>
-              <p className="mt-5 w-full max-w-none sm:max-w-lg text-pretty text-base sm:text-lg md:text-xl text-muted-foreground text-center animate-slide-up-fade [--offset:10px] [animation-delay:200ms] [animation-duration:1s] [animation-fill-mode:both] motion-reduce:animate-fade-in">
+              <p className="mt-5 w-full max-w-lg text-pretty text-base sm:text-lg md:text-xl text-muted-foreground text-center animate-slide-up-fade [--offset:10px] [animation-delay:200ms] [animation-duration:1s] [animation-fill-mode:both] motion-reduce:animate-fade-in">
                 The modern pastebin for everyone. Beautiful syntax highlighting,
                 powerful privacy controls, zero complexity.
               </p>
@@ -65,11 +65,11 @@ export default function Home() {
       </Panel>
 
       {/* Core Features Section */}
-      <Panel>
+      <Panel className="overflow-hidden">
         <PanelHeader>
           <PanelTitle>Core Features</PanelTitle>
         </PanelHeader>
-        <PanelContent className="p-0 border-b">
+        <PanelContent className="p-0">
           <div className="grid grid-cols-1 gap-px bg-border text-sm sm:grid-cols-2 lg:grid-cols-3">
             <div className="flex flex-col items-start gap-2 bg-background p-8 text-left lg:px-9 lg:py-10">
               <Zap className="size-4 shrink-0 text-primary" />
@@ -91,7 +91,7 @@ export default function Home() {
                 </p>
               </div>
             </div>
-            <div className="flex flex-col items-start gap-2 bg-background p-8 text-left lg:px-9 lg:py-10">
+            <div className="flex flex-col items-start gap-2 bg-background p-8 text-left lg:px-9 lg:py-10 lg:-mr-px">
               <FileText className="size-4 shrink-0 text-primary" />
               <h3 className="font-medium">Syntax highlighting</h3>
               <div className="max-w-xs text-pretty text-muted-foreground sm:max-w-none">
@@ -121,7 +121,7 @@ export default function Home() {
                 </p>
               </div>
             </div>
-            <div className="flex flex-col items-start gap-2 bg-background p-8 text-left lg:px-9 lg:py-10">
+            <div className="flex flex-col items-start gap-2 bg-background p-8 text-left lg:px-9 lg:py-10 lg:-mr-px">
               <Eye className="size-4 shrink-0 text-primary" />
               <h3 className="font-medium">View tracking</h3>
               <div className="max-w-xs text-pretty text-muted-foreground sm:max-w-none">

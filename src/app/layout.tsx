@@ -1,9 +1,8 @@
 import { AppProviders } from "@/components/common/app-providers";
 import { ConditionalFooter } from "@/components/common/conditional-footer";
 import { ConditionalHeader } from "@/components/common/conditional-header";
-import { CommandPalette } from "@/shared/components/dupui/command-palette";
-import { Toaster } from "@/shared/components/dupui/sonner";
 import { APP_NAME } from "@/lib/constants";
+import { Toaster } from "@/shared/components/dupui/sonner";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
@@ -44,7 +43,7 @@ export default function RootLayout({
           <ConditionalHeader />
           <main className="flex-1">{children}</main>
           <ConditionalFooter />
-          <CommandPalette />
+
           <Toaster />
         </AppProviders>
       </body>

@@ -8,7 +8,7 @@ function Panel({ className, ...props }: React.ComponentProps<"section">) {
     <section
       data-slot="panel"
       className={cn(
-        "screen-line-before screen-line-after border-x border-edge",
+        "border-x border-edge border-t border-b border-edge",
         className
       )}
       {...props}
@@ -20,7 +20,7 @@ function PanelHeader({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       data-slot="panel-header"
-      className={cn("screen-line-after px-4 p-5 text-center", className)}
+      className={cn("border-b border-edge px-4 p-5 text-center", className)}
       {...props}
     />
   );
@@ -53,7 +53,7 @@ function Pattern({ className }: { className?: string }) {
     <div
       className={cn(
         "relative flex h-8 w-full border-x border-edge",
-        "before:absolute before:-left-[100vw] before:-z-1 before:h-8 before:w-[200vw]",
+        "before:absolute before:left-0 before:-z-1 before:h-8 before:w-full",
         "before:bg-[repeating-linear-gradient(315deg,var(--pattern-foreground)_0,var(--pattern-foreground)_1px,transparent_0,transparent_50%)] before:bg-size-[10px_10px] before:[--pattern-foreground:var(--color-edge)]/56",
         className
       )}
