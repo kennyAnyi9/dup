@@ -1,3 +1,5 @@
+import React from "react";
+
 export type ViewType = "table" | "card";
 
 // Common component prop patterns

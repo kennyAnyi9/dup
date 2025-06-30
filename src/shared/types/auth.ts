@@ -2,7 +2,7 @@
 
 export interface User {
   id: string;
-  name?: string | null;
+  name: string;
   email: string;
   image?: string | null;
 }
@@ -23,9 +23,16 @@ export type OAuthProvider = "github" | "google";
 
 // User utility function
 export function getUserInitials(user: User): string {
-  if (user.name) {
+  // Validate input
+  if (!user?.email || !user?.name) {
+    return "?";
+  }
+
+  if (user.name.trim()) {
     return user.name
+      .trim()
       .split(" ")
+      .filter(part => part.length > 0)
       .map((n) => n[0])
       .join("")
       .toUpperCase()

@@ -80,7 +80,9 @@ export function CommentItem({ comment, onCommentUpdated, onCommentLikeToggle, on
     
     // Optimistic update
     const newIsLiked = !originalIsLiked;
-    const newLikeCount = newIsLiked ? originalLikeCount + 1 : originalLikeCount - 1;
+    const newLikeCount = newIsLiked 
+      ? originalLikeCount + 1 
+      : Math.max(originalLikeCount - 1, 0);
     
     setOptimisticIsLiked(newIsLiked);
     setOptimisticLikeCount(newLikeCount);

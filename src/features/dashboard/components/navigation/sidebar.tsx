@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Logo } from "@/shared/components/common/logo";
-import { getUserInitials } from "@/shared/types/auth";
+import { getUserInitials, User } from "@/shared/types/auth";
 import { formatDistanceToNow } from "date-fns";
 import { Avatar, AvatarFallback, AvatarImage } from "@/shared/components/dupui/avatar";
 import { Button } from "@/shared/components/dupui/button";
@@ -26,12 +26,7 @@ import {
 } from "lucide-react";
 
 interface SidebarProps {
-  user: {
-    id: string;
-    name?: string | null;
-    email: string;
-    image?: string | null;
-  };
+  user: User;
   stats: {
     totalPastes: number;
     totalViews: number;
@@ -44,11 +39,7 @@ interface SidebarProps {
     language: string;
     views: number;
     createdAt: Date;
-    user: {
-      id: string;
-      name: string;
-      image: string | null;
-    } | null;
+    user: User | null;
   }>;
 }
 
@@ -190,7 +181,7 @@ export function Sidebar({ user, stats, recentPublicPastes }: SidebarProps) {
                           <Avatar className="h-6 w-6 shrink-0">
                             <AvatarImage src={paste.user.image || undefined} alt={paste.user.name} />
                             <AvatarFallback className="text-xs bg-muted text-[10px]">
-                              {paste.user.name.charAt(0).toUpperCase()}
+                              {getUserInitials(paste.user)}
                             </AvatarFallback>
                           </Avatar>
                         )}
