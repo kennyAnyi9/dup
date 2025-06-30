@@ -3,7 +3,8 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Logo } from "@/components/common/logo";
+import { Logo } from "@/shared/components/common/logo";
+import { getUserInitials } from "@/shared/types/auth";
 import { formatDistanceToNow } from "date-fns";
 import { Avatar, AvatarFallback, AvatarImage } from "@/shared/components/dupui/avatar";
 import { Button } from "@/shared/components/dupui/button";
@@ -11,7 +12,7 @@ import { Badge } from "@/shared/components/dupui/badge";
 import { Separator } from "@/shared/components/dupui/separator";
 import { ScrollArea } from "@/shared/components/dupui/scroll-area";
 import { SidebarNewPasteButton } from "./sidebar-new-paste-button";
-import { signOut } from "@/hooks/use-auth";
+import { signOut } from "@/shared/hooks/use-auth";
 import { toast } from "sonner";
 import {
   BarChart3,
@@ -93,20 +94,6 @@ export function Sidebar({ user, stats, recentPublicPastes }: SidebarProps) {
     },
   ];
 
-  function getUserInitials(name?: string, email?: string): string {
-    if (name) {
-      return name
-        .split(" ")
-        .map((part) => part[0])
-        .join("")
-        .toUpperCase()
-        .slice(0, 2);
-    }
-    if (email) {
-      return email[0].toUpperCase();
-    }
-    return "U";
-  }
 
   return (
     <div className="w-80 border-r bg-muted/30">
@@ -128,7 +115,7 @@ export function Sidebar({ user, stats, recentPublicPastes }: SidebarProps) {
             <Avatar className="h-10 w-10">
               <AvatarImage src={user.image || undefined} alt={user.name || user.email} />
               <AvatarFallback>
-                {getUserInitials(user.name || undefined, user.email)}
+                {getUserInitials(user)}
               </AvatarFallback>
             </Avatar>
             <div className="flex-1 min-w-0">

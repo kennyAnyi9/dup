@@ -12,7 +12,7 @@ import {
   DropdownMenuTrigger,
 } from "@/shared/components/dupui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/shared/components/dupui/avatar";
-import { useAuth, signOut } from "@/hooks/use-auth";
+import { useAuth, signOut } from "@/shared/hooks/use-auth";
 import { User, Settings, LogOut, FileText, Plus } from "lucide-react";
 import { toast } from "sonner";
 

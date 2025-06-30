@@ -18,7 +18,7 @@ import {
   FormMessage,
 } from "@/shared/components/dupui/form";
 import { SocialLoginButtons } from "@/features/auth/components/forms/social-login-buttons";
-import { signUp, useAuth } from "@/hooks/use-auth";
+import { signUp, useAuth } from "@/shared/hooks/use-auth";
 import { toast } from "sonner";
 import { Eye, EyeOff } from "lucide-react";
 import { getValidatedRedirectUrl } from "@/shared/lib/auth-utils";

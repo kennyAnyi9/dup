@@ -1,12 +1,12 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/shared/components/dupui/button";
 import { IconButton } from "@/shared/components/dupui/icon-button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/shared/components/dupui/avatar";
-import { ThemeSwitch } from "@/components/theme/theme-switch";
-import { signOut } from "@/hooks/use-auth";
+import { ThemeSwitch } from "@/shared/components/theme/theme-switch";
+import { signOut } from "@/shared/hooks/use-auth";
 import Link from "next/link";
 import {
   BarChart3,
@@ -16,25 +16,13 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { UserProfileSectionProps } from "@/features/dashboard/types";
+import { getUserInitials } from "@/shared/types/auth";
 
 export function UserProfileSection({ user, onClose }: UserProfileSectionProps) {
   const router = useRouter();
   const [isSigningOut, setIsSigningOut] = useState(false);
 
-  const getUserInitials = useMemo(() => {
-    if (user.name) {
-      return user.name
-        .split(" ")
-        .map((part) => part[0])
-        .join("")
-        .toUpperCase()
-        .slice(0, 2);
-    }
-    if (user.email) {
-      return user.email[0].toUpperCase();
-    }
-    return "U";
-  }, [user.name, user.email]);
+  const initials = getUserInitials(user);
 
   async function handleSignOut() {
     try {
@@ -81,7 +69,7 @@ export function UserProfileSection({ user, onClose }: UserProfileSectionProps) {
           <Avatar className="h-12 w-12">
             <AvatarImage src={user.image || undefined} alt={user.name || user.email} />
             <AvatarFallback className="bg-primary/10 text-primary font-semibold">
-              {getUserInitials}
+              {initials}
             </AvatarFallback>
           </Avatar>
           <div className="flex-1 min-w-0">

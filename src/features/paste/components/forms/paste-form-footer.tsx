@@ -2,7 +2,7 @@
 
 import { Button } from "@/shared/components/dupui/button";
 import { Lock, Loader, Zap, Globe, EyeOff } from "lucide-react";
-import { PASTE_VISIBILITY } from "@/lib/constants";
+import { PASTE_VISIBILITY } from "@/shared/lib/constants";
 interface PasteFormFooterProps {
   form: {
     watch: (name: string) => unknown;

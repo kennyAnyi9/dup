@@ -45,7 +45,7 @@ export function DashboardHeader({
               user={user}
             />
             <Link className="shrink-0" href="/">
-              <Logo width={240} height={64} className="h-16 w-auto" />
+              <Logo priority />
             </Link>
             
             {/* Navigation tabs - hidden on mobile */}

@@ -1,33 +1,38 @@
-"use client"
+"use client";
 
 // Context and Provider
-export { SidebarProvider, useSidebar } from "./sidebar/sidebar-context"
+export { SidebarProvider, useSidebar } from "@/features/dashboard/components/ui/sidebar/sidebar-context";
 
 // Core Sidebar Components
-export { Sidebar, SidebarTrigger, SidebarRail, SidebarInset } from "./sidebar/sidebar-core"
+export {
+  Sidebar,
+  SidebarInset,
+  SidebarRail,
+  SidebarTrigger,
+} from "@/features/dashboard/components/ui/sidebar/sidebar-core";
 
 // Layout Components
 export {
-  SidebarInput,
-  SidebarHeader,
-  SidebarFooter,
-  SidebarSeparator,
   SidebarContent,
+  SidebarFooter,
   SidebarGroup,
-} from "./sidebar/sidebar-layout"
+  SidebarHeader,
+  SidebarInput,
+  SidebarSeparator,
+} from "@/features/dashboard/components/ui/sidebar/sidebar-layout";
 
 // Menu Components
 export {
-  SidebarGroupLabel,
   SidebarGroupAction,
   SidebarGroupContent,
+  SidebarGroupLabel,
   SidebarMenu,
-  SidebarMenuItem,
-  SidebarMenuButton,
   SidebarMenuAction,
   SidebarMenuBadge,
+  SidebarMenuButton,
+  SidebarMenuItem,
   SidebarMenuSkeleton,
   SidebarMenuSub,
-  SidebarMenuSubItem,
   SidebarMenuSubButton,
-} from "./sidebar/sidebar-menu"
+  SidebarMenuSubItem,
+} from "@/features/dashboard/components/ui/sidebar/sidebar-menu";

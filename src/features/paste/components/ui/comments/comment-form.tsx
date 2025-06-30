@@ -2,7 +2,7 @@
 
 import { Button } from "@/shared/components/dupui/button";
 import { Textarea } from "@/shared/components/dupui/textarea";
-import { useAuth } from "@/hooks/use-auth";
+import { useAuth } from "@/shared/hooks/use-auth";
 import { createComment } from "@/features/paste/actions/comment.actions";
 import { useState, useRef, useImperativeHandle, forwardRef } from "react";
 import { toast } from "sonner";
