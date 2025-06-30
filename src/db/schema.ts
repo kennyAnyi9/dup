@@ -21,13 +21,11 @@ export const session = pgTable("session", {
   userId: text("user_id")
     .notNull()
     .references(() => user.id, { onDelete: "cascade" }),
-}, (table) => {
-  return {
-    // Auth performance indexes
-    userIdIdx: index("idx_session_user_id").on(table.userId),
-    expiresAtIdx: index("idx_session_expires_at").on(table.expiresAt),
-  };
-});
+}, (table) => [
+  // Auth performance indexes
+  index("idx_session_user_id").on(table.userId),
+  index("idx_session_expires_at").on(table.expiresAt),
+]);
 
 export const account = pgTable("account", {
   id: text("id").primaryKey(),
@@ -73,20 +71,18 @@ export const paste = pgTable("paste", {
   isDeleted: boolean("is_deleted").default(false).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
-}, (table) => {
-  return {
-    // Performance indexes for common queries
-    userIdIdx: index("idx_paste_user_id").on(table.userId),
-    createdAtIdx: index("idx_paste_created_at").on(table.createdAt.desc()),
-    visibilityIdx: index("idx_paste_visibility").on(table.visibility),
-    expiresAtIdx: index("idx_paste_expires_at").on(table.expiresAt),
-    isDeletedIdx: index("idx_paste_is_deleted").on(table.isDeleted),
-    // Composite index for dashboard queries (user's pastes ordered by date)
-    userCreatedIdx: index("idx_paste_user_created").on(table.userId, table.createdAt.desc()),
-    // Composite index for public paste queries
-    publicCreatedIdx: index("idx_paste_public_created").on(table.visibility, table.isDeleted, table.createdAt.desc()),
-  };
-});
+}, (table) => [
+  // Performance indexes for common queries
+  index("idx_paste_user_id").on(table.userId),
+  index("idx_paste_created_at").on(table.createdAt.desc()),
+  index("idx_paste_visibility").on(table.visibility),
+  index("idx_paste_expires_at").on(table.expiresAt),
+  index("idx_paste_is_deleted").on(table.isDeleted),
+  // Composite index for dashboard queries (user's pastes ordered by date)
+  index("idx_paste_user_created").on(table.userId, table.createdAt.desc()),
+  // Composite index for public paste queries
+  index("idx_paste_public_created").on(table.visibility, table.isDeleted, table.createdAt.desc()),
+]);
 
 export const tag = pgTable("tag", {
   id: text("id").primaryKey(),
@@ -95,13 +91,11 @@ export const tag = pgTable("tag", {
   color: text("color"), // Optional color for tag display
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
-}, (table) => {
-  return {
-    // Performance indexes
-    nameIdx: index("idx_tag_name").on(table.name),
-    slugIdx: index("idx_tag_slug").on(table.slug),
-  };
-});
+}, (table) => [
+  // Performance indexes
+  index("idx_tag_name").on(table.name),
+  index("idx_tag_slug").on(table.slug),
+]);
 
 export const pasteTag = pgTable("paste_tag", {
   pasteId: text("paste_id")
@@ -111,14 +105,12 @@ export const pasteTag = pgTable("paste_tag", {
     .notNull()
     .references(() => tag.id, { onDelete: "cascade" }),
   createdAt: timestamp("created_at").defaultNow().notNull(),
-}, (table) => {
-  return {
-    pk: primaryKey({ columns: [table.pasteId, table.tagId] }),
-    // Performance indexes
-    pasteIdIdx: index("idx_paste_tag_paste_id").on(table.pasteId),
-    tagIdIdx: index("idx_paste_tag_tag_id").on(table.tagId),
-  };
-});
+}, (table) => [
+  primaryKey({ columns: [table.pasteId, table.tagId] }),
+  // Performance indexes
+  index("idx_paste_tag_paste_id").on(table.pasteId),
+  index("idx_paste_tag_tag_id").on(table.tagId),
+]);
 
 export const comment = pgTable("comment", {
   id: text("id").primaryKey(),
@@ -134,18 +126,16 @@ export const comment = pgTable("comment", {
   isDeleted: boolean("is_deleted").default(false).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
-}, (table) => {
-  return {
-    // Performance indexes
-    pasteIdIdx: index("idx_comment_paste_id").on(table.pasteId),
-    userIdIdx: index("idx_comment_user_id").on(table.userId),
-    parentIdIdx: index("idx_comment_parent_id").on(table.parentId),
-    createdAtIdx: index("idx_comment_created_at").on(table.createdAt.desc()),
-    isDeletedIdx: index("idx_comment_is_deleted").on(table.isDeleted),
-    // Composite index for paste comments ordered by date
-    pasteCreatedIdx: index("idx_comment_paste_created").on(table.pasteId, table.isDeleted, table.createdAt.asc()),
-  };
-});
+}, (table) => [
+  // Performance indexes
+  index("idx_comment_paste_id").on(table.pasteId),
+  index("idx_comment_user_id").on(table.userId),
+  index("idx_comment_parent_id").on(table.parentId),
+  index("idx_comment_created_at").on(table.createdAt.desc()),
+  index("idx_comment_is_deleted").on(table.isDeleted),
+  // Composite index for paste comments ordered by date
+  index("idx_comment_paste_created").on(table.pasteId, table.isDeleted, table.createdAt.asc()),
+]);
 
 export const commentLike = pgTable("comment_like", {
   commentId: text("comment_id")
@@ -155,11 +145,9 @@ export const commentLike = pgTable("comment_like", {
     .notNull()
     .references(() => user.id, { onDelete: "cascade" }),
   createdAt: timestamp("created_at").defaultNow().notNull(),
-}, (table) => {
-  return {
-    pk: primaryKey({ columns: [table.commentId, table.userId] }),
-    // Performance indexes
-    commentIdIdx: index("idx_comment_like_comment_id").on(table.commentId),
-    userIdIdx: index("idx_comment_like_user_id").on(table.userId),
-  };
-});
+}, (table) => [
+  primaryKey({ columns: [table.commentId, table.userId] }),
+  // Performance indexes
+  index("idx_comment_like_comment_id").on(table.commentId),
+  index("idx_comment_like_user_id").on(table.userId),
+]);

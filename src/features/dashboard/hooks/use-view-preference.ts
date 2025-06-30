@@ -1,8 +1,7 @@
 "use client";
 
 import { useState } from "react";
-
-type ViewType = "table" | "card";
+import { ViewType } from "@/shared/types/ui";
 
 const VIEW_PREFERENCE_KEY = "pastes-view-preference";
 

@@ -1,4 +1,4 @@
-import { ThemeSwitch } from "@/shared/components/common/theme-switch";
+import { ThemeSwitch } from "@/shared/components/theme/theme-switch";
 
 export default function PlaygroundPage() {
   return (

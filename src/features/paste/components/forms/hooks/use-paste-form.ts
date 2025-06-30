@@ -4,13 +4,13 @@ import { useState, useTransition, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
-import { useAuth } from "@/hooks/use-auth";
+import { useAuth } from "@/shared/hooks/use-auth";
 import {
   CHAR_LIMIT_ANONYMOUS,
   PASTE_VISIBILITY,
   type SupportedLanguage,
   type PasteVisibility,
-} from "@/lib/constants";
+} from "@/shared/lib/constants";
 import { createPasteSchema, type CreatePasteInput, type UpdatePasteInput } from "@/shared/types/paste";
 import { createPaste, updatePaste } from "@/features/paste/actions/paste.actions";
 

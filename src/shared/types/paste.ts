@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { SUPPORTED_LANGUAGES, PASTE_VISIBILITY } from "@/lib/constants";
+import { SUPPORTED_LANGUAGES, PASTE_VISIBILITY } from "@/shared/lib/constants";
 
 export const createPasteSchema = z.object({
   title: z.string().max(100).optional(),

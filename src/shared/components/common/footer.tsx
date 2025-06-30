@@ -1,6 +1,6 @@
-import { Logo } from "@/components/common/logo";
+import { Logo } from "@/shared/components/common/logo";
 import { Panel, PanelContent, Pattern } from "@/shared/components/dupui/panel";
-import { APP_NAME } from "@/lib/constants";
+import { APP_NAME } from "@/shared/lib/constants";
 import {
   Activity,
   BarChart3,

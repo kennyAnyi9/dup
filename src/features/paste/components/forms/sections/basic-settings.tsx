@@ -17,7 +17,7 @@ import {
 import {
   PASTE_VISIBILITY,
   SUPPORTED_LANGUAGES,
-} from "@/lib/constants";
+} from "@/shared/lib/constants";
 import {
   Calendar,
   Code,

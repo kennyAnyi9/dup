@@ -1,4 +1,4 @@
-import { WarpBackground } from "@/components/magicui/warp-background";
+import { WarpBackground } from "@/shared/components/magicui/warp-background";
 import { HomeClient } from "@/features/landing/components/sections/home-client";
 import { PublicPasteCardsInfinite } from "@/features/landing/components/ui/public-paste-cards-infinite";
 import { Badge } from "@/shared/components/dupui/badge";

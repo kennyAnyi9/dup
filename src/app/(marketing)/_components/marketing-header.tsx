@@ -1,7 +1,7 @@
 "use client";
 import { AuthStatus } from "@/app/(marketing)/_components/auth-status";
 import { Vertex } from "@/app/(marketing)/_components/vertex";
-import { Logo } from "@/components/common/logo";
+import { Logo } from "@/shared/components/common/logo";
 import Link from "next/link";
 
 export function MarketingHeader() {

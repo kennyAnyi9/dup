@@ -1,9 +1,9 @@
 "use client";
 
-import { ThemeSwitch } from "@/components/theme/theme-switch";
+import { ThemeSwitch } from "@/shared/components/theme/theme-switch";
 import { Button } from "@/shared/components/dupui/button";
 import { Panel } from "@/shared/components/dupui/panel";
-import { useAuth } from "@/hooks/use-auth";
+import { useAuth } from "@/shared/hooks/use-auth";
 import { motion } from "motion/react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -22,7 +22,7 @@ export function Header() {
       }
     };
 
-    window.addEventListener("scroll", handleScroll, { passive: true });
+    window.addEventListener("scroll", handleScroll);
     return () => {
       window.removeEventListener("scroll", handleScroll);
     };
@@ -34,7 +34,7 @@ export function Header() {
         <motion.div layout transition={{ duration: 0.3 }}>
           <Panel className="p-1">
             <motion.nav
-              className={`w-full overflow-hidden bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 transition-all duration-300 ${
+              className={`w-full overflow-x-hidden bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 transition-all duration-300 ${
                 isScrolled
                   ? "mt-2 bg-background border rounded-2xl"
                   : "rounded-none"
@@ -44,35 +44,10 @@ export function Header() {
             >
               <div className="px-4">
                 <div className="flex h-16 items-center justify-between">
-                  <div className="flex items-center space-x-8">
+                  <div className="flex items-center gap-2">
                     <Link href="/" className="flex items-center">
                       <Logo priority />
                     </Link>
-
-                    <nav className="hidden md:flex items-center space-x-6">
-                      <Link
-                        href="/"
-                        className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-                      >
-                        Home
-                      </Link>
-                      {isAuthenticated && (
-                        <>
-                          <Link
-                            href="/dashboard"
-                            className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-                          >
-                            My Pastes
-                          </Link>
-                          <Link
-                            href="/new"
-                            className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-                          >
-                            New Paste
-                          </Link>
-                        </>
-                      )}
-                    </nav>
                   </div>
 
                   <div className="flex items-center space-x-4">

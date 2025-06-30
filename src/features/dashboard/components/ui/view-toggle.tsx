@@ -2,8 +2,7 @@
 
 import { Button } from "@/shared/components/dupui/button";
 import { LayoutGrid, Table } from "lucide-react";
-
-type ViewType = "table" | "card";
+import { ViewType } from "@/shared/types/ui";
 
 interface ViewToggleProps {
   view: ViewType;

@@ -1,7 +1,7 @@
-import { AppProviders } from "@/components/common/app-providers";
-import { ConditionalFooter } from "@/components/common/conditional-footer";
-import { ConditionalHeader } from "@/components/common/conditional-header";
-import { APP_NAME } from "@/lib/constants";
+import { AppProviders } from "@/shared/components/common/app-providers";
+import { ConditionalFooter } from "@/shared/components/common/conditional-footer";
+import { ConditionalHeader } from "@/shared/components/common/conditional-header";
+import { APP_NAME } from "@/shared/lib/constants";
 import { Toaster } from "@/shared/components/dupui/sonner";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";

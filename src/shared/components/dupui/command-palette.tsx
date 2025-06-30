@@ -24,7 +24,7 @@ import {
   Sun,
   Monitor,
 } from "lucide-react";
-import { useAuth } from "@/hooks/use-auth";
+import { useAuth } from "@/shared/hooks/use-auth";
 import { useTheme } from "next-themes";
 
 interface Command {

@@ -1,6 +1,6 @@
 "use client";
 
-import { APP_NAME } from "@/lib/constants";
+import { APP_NAME } from "@/shared/lib/constants";
 import { useTheme } from "next-themes";
 import Image from "next/image";
 import { useEffect, useState } from "react";
@@ -13,9 +13,9 @@ interface LogoProps {
 }
 
 export function Logo({
-  width,
-  height,
-  className = "h-16 w-auto",
+  width = 60,
+  height = 16,
+  className = "h-4",
   priority = false,
 }: LogoProps) {
   const { theme, systemTheme } = useTheme();
@@ -26,15 +26,16 @@ export function Logo({
   }, []);
 
   if (!mounted) {
-    // Hide logo until mounted to prevent flash-of-wrong-theme
+    // Return a default logo during SSR to avoid hydration mismatch
     return (
       <Image
         src="/dup-dark.png"
         alt={APP_NAME}
         width={width}
         height={height}
-        className={`${className} invisible`}
+        className={`${className} w-auto -ml-2`}
         priority={priority}
+        style={{ width: "auto", height: "auto" }}
       />
     );
   }
@@ -48,8 +49,9 @@ export function Logo({
       alt={APP_NAME}
       width={width}
       height={height}
-      className={className}
+      className={`${className} w-auto -ml-2`}
       priority={priority}
+      style={{ width: "auto", height: "auto" }}
     />
   );
 }

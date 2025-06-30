@@ -2,7 +2,7 @@
 
 import { AuthProvider } from "@/features/auth/components/providers/auth-provider";
 import { PasteModalProvider } from "@/features/paste/components/providers/paste-modal-provider";
-import { ThemeProvider } from "@/components/theme/provider";
+import { ThemeProvider } from "@/shared/components/theme/provider";
 
 interface AppProvidersProps {
   children: React.ReactNode;
