@@ -12,11 +12,12 @@ import {
   DropdownMenuTrigger,
 } from "@/shared/components/dupui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/shared/components/dupui/avatar";
-import { ThemeSwitch } from "@/components/theme/theme-switch";
-import { signOut } from "@/hooks/use-auth";
+import { ThemeSwitch } from "@/shared/components/theme/theme-switch";
+import { signOut } from "@/shared/hooks/use-auth";
 import { Settings, LogOut, Palette } from "lucide-react";
 import { toast } from "sonner";
 import { User } from "@/features/dashboard/types";
+import { getUserInitials } from "@/shared/types/auth";
 
 interface DashboardProfileDropdownProps {
   user: User;
@@ -40,20 +41,6 @@ export function DashboardProfileDropdown({ user }: DashboardProfileDropdownProps
     }
   }
 
-  function getUserInitials(name?: string | null, email?: string): string {
-    if (name) {
-      return name
-        .split(" ")
-        .map((part) => part[0])
-        .join("")
-        .toUpperCase()
-        .slice(0, 2);
-    }
-    if (email) {
-      return email[0].toUpperCase();
-    }
-    return "U";
-  }
 
   return (
     <DropdownMenu>
@@ -62,7 +49,7 @@ export function DashboardProfileDropdown({ user }: DashboardProfileDropdownProps
           <Avatar className="h-10 w-10">
             <AvatarImage src={user.image || undefined} alt={user.name || user.email} />
             <AvatarFallback>
-              {getUserInitials(user.name, user.email)}
+              {getUserInitials(user)}
             </AvatarFallback>
           </Avatar>
         </Button>

@@ -4,7 +4,7 @@ import { headers } from "next/headers";
 import { 
   RATE_LIMIT_ANONYMOUS, 
   RATE_LIMIT_AUTHENTICATED 
-} from "@/lib/constants";
+} from "@/shared/lib/constants";
 
 let redis: Redis | undefined;
 let rateLimitAnonymous: Ratelimit | undefined;

@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { useIsMobile } from "@/hooks/use-mobile"
+import { useIsMobile } from "@/shared/hooks/use-mobile"
 import { TooltipProvider } from "@/shared/components/dupui/tooltip"
 import { cn } from "@/shared/lib/utils"
 

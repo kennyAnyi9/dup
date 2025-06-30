@@ -3,7 +3,14 @@
 import { useState, useEffect } from "react";
 
 export function useMediaQuery(query: string) {
-  const [matches, setMatches] = useState(false);
+  const [matches, setMatches] = useState(() => {
+    // Initialize with actual media query result if in browser
+    if (typeof window !== "undefined") {
+      return window.matchMedia(query).matches;
+    }
+    // Default to false for SSR
+    return false;
+  });
 
   useEffect(() => {
     const media = window.matchMedia(query);

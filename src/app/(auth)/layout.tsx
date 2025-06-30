@@ -1,8 +1,8 @@
 // Force dynamic rendering for auth layout
 export const dynamic = 'force-dynamic';
 
-import { GridPattern } from "@/components/magicui/grid-pattern";
-import { Logo } from "@/components/common/logo";
+import { GridPattern } from "@/shared/components/magicui/grid-pattern";
+import { Logo } from "@/shared/components/common/logo";
 import { Card, CardContent } from "@/shared/components/dupui/card";
 import { cn } from "@/shared/lib/utils";
 import Link from "next/link";

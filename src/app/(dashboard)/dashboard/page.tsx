@@ -1,15 +1,15 @@
 // Force dynamic rendering for dashboard page
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
 
 import { getRecentPublicPastes } from "@/features/paste/actions/paste.actions";
 import { PasteModalProvider } from "@/features/paste/components/providers/paste-modal-provider";
 import { getCurrentUser } from "@/shared/lib/auth-server";
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
-import { DashboardHeader } from "./components/dashboard-header";
-import { DashboardMainLayout } from "./components/dashboard-main-layout";
-import { PastesContent } from "./components/pastes-content";
-import { DashboardLoading } from "./components/dashboard-loading";
+import { DashboardHeader } from "../_components/dashboard-header";
+import { DashboardLoading } from "../_components/dashboard-loading";
+import { DashboardMainLayout } from "../_components/dashboard-main-layout";
+import { PastesContent } from "../_components/pastes-content";
 
 export const metadata: Metadata = {
   title: "Dashboard - Dup",

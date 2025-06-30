@@ -2,7 +2,7 @@
 
 import { Button } from "@/shared/components/dupui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/shared/components/dupui/avatar";
-import { useAuth } from "@/hooks/use-auth";
+import { useAuth } from "@/shared/hooks/use-auth";
 import { deleteComment, toggleCommentLike, updateComment } from "@/features/paste/actions/comment.actions";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
@@ -80,7 +80,9 @@ export function CommentItem({ comment, onCommentUpdated, onCommentLikeToggle, on
     
     // Optimistic update
     const newIsLiked = !originalIsLiked;
-    const newLikeCount = newIsLiked ? originalLikeCount + 1 : originalLikeCount - 1;
+    const newLikeCount = newIsLiked 
+      ? originalLikeCount + 1 
+      : Math.max(originalLikeCount - 1, 0);
     
     setOptimisticIsLiked(newIsLiked);
     setOptimisticLikeCount(newLikeCount);

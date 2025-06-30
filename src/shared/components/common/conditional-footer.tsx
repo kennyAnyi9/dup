@@ -4,11 +4,15 @@ import { usePathname } from "next/navigation";
 import { Footer } from "./footer";
 
 export function ConditionalFooter() {
-  const pathname = usePathname() ?? "";
+  const pathname = usePathname();
   
   // Hide footer on dashboard, auth routes, and paste detail pages
-  const hiddenRoots = ["/dashboard", "/login", "/register", "/sign-in", "/sign-up", "/p/"];
-  if (hiddenRoots.some((root) => pathname.startsWith(root))) {
+  if (pathname.startsWith("/dashboard") || 
+      pathname.startsWith("/login") || 
+      pathname.startsWith("/register") || 
+      pathname.startsWith("/sign-in") || 
+      pathname.startsWith("/sign-up") ||
+      pathname.startsWith("/p/")) {
     return null;
   }
   

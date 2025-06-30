@@ -1,9 +1,5 @@
-export interface User {
-  id: string;
-  name?: string | null;
-  email: string;
-  image?: string | null;
-}
+import type { User } from "@/shared/types/auth";
+export type { User };
 
 export interface RecentPublicPaste {
   id: string;
