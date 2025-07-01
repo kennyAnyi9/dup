@@ -38,7 +38,6 @@ export function QRCodeDialog({ open, onOpenChange, url }: QRCodeDialogProps) {
     foreground: COLOR_PRESETS[0].foreground,
     background: COLOR_PRESETS[0].background,
   });
-  const [isGenerating, setIsGenerating] = useState(false);
   const qrContainerRef = useRef<HTMLDivElement>(null);
 
   // Initialize and update QR code
