@@ -2,7 +2,6 @@
 
 import { useState, KeyboardEvent } from "react";
 import { Input } from "@/shared/components/dupui/input";
-import { Badge } from "@/shared/components/dupui/badge";
 import { X, Tag } from "lucide-react";
 
 interface TagsInputProps {
@@ -54,39 +53,42 @@ export function TagsInput({
   };
 
   return (
-    <div className="space-y-2">
-      <div className="flex flex-wrap gap-1 min-h-[2rem] p-2 border rounded-md bg-background">
-        {value.map((tag) => (
-          <Badge
+    <div className="space-y-3">
+      <div className="flex flex-wrap gap-2 min-h-[2.5rem] p-3 border rounded-lg bg-background/50 backdrop-blur-sm focus-within:border-ring focus-within:ring-1 focus-within:ring-ring/20 transition-all duration-200">
+        {value.map((tag, index) => (
+          <div
             key={tag}
-            variant="secondary"
-            className="flex items-center gap-1 text-xs"
+            className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-primary/10 text-primary rounded-md text-sm font-medium border border-primary/20 animate-in fade-in-0 zoom-in-95 duration-200"
+            style={{ animationDelay: `${index * 50}ms` }}
           >
-            <Tag className="h-2.5 w-2.5" />
-            {tag}
+            <Tag className="h-3 w-3" />
+            <span>{tag}</span>
             <button
               type="button"
               onClick={() => removeTag(tag)}
-              className="ml-1 hover:bg-muted-foreground/20 rounded-full p-0.5"
+              className="ml-0.5 hover:bg-primary/20 rounded-full p-0.5 transition-colors duration-150 group"
             >
-              <X className="h-2.5 w-2.5" />
+              <X className="h-3 w-3 group-hover:text-destructive" />
             </button>
-          </Badge>
+          </div>
         ))}
         {value.length < maxTags && (
-          <Input
-            type="text"
-            value={inputValue}
-            onChange={(e) => setInputValue(e.target.value)}
-            onKeyDown={handleKeyDown}
-            onBlur={handleInputBlur}
-            placeholder={value.length === 0 ? placeholder : ""}
-            className="border-0 bg-transparent p-0 h-auto focus-visible:ring-0 flex-1 min-w-[120px]"
-          />
+          <div className="flex-1 min-w-[120px]">
+            <Input
+              type="text"
+              value={inputValue}
+              onChange={(e) => setInputValue(e.target.value)}
+              onKeyDown={handleKeyDown}
+              onBlur={handleInputBlur}
+              placeholder={value.length === 0 ? placeholder : "Add another tag..."}
+              className="border-0 bg-transparent px-2.5 py-1 h-auto focus-visible:ring-0 text-sm placeholder:text-muted-foreground/60"
+            />
+          </div>
         )}
       </div>
-      <div className="text-xs text-muted-foreground">
-        {value.length}/{maxTags} tags • Press Enter or comma to add
+      <div className="flex items-center justify-between text-xs text-muted-foreground">
+        <span>{value.length}/{maxTags} tags</span>
+        <span className="text-muted-foreground/70">Press Enter or comma to add</span>
       </div>
     </div>
   );

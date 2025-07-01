@@ -6,7 +6,7 @@ import { Header } from "./header";
 export function ConditionalHeader() {
   const pathname = usePathname();
 
-  // Hide header on dashboard, auth routes, and paste detail pages
+  // Hide header on dashboard, auth routes, paste creation, and paste detail pages
   if (
     pathname.startsWith("/dashboard") ||
     pathname.startsWith("/login") ||
@@ -14,6 +14,7 @@ export function ConditionalHeader() {
     pathname.startsWith("/sign-in") ||
     pathname.startsWith("/sign-up") ||
     pathname.startsWith("/playground") ||
+    pathname.startsWith("/new") ||
     pathname.startsWith("/p/")
   ) {
     return null;

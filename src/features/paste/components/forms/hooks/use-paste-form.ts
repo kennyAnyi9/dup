@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition, useEffect } from "react";
+import { useState, useTransition, useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
@@ -44,23 +44,28 @@ export function usePasteForm({ initialContent = "", editingPaste = null, onSucce
     error?: string;
   }>({ isChecking: false, available: null });
 
+  // Uncontrolled textarea for performance
+  const contentRef = useRef<HTMLTextAreaElement>(null);
+  const [contentLength, setContentLength] = useState(0);
+
   const charLimit = isAuthenticated ? null : CHAR_LIMIT_ANONYMOUS;
   const isEditing = !!editingPaste;
 
   const form = useForm({
     resolver: zodResolver(createPasteSchema),
+    mode: "onSubmit",
     defaultValues: {
       title: "",
       description: "",
-      content: "",
-      language: "plain",
-      visibility: PASTE_VISIBILITY.PUBLIC,
+      // Remove content from controlled form - now uncontrolled
+      language: undefined,
+      visibility: undefined,
       password: "",
       customUrl: "",
       tags: [],
       burnAfterRead: false,
       burnAfterReadViews: undefined,
-      expiresIn: isAuthenticated ? "never" : "30m",
+      expiresIn: undefined,
     },
   });
 
@@ -83,6 +88,13 @@ export function usePasteForm({ initialContent = "", editingPaste = null, onSucce
     return "never";
   };
 
+  // Handle content input changes for uncontrolled textarea
+  const handleContentInput = () => {
+    if (contentRef.current) {
+      setContentLength(contentRef.current.value.length);
+    }
+  };
+
   // Reset form values when editingPaste changes
   useEffect(() => {
     if (editingPaste) {
@@ -90,7 +102,6 @@ export function usePasteForm({ initialContent = "", editingPaste = null, onSucce
         id: editingPaste.id,
         title: editingPaste.title || "",
         description: editingPaste.description || "",
-        content: editingPaste.content,
         language: (editingPaste.language as SupportedLanguage) || "plain",
         visibility: (editingPaste.visibility as PasteVisibility) || PASTE_VISIBILITY.PUBLIC,
         password: "",
@@ -101,31 +112,42 @@ export function usePasteForm({ initialContent = "", editingPaste = null, onSucce
       };
       
       form.reset(resetData);
+      
+      // Set content in uncontrolled textarea
+      if (contentRef.current) {
+        contentRef.current.value = editingPaste.content;
+        setContentLength(editingPaste.content.length);
+      }
     } else {
       form.reset({
         title: "",
         description: "",
-        content: initialContent,
-        language: "plain",
-        visibility: PASTE_VISIBILITY.PUBLIC,
+        language: undefined,
+        visibility: undefined,
         password: "",
         customUrl: "",
         tags: [],
         burnAfterRead: false,
         burnAfterReadViews: undefined,
-        expiresIn: isAuthenticated ? "never" : "30m",
+        expiresIn: undefined,
       });
+      
+      // Set initial content in uncontrolled textarea
+      if (contentRef.current) {
+        contentRef.current.value = initialContent;
+        setContentLength(initialContent.length);
+      }
     }
   }, [editingPaste, initialContent, isAuthenticated, form]);
 
-  const watchedContent = form.watch("content") || "";
+  // Remove content watcher - now uncontrolled
   const watchedVisibility = form.watch("visibility") || PASTE_VISIBILITY.PUBLIC;
   const watchedBurnAfterRead = form.watch("burnAfterRead") || false;
   const watchedCustomUrl = form.watch("customUrl") || "";
 
   // Check URL availability with debouncing
   useEffect(() => {
-    if (!isAuthenticated || !watchedCustomUrl.trim()) {
+    if (!isAuthenticated || !watchedCustomUrl?.trim()) {
       setUrlAvailability({ isChecking: false, available: null });
       return;
     }
@@ -139,7 +161,7 @@ export function usePasteForm({ initialContent = "", editingPaste = null, onSucce
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ url: watchedCustomUrl.trim() }),
+          body: JSON.stringify({ url: watchedCustomUrl?.trim() }),
         });
 
         if (!response.ok) {
@@ -165,9 +187,12 @@ export function usePasteForm({ initialContent = "", editingPaste = null, onSucce
     return () => clearTimeout(timeoutId);
   }, [watchedCustomUrl, isAuthenticated]);
 
-  const onSubmit = (data: CreatePasteInput) => {
+  const onSubmit = (data: Omit<CreatePasteInput, 'content'>) => {
     startTransition(async () => {
       try {
+        // Get content from uncontrolled textarea
+        const content = contentRef.current?.value || "";
+        
         let result;
         
         if (isEditing && editingPaste) {
@@ -175,7 +200,7 @@ export function usePasteForm({ initialContent = "", editingPaste = null, onSucce
             id: editingPaste.id,
             title: data.title,
             description: data.description,
-            content: data.content,
+            content: content,
             language: data.language,
             visibility: data.visibility,
             password: data.password,
@@ -187,7 +212,15 @@ export function usePasteForm({ initialContent = "", editingPaste = null, onSucce
           };
           result = await updatePaste(updateData);
         } else {
-          result = await createPaste(data);
+          const createData: CreatePasteInput = {
+            ...data,
+            content: content,
+            // Set defaults for empty values
+            language: data.language || "plain",
+            visibility: data.visibility || PASTE_VISIBILITY.PUBLIC,
+            expiresIn: data.expiresIn || (isAuthenticated ? "never" : "30m"),
+          };
+          result = await createPaste(createData);
         }
 
         if (result.success && result.paste) {
@@ -222,8 +255,8 @@ export function usePasteForm({ initialContent = "", editingPaste = null, onSucce
 
   const isSubmitDisabled = 
     isPending ||
-    watchedContent.length === 0 ||
-    (charLimit && watchedContent.length > charLimit) ||
+    contentLength === 0 ||
+    (charLimit && contentLength > charLimit) ||
     (!!watchedCustomUrl.trim() && urlAvailability.isChecking) ||
     (!!watchedCustomUrl.trim() && urlAvailability.available === false);
 
@@ -236,7 +269,10 @@ export function usePasteForm({ initialContent = "", editingPaste = null, onSucce
     charLimit,
     isEditing,
     isAuthenticated,
-    watchedContent,
+    // Replace watchedContent with uncontrolled alternatives
+    contentRef,
+    contentLength,
+    handleContentInput,
     watchedVisibility,
     watchedBurnAfterRead,
     watchedCustomUrl,

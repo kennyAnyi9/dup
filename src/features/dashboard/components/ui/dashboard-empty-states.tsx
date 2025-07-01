@@ -2,7 +2,6 @@
 
 import { Button } from "@/shared/components/dupui/button";
 import { Search, FolderOpen } from "lucide-react";
-import { usePasteModal } from "@/features/paste/components/providers/paste-modal-provider";
 import { useRouter } from "next/navigation";
 
 interface EmptyStateProps {
@@ -10,7 +9,6 @@ interface EmptyStateProps {
 }
 
 export function EmptyState({ hasSearch }: EmptyStateProps) {
-  const { openModal } = usePasteModal();
   const router = useRouter();
 
   if (hasSearch) {
@@ -42,7 +40,7 @@ export function EmptyState({ hasSearch }: EmptyStateProps) {
             Create your first paste to get started organizing your code snippets.
           </p>
         </div>
-        <Button onClick={() => openModal()} className="flex items-center gap-2">
+        <Button onClick={() => router.push('/new')} className="flex items-center gap-2">
           Create New Paste
           <kbd className="inline-flex h-4 select-none items-center gap-1 rounded border bg-muted border-border px-1.5 font-mono text-[10px] font-medium text-muted-foreground">
             N

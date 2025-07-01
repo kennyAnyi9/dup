@@ -1,13 +1,13 @@
 "use client";
 
-import { usePasteModal } from "@/features/paste/components/providers/paste-modal-provider";
+import { useRouter } from "next/navigation";
 import { Button } from "@/shared/components/dupui/button";
 import { useCallback } from "react";
 
 export function SidebarNewPasteButton() {
-  const { openModal } = usePasteModal();
+  const router = useRouter();
 
-  const handleClick = useCallback(() => openModal(), [openModal]);
+  const handleClick = useCallback(() => router.push('/new'), [router]);
 
   return (
     <Button
