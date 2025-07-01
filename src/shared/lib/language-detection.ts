@@ -181,7 +181,7 @@ const CONTENT_PATTERNS: Array<{
 
   // Shell script patterns
   { pattern: /\becho\s+/, language: "bash", confidence: 0.5 },
-  { pattern: /\bif\s*\[\s*.*\s*\]/, language: "bash", confidence: 0.6 },
+  { pattern: /\bif\s+\[\s+.*\s+\]/, language: "bash", confidence: 0.6 },
 ];
 
 /**
@@ -261,8 +261,6 @@ export function getLanguageDisplayName(language: SupportedLanguage): string {
     powershell: "PowerShell",
     dockerfile: "Dockerfile",
     markdown: "Markdown",
-    nginx: "Nginx Config",
-    apache: "Apache Config",
   };
 
   return displayNames[language] || language;

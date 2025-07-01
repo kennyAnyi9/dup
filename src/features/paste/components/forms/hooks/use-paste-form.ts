@@ -57,7 +57,7 @@ export function usePasteForm({ initialContent = "", editingPaste = null, onSucce
     defaultValues: {
       title: "",
       description: "",
-      // Remove content from controlled form - now uncontrolled
+      content: initialContent,
       language: undefined,
       visibility: undefined,
       password: "",
@@ -91,7 +91,9 @@ export function usePasteForm({ initialContent = "", editingPaste = null, onSucce
   // Handle content input changes for uncontrolled textarea
   const handleContentInput = () => {
     if (contentRef.current) {
-      setContentLength(contentRef.current.value.length);
+      const content = contentRef.current.value;
+      setContentLength(content.length);
+      form.setValue("content", content);
     }
   };
 

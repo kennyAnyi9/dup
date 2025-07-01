@@ -39,8 +39,11 @@ export function PasteSettingsSidebar({
     return `${burnAfterReadViews} view${burnAfterReadViews !== 1 ? 's' : ''}`;
   };
 
-  // Generate paste URL for QR code (placeholder - will be actual URL after paste creation)
-  const pasteUrl = "https://dup.it/p/example-paste";
+  // Generate paste URL for QR code (will use actual URL after paste creation)
+  const customUrl = form.watch("customUrl");
+  const pasteUrl = customUrl 
+    ? `https://dup.it/p/${customUrl}`
+    : "https://dup.it/p/preview";
   return (
     <div className="w-[32rem] xl:w-[36rem] border-l bg-muted/30 flex flex-col h-full">
       <div className="p-6 border-b bg-background/50">
