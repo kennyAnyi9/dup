@@ -8,7 +8,7 @@ import { PasteSettingsSidebar } from "@/features/paste/components/forms/sections
 import { Badge } from "@/shared/components/dupui/badge";
 import { Button } from "@/shared/components/dupui/button";
 import { Form } from "@/shared/components/dupui/form";
-import { ClipboardPenLine, Globe, Save, Zap } from "lucide-react";
+import { ClipboardPenLine, Globe, Loader, Zap } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
@@ -107,14 +107,11 @@ export function NewPasteForm() {
               >
                 {isPending ? (
                   <>
-                    <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white mr-2" />
+                    <Loader className="h-3 w-3 animate-spin mr-2" />
                     Creating...
                   </>
                 ) : (
-                  <>
-                    <Save className="h-3 w-3 mr-2" />
-                    Create Paste
-                  </>
+                  "Create Paste"
                 )}
               </Button>
             </div>

@@ -19,6 +19,9 @@ interface QRCodeDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   url: string;
+  initialColor?: string;
+  initialBackground?: string;
+  onColorsChange?: (foreground: string, background: string) => void;
 }
 
 const COLOR_PRESETS = [
@@ -31,14 +34,37 @@ const COLOR_PRESETS = [
 ];
 
 
-export function QRCodeDialog({ open, onOpenChange, url }: QRCodeDialogProps) {
+export function QRCodeDialog({ 
+  open, 
+  onOpenChange, 
+  url, 
+  initialColor = "#000000", 
+  initialBackground = "#ffffff",
+  onColorsChange 
+}: QRCodeDialogProps) {
   const [qrCode, setQrCode] = useState<QRCodeStyling | null>(null);
-  const [selectedPreset, setSelectedPreset] = useState(0);
+  const [selectedPreset, setSelectedPreset] = useState(-1); // -1 for custom
   const [customColors, setCustomColors] = useState({
-    foreground: COLOR_PRESETS[0].foreground,
-    background: COLOR_PRESETS[0].background,
+    foreground: initialColor,
+    background: initialBackground,
   });
   const qrContainerRef = useRef<HTMLDivElement>(null);
+
+  // Initialize colors from props when dialog opens
+  useEffect(() => {
+    if (open) {
+      setCustomColors({
+        foreground: initialColor,
+        background: initialBackground,
+      });
+      
+      // Find matching preset or set to custom
+      const matchingPreset = COLOR_PRESETS.findIndex(
+        preset => preset.foreground === initialColor && preset.background === initialBackground
+      );
+      setSelectedPreset(matchingPreset >= 0 ? matchingPreset : -1);
+    }
+  }, [open, initialColor, initialBackground]);
 
   // Initialize and update QR code
   useEffect(() => {
@@ -108,10 +134,22 @@ export function QRCodeDialog({ open, onOpenChange, url }: QRCodeDialogProps) {
 
   const handlePresetChange = (presetIndex: number) => {
     setSelectedPreset(presetIndex);
-    setCustomColors({
+    const newColors = {
       foreground: COLOR_PRESETS[presetIndex].foreground,
       background: COLOR_PRESETS[presetIndex].background,
-    });
+    };
+    setCustomColors(newColors);
+    onColorsChange?.(newColors.foreground, newColors.background);
+  };
+
+  const handleCustomColorChange = (type: 'foreground' | 'background', color: string) => {
+    const newColors = {
+      ...customColors,
+      [type]: color,
+    };
+    setCustomColors(newColors);
+    setSelectedPreset(-1); // Set to custom when manually changing colors
+    onColorsChange?.(newColors.foreground, newColors.background);
   };
 
   const handleDownload = () => {
@@ -182,23 +220,13 @@ export function QRCodeDialog({ open, onOpenChange, url }: QRCodeDialogProps) {
                 <input
                   type="color"
                   value={customColors.foreground}
-                  onChange={(e) =>
-                    setCustomColors((prev) => ({
-                      ...prev,
-                      foreground: e.target.value,
-                    }))
-                  }
+                  onChange={(e) => handleCustomColorChange('foreground', e.target.value)}
                   className="w-8 h-8 rounded border cursor-pointer"
                 />
                 <input
                   type="text"
                   value={customColors.foreground}
-                  onChange={(e) =>
-                    setCustomColors((prev) => ({
-                      ...prev,
-                      foreground: e.target.value,
-                    }))
-                  }
+                  onChange={(e) => handleCustomColorChange('foreground', e.target.value)}
                   className="w-20 px-2 py-1 text-xs border rounded"
                 />
               </div>
@@ -208,7 +236,7 @@ export function QRCodeDialog({ open, onOpenChange, url }: QRCodeDialogProps) {
                     key={preset.name}
                     onClick={() => handlePresetChange(index)}
                     className={`w-8 h-8 rounded-full border-2 ${
-                      selectedPreset === index ? "border-primary" : "border-gray-300"
+                      selectedPreset === index ? "border-primary ring-2 ring-primary/20" : "border-gray-300"
                     }`}
                     style={{ backgroundColor: preset.foreground }}
                     title={preset.name}
@@ -224,6 +252,7 @@ export function QRCodeDialog({ open, onOpenChange, url }: QRCodeDialogProps) {
             Cancel
           </Button>
           <Button onClick={() => {
+            onColorsChange?.(customColors.foreground, customColors.background);
             toast.success("QR code customization saved!");
             onOpenChange(false);
           }}>

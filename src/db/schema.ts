@@ -67,6 +67,9 @@ export const paste = pgTable("paste", {
   burnAfterReadViews: integer("burn_after_read_views").default(1), // how many views before burn
   views: integer("views").default(0).notNull(),
   expiresAt: timestamp("expires_at"),
+  // QR Code customization settings
+  qrCodeColor: text("qr_code_color").default("#000000"), // QR code foreground color
+  qrCodeBackground: text("qr_code_background").default("#ffffff"), // QR code background color
   userId: text("user_id").references(() => user.id, { onDelete: "cascade" }), // null for anonymous
   isDeleted: boolean("is_deleted").default(false).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),

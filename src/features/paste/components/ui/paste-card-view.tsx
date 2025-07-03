@@ -4,12 +4,15 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useCopyUrl } from "../../hooks/use-copy-url";
 import { usePasteActions } from "../../hooks/use-paste-actions";
+import { getBaseUrl } from "@/lib/utils/url";
+import { toast } from "sonner";
+import { updateQrCodeColors } from "../../actions/paste.actions";
 import { PasteCardHeader } from "./card/paste-card-header";
 import { PasteCardContent } from "./card/paste-card-content";
 import { PasteCardTags } from "./card/paste-card-tags";
 import { PasteCardActions } from "./card/paste-card-actions";
 import { PasteCardDeleteDialog } from "./card/paste-card-delete-dialog";
-import { QRCodeModal } from "./qr-code-modal";
+import { QRCodeDialog } from "../forms/dialogs/qr-code-dialog";
 
 interface PasteCardViewProps {
   paste: {
@@ -25,6 +28,8 @@ interface PasteCardViewProps {
     expiresAt: Date | null;
     burnAfterRead: boolean;
     burnAfterReadViews: number | null;
+    qrCodeColor: string | null;
+    qrCodeBackground: string | null;
     hasPassword: boolean;
     tags?: Array<{
       id: string;
@@ -69,6 +74,26 @@ export function PasteCardView({
   const handleEditPaste = () => {
     if (onEdit) {
       onEdit(paste);
+    }
+  };
+
+  const handleQrColorChange = async (foreground: string, background: string) => {
+    try {
+      const result = await updateQrCodeColors({
+        id: paste.id,
+        qrCodeColor: foreground,
+        qrCodeBackground: background,
+      });
+
+      if (result.success) {
+        toast.success("QR code colors updated!");
+        router.refresh(); // Refresh to get updated data
+      } else {
+        toast.error(result.error || "Failed to update QR code colors");
+      }
+    } catch (error) {
+      console.error("Failed to update QR code colors:", error);
+      toast.error("Failed to update QR code colors");
     }
   };
 
@@ -123,11 +148,14 @@ export function PasteCardView({
         onConfirm={handleDeletePaste}
       />
 
-      {/* QR Code Modal */}
-      <QRCodeModal
+      {/* QR Code Dialog */}
+      <QRCodeDialog
         open={showQrCode}
         onOpenChange={setShowQrCode}
-        paste={{ slug: paste.slug, title: paste.title }}
+        url={`${getBaseUrl()}/p/${paste.slug}`}
+        initialColor={paste.qrCodeColor || "#000000"}
+        initialBackground={paste.qrCodeBackground || "#ffffff"}
+        onColorsChange={handleQrColorChange}
       />
     </>
   );

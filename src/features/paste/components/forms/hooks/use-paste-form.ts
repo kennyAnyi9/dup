@@ -66,6 +66,8 @@ export function usePasteForm({ initialContent = "", editingPaste = null, onSucce
       burnAfterRead: false,
       burnAfterReadViews: undefined,
       expiresIn: undefined,
+      qrCodeColor: "#000000",
+      qrCodeBackground: "#ffffff",
     },
   });
 
@@ -132,6 +134,8 @@ export function usePasteForm({ initialContent = "", editingPaste = null, onSucce
         burnAfterRead: false,
         burnAfterReadViews: undefined,
         expiresIn: undefined,
+        qrCodeColor: "#000000",
+        qrCodeBackground: "#ffffff",
       });
       
       // Set initial content in uncontrolled textarea

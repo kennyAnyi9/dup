@@ -12,12 +12,9 @@ export function SidebarNewPasteButton() {
   return (
     <Button
       onClick={handleClick}
-      className="w-full flex items-center justify-between"
+      className="w-full"
     >
-      <span>Create New Paste</span>
-      <kbd aria-hidden className="inline-flex h-4 select-none items-center gap-1 rounded border bg-muted border-border px-1.5 font-mono text-[10px] font-medium text-muted-foreground">
-        N
-      </kbd>
+      Create New Paste
     </Button>
   );
 }

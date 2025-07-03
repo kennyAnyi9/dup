@@ -1,39 +1,62 @@
 "use client";
 
 import { useState } from "react";
-import QRCode from "qrcode";
+import QRCodeStyling from "qr-code-styling";
 import { toast } from "sonner";
 import { getBaseUrl } from "@/lib/utils/url";
 
 export function useQrDownload() {
   const [isGenerating, setIsGenerating] = useState(false);
 
-  const downloadQrCode = async (slug: string, title?: string | null) => {
+  const downloadQrCode = async (
+    slug: string, 
+    title?: string | null,
+    qrCodeColor?: string | null,
+    qrCodeBackground?: string | null
+  ) => {
     try {
       setIsGenerating(true);
       const pasteUrl = `${getBaseUrl()}/p/${slug}`;
       
-      const dataUrl = await QRCode.toDataURL(pasteUrl, {
+      // Create QR code with styling consistent with dialog
+      const qrCode = new QRCodeStyling({
         width: 512, // Higher resolution for download
-        margin: 2,
-        color: {
-          dark: '#000000',
-          light: '#ffffff',
+        height: 512,
+        type: "svg",
+        data: pasteUrl,
+        image: "/qr-avatar.png",
+        dotsOptions: {
+          color: qrCodeColor || '#000000',
+          type: "square",
         },
-        errorCorrectionLevel: 'M',
+        backgroundOptions: {
+          color: qrCodeBackground || '#ffffff',
+        },
+        imageOptions: {
+          crossOrigin: "anonymous",
+          margin: 8,
+          imageSize: 0.45,
+        },
+        cornersSquareOptions: {
+          type: "square",
+          color: qrCodeColor || '#000000',
+        },
+        cornersDotOptions: {
+          type: "square",
+          color: qrCodeColor || '#000000',
+        },
       });
 
-      // Create download link
-      const link = document.createElement('a');
+      // Generate filename
       const filename = title 
-        ? `qr-${title.toLowerCase().replace(/[^a-z0-9]/g, '-')}-${slug}.png`
-        : `qr-${slug}.png`;
-      
-      link.download = filename;
-      link.href = dataUrl;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+        ? `qr-${title.toLowerCase().replace(/[^a-z0-9]/g, '-')}-${slug}`
+        : `qr-code-${slug}`;
+
+      // Download using qr-code-styling's built-in download
+      qrCode.download({
+        name: filename,
+        extension: "png",
+      });
       
       toast.success('QR code downloaded successfully');
     } catch (error) {

@@ -53,6 +53,7 @@ export function Combobox({
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <button
+          type="button"
           role="combobox"
           aria-expanded={open}
           aria-controls="combobox-list"

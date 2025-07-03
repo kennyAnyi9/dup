@@ -44,6 +44,7 @@ import {
   Shield,
   AlertTriangle,
   Save,
+  Loader,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -376,7 +377,7 @@ export function PasteSettingsForm({ paste, currentUser, children }: PasteSetting
           >
             {isPending ? (
               <div className="flex items-center gap-2">
-                <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                <Loader className="h-4 w-4 animate-spin" />
                 Saving...
               </div>
             ) : (

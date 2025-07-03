@@ -30,6 +30,10 @@ export function PasteSettingsSidebar({
   const [burnDialogOpen, setBurnDialogOpen] = useState(false);
   const [qrDialogOpen, setQrDialogOpen] = useState(false);
   
+  // Watch QR code colors from form
+  const qrCodeColor = form.watch("qrCodeColor");
+  const qrCodeBackground = form.watch("qrCodeBackground");
+  
   // Get current burn after read status for button display
   const burnAfterRead = form.watch("burnAfterRead");
   const burnAfterReadViews = form.watch("burnAfterReadViews");
@@ -118,6 +122,12 @@ export function PasteSettingsSidebar({
         open={qrDialogOpen}
         onOpenChange={setQrDialogOpen}
         url={pasteUrl}
+        initialColor={qrCodeColor}
+        initialBackground={qrCodeBackground}
+        onColorsChange={(foreground, background) => {
+          form.setValue("qrCodeColor", foreground);
+          form.setValue("qrCodeBackground", background);
+        }}
       />
     </div>
   );
