@@ -55,8 +55,6 @@ export const SUPPORTED_LANGUAGES = [
   "bash",
   "powershell",
   "dockerfile",
-  "nginx",
-  "apache",
   "plain",
 ] as const;
 

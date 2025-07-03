@@ -5,6 +5,7 @@ interface CharacterCounterProps {
 }
 
 export function CharacterCounter({ current, limit, className }: CharacterCounterProps) {
+  
   // Handle unlimited scenario
   if (limit === null) {
     return (

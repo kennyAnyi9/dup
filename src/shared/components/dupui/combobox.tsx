@@ -1,8 +1,5 @@
 "use client";
 
-import * as React from "react";
-import { Check, ChevronsUpDown } from "lucide-react";
-import { cn } from "@/shared/lib/utils";
 import {
   Command,
   CommandEmpty,
@@ -16,6 +13,9 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/shared/components/dupui/popover";
+import { cn } from "@/shared/lib/utils";
+import { Check, ChevronsUpDown } from "lucide-react";
+import * as React from "react";
 
 interface ComboboxOption {
   value: string;
@@ -28,7 +28,7 @@ interface ComboboxProps {
   options: ComboboxOption[];
   value?: string;
   onValueChange?: (value: string) => void;
-  placeholder?: string;
+  placeholder?: string | React.ReactNode;
   searchPlaceholder?: string;
   emptyText?: string;
   className?: string;
@@ -53,12 +53,13 @@ export function Combobox({
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <button
+          type="button"
           role="combobox"
           aria-expanded={open}
           aria-controls="combobox-list"
           disabled={disabled}
           className={cn(
-            "file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input flex h-9 w-full min-w-0 rounded-md border bg-transparent px-3 py-1 text-base shadow-xs transition-[color,box-shadow] outline-none md:text-sm",
+            "file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input flex h-9 w-full min-w-0 rounded-md border bg-transparent px-3 py-1 text-base transition-[color,box-shadow] outline-none md:text-sm",
             "focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]",
             "aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive",
             "justify-between items-center cursor-pointer",

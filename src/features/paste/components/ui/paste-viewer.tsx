@@ -25,9 +25,11 @@ interface PasteViewerProps {
   language: string;
   title?: string;
   slug: string;
+  qrCodeColor?: string | null;
+  qrCodeBackground?: string | null;
 }
 
-export function PasteViewer({ content, language, title, slug }: PasteViewerProps) {
+export function PasteViewer({ content, language, title, slug, qrCodeColor, qrCodeBackground }: PasteViewerProps) {
   const { theme } = useTheme();
   const [copied, setCopied] = useState(false);
   const [showLineNumbers, setShowLineNumbers] = useState(true);
@@ -97,7 +99,7 @@ export function PasteViewer({ content, language, title, slug }: PasteViewerProps
   }
 
   function handleQrDownload() {
-    downloadQrCode(slug, title);
+    downloadQrCode(slug, title, qrCodeColor, qrCodeBackground);
   }
 
   // Map our language names to SyntaxHighlighter language names

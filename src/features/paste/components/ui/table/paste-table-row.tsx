@@ -23,6 +23,8 @@ interface PasteTableRowProps {
     expiresAt: Date | null;
     burnAfterRead: boolean;
     burnAfterReadViews: number | null;
+    qrCodeColor: string | null;
+    qrCodeBackground: string | null;
     hasPassword: boolean;
     tags?: Array<{
       id: string;

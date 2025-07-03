@@ -539,6 +539,8 @@ export function PublicPasteClient({ slug }: PublicPasteClientProps) {
             language={paste.language}
             title={paste.title}
             slug={paste.slug}
+            qrCodeColor={paste.qrCodeColor}
+            qrCodeBackground={paste.qrCodeBackground}
           />
 
           {/* Comments Section */}

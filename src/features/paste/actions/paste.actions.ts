@@ -25,18 +25,21 @@ import {
   getPasteSchema,
   deletePasteSchema,
   checkUrlAvailabilitySchema,
+  updateQrCodeColorsSchema,
   updatePasteSettingsSchema,
   updatePasteSchema,
   type CreatePasteResult,
   type GetPasteResult,
   type DeletePasteResult,
   type CheckUrlAvailabilityResult,
+  type UpdateQrCodeColorsResult,
   type UpdatePasteSettingsResult,
   type UpdatePasteResult,
   type CreatePasteInput,
   type GetPasteInput,
   type DeletePasteInput,
   type CheckUrlAvailabilityInput,
+  type UpdateQrCodeColorsInput,
   type UpdatePasteSettingsInput,
   type UpdatePasteInput,
 } from "@/shared/types/paste";
@@ -142,6 +145,8 @@ export async function createPaste(input: CreatePasteInput): Promise<CreatePasteR
             burnAfterRead: validatedInput.burnAfterRead,
             burnAfterReadViews: validatedInput.burnAfterRead ? (validatedInput.burnAfterReadViews || 1) : null,
             expiresAt,
+            qrCodeColor: validatedInput.qrCodeColor,
+            qrCodeBackground: validatedInput.qrCodeBackground,
             userId: user?.id || null,
           })
           .returning({
@@ -185,6 +190,8 @@ export async function createPaste(input: CreatePasteInput): Promise<CreatePasteR
               burnAfterRead: validatedInput.burnAfterRead,
               burnAfterReadViews: validatedInput.burnAfterRead ? (validatedInput.burnAfterReadViews || 1) : null,
               expiresAt,
+              qrCodeColor: validatedInput.qrCodeColor,
+              qrCodeBackground: validatedInput.qrCodeBackground,
               userId: user?.id || null,
             })
             .returning({
@@ -218,43 +225,52 @@ export async function createPaste(input: CreatePasteInput): Promise<CreatePasteR
 
     // Handle tags if provided
     if (validatedInput.tags && validatedInput.tags.length > 0) {
-      for (const tagName of validatedInput.tags) {
-        // Create a slug from the tag name
-        const tagSlug = tagName.toLowerCase().replace(/[^a-z0-9-_]/g, '-').replace(/-+/g, '-').trim();
-        const tagId = nanoid();
+      // Process tags in batches for better performance
+      const tagSlugs = validatedInput.tags.map(tagName => 
+        tagName.toLowerCase().replace(/[^a-z0-9-_]/g, '-').replace(/-+/g, '-').trim()
+      );
 
-        // Insert tag if it doesn't exist
-        const existingTag = await db
-          .select({ id: tag.id })
-          .from(tag)
-          .where(eq(tag.slug, tagSlug))
-          .limit(1);
+      // Find existing tags in a single query
+      const existingTags = await db
+        .select({ id: tag.id, slug: tag.slug })
+        .from(tag)
+        .where(inArray(tag.slug, tagSlugs));
 
-        let tagIdToUse: string;
+      const existingTagMap = new Map(existingTags.map(t => [t.slug, t.id]));
+      const tagsToCreate: Array<{ id: string; name: string; slug: string }> = [];
+      const pasteTags: Array<{ pasteId: string; tagId: string }> = [];
+
+      // Prepare new tags and relationships
+      for (let i = 0; i < validatedInput.tags.length; i++) {
+        const tagName = validatedInput.tags[i];
+        const tagSlug = tagSlugs[i];
         
-        if (existingTag.length === 0) {
-          // Create new tag
-          const newTag = await db
-            .insert(tag)
-            .values({
-              id: tagId,
-              name: tagName,
-              slug: tagSlug,
-            })
-            .returning({ id: tag.id });
-          
-          tagIdToUse = newTag[0].id;
-        } else {
-          tagIdToUse = existingTag[0].id;
+        let tagIdToUse = existingTagMap.get(tagSlug);
+        
+        if (!tagIdToUse) {
+          // Tag doesn't exist, prepare to create it
+          tagIdToUse = nanoid();
+          tagsToCreate.push({
+            id: tagIdToUse,
+            name: tagName,
+            slug: tagSlug,
+          });
         }
 
-        // Create paste-tag relationship
-        await db
-          .insert(pasteTag)
-          .values({
-            pasteId: pasteId,
-            tagId: tagIdToUse,
-          });
+        pasteTags.push({
+          pasteId: pasteId,
+          tagId: tagIdToUse,
+        });
+      }
+
+      // Create new tags in batch if any
+      if (tagsToCreate.length > 0) {
+        await db.insert(tag).values(tagsToCreate);
+      }
+
+      // Create paste-tag relationships in batch
+      if (pasteTags.length > 0) {
+        await db.insert(pasteTag).values(pasteTags);
       }
     }
 
@@ -419,6 +435,8 @@ export async function getPaste(input: GetPasteInput): Promise<GetPasteResult> {
           expiresAt: foundPaste.expiresAt || undefined,
           userId: foundPaste.userId || undefined,
           hasPassword: !!foundPaste.password,
+          qrCodeColor: foundPaste.qrCodeColor || undefined,
+          qrCodeBackground: foundPaste.qrCodeBackground || undefined,
           createdAt: foundPaste.createdAt,
           updatedAt: foundPaste.updatedAt,
           tags: pasteTags,
@@ -442,6 +460,8 @@ export async function getPaste(input: GetPasteInput): Promise<GetPasteResult> {
         expiresAt: foundPaste.expiresAt || undefined,
         userId: foundPaste.userId || undefined,
         hasPassword: !!foundPaste.password,
+        qrCodeColor: foundPaste.qrCodeColor || undefined,
+        qrCodeBackground: foundPaste.qrCodeBackground || undefined,
         createdAt: foundPaste.createdAt,
         updatedAt: foundPaste.updatedAt,
         tags: pasteTags,
@@ -621,6 +641,8 @@ export async function getUserPastes(
         expiresAt: paste.expiresAt,
         burnAfterRead: paste.burnAfterRead,
         burnAfterReadViews: paste.burnAfterReadViews,
+        qrCodeColor: paste.qrCodeColor,
+        qrCodeBackground: paste.qrCodeBackground,
         hasPassword: sql<boolean>`${paste.password} IS NOT NULL`,
       })
       .from(paste)
@@ -1280,6 +1302,89 @@ export async function updatePaste(input: UpdatePasteInput): Promise<UpdatePasteR
     return {
       success: false,
       error: error instanceof Error ? error.message : "Failed to update paste",
+    };
+  }
+}
+
+export async function updateQrCodeColors(input: UpdateQrCodeColorsInput): Promise<UpdateQrCodeColorsResult> {
+  try {
+    // Validate input
+    const validatedInput = updateQrCodeColorsSchema.parse(input);
+    
+    // Get current user
+    const user = await getCurrentUser();
+    if (!user) {
+      return {
+        success: false,
+        error: "Authentication required",
+      };
+    }
+
+    // Check rate limiting
+    const rateLimitResult = await checkRateLimit(user.id, "update-paste");
+    if (!rateLimitResult.success) {
+      return {
+        success: false,
+        error: `Rate limit exceeded. Try again in a few minutes.`,
+      };
+    }
+
+    // Find the paste and verify ownership
+    const existingPaste = await db
+      .select({
+        id: paste.id,
+        userId: paste.userId,
+      })
+      .from(paste)
+      .where(
+        and(
+          eq(paste.id, validatedInput.id),
+          eq(paste.isDeleted, false)
+        )
+      )
+      .limit(1);
+
+    if (existingPaste.length === 0) {
+      return {
+        success: false,
+        error: "Paste not found",
+      };
+    }
+
+    const targetPaste = existingPaste[0];
+
+    // Verify ownership
+    if (targetPaste.userId !== user.id) {
+      return {
+        success: false,
+        error: "You can only update your own pastes",
+      };
+    }
+
+    // Update the QR code colors
+    await db
+      .update(paste)
+      .set({
+        qrCodeColor: validatedInput.qrCodeColor,
+        qrCodeBackground: validatedInput.qrCodeBackground,
+        updatedAt: new Date(),
+      })
+      .where(eq(paste.id, validatedInput.id));
+
+    // Clear cache for user pastes
+    await deleteFromCache(generateCacheKey(CACHE_KEYS.USER_PASTES, user.id));
+
+    // Revalidate relevant paths
+    revalidatePath('/dashboard');
+
+    return {
+      success: true,
+    };
+  } catch (error) {
+    console.error("Update QR code colors error:", error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Failed to update QR code colors",
     };
   }
 }
