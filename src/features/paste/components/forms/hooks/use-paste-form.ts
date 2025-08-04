@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useTransition, useEffect, useRef } from "react";
-import { useForm } from "react-hook-form";
+import { useState, useTransition, useEffect, useRef, useMemo } from "react";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { useAuth } from "@/shared/hooks/use-auth";
@@ -13,6 +13,7 @@ import {
 } from "@/shared/lib/constants";
 import { createPasteSchema, type CreatePasteInput, type UpdatePasteInput } from "@/shared/types/paste";
 import { createPaste, updatePaste } from "@/features/paste/actions/paste.actions";
+import type { URLAvailability } from "../types";
 
 interface EditingPaste {
   id: string;
@@ -25,6 +26,8 @@ interface EditingPaste {
   burnAfterReadViews: number | null;
   expiresAt: Date | null;
   hasPassword: boolean;
+  qrCodeColor: string | null;
+  qrCodeBackground: string | null;
   tags?: Array<{ name: string }>;
 }
 
@@ -38,11 +41,10 @@ export function usePasteForm({ initialContent = "", editingPaste = null, onSucce
   const { isAuthenticated } = useAuth();
   const [isPending, startTransition] = useTransition();
   const [showPassword, setShowPassword] = useState(false);
-  const [urlAvailability, setUrlAvailability] = useState<{
-    isChecking: boolean;
-    available: boolean | null;
-    error?: string;
-  }>({ isChecking: false, available: null });
+  const [urlAvailability, setUrlAvailability] = useState<URLAvailability>({ 
+    isChecking: false, 
+    available: null 
+  });
 
   // Uncontrolled textarea for performance
   const contentRef = useRef<HTMLTextAreaElement>(null);
@@ -58,14 +60,14 @@ export function usePasteForm({ initialContent = "", editingPaste = null, onSucce
       title: "",
       description: "",
       content: initialContent,
-      language: undefined,
-      visibility: undefined,
+      language: "plain",
+      visibility: PASTE_VISIBILITY.PUBLIC,
       password: "",
       customUrl: "",
       tags: [],
       burnAfterRead: false,
       burnAfterReadViews: undefined,
-      expiresIn: undefined,
+      expiresIn: isAuthenticated ? "never" : "30m",
       qrCodeColor: "#000000",
       qrCodeBackground: "#ffffff",
     },
@@ -103,16 +105,19 @@ export function usePasteForm({ initialContent = "", editingPaste = null, onSucce
   useEffect(() => {
     if (editingPaste) {
       const resetData = {
-        id: editingPaste.id,
         title: editingPaste.title || "",
         description: editingPaste.description || "",
+        content: editingPaste.content,
         language: (editingPaste.language as SupportedLanguage) || "plain",
         visibility: (editingPaste.visibility as PasteVisibility) || PASTE_VISIBILITY.PUBLIC,
         password: "",
+        customUrl: "",
         tags: editingPaste.tags?.map(tag => tag.name) || [],
         burnAfterRead: editingPaste.burnAfterRead,
         burnAfterReadViews: editingPaste.burnAfterRead ? (editingPaste.burnAfterReadViews || 1) : undefined,
         expiresIn: getExpiresInValue(editingPaste.expiresAt),
+        qrCodeColor: editingPaste.qrCodeColor || "#000000",
+        qrCodeBackground: editingPaste.qrCodeBackground || "#ffffff",
       };
       
       form.reset(resetData);
@@ -126,14 +131,15 @@ export function usePasteForm({ initialContent = "", editingPaste = null, onSucce
       form.reset({
         title: "",
         description: "",
-        language: undefined,
-        visibility: undefined,
+        content: initialContent,
+        language: "plain",
+        visibility: PASTE_VISIBILITY.PUBLIC,
         password: "",
         customUrl: "",
         tags: [],
         burnAfterRead: false,
         burnAfterReadViews: undefined,
-        expiresIn: undefined,
+        expiresIn: isAuthenticated ? "never" : "30m",
         qrCodeColor: "#000000",
         qrCodeBackground: "#ffffff",
       });
@@ -146,32 +152,59 @@ export function usePasteForm({ initialContent = "", editingPaste = null, onSucce
     }
   }, [editingPaste, initialContent, isAuthenticated, form]);
 
-  // Remove content watcher - now uncontrolled
-  const watchedVisibility = form.watch("visibility") || PASTE_VISIBILITY.PUBLIC;
-  const watchedBurnAfterRead = form.watch("burnAfterRead") || false;
-  const watchedCustomUrl = form.watch("customUrl") || "";
+  // Optimized form watching using useWatch for better performance
+  const watchedFields = useWatch({
+    control: form.control,
+    name: ["visibility", "burnAfterRead", "customUrl"]
+  });
 
-  // Check URL availability with debouncing
+  // Memoize watched values to prevent unnecessary re-renders
+  const { watchedVisibility, watchedBurnAfterRead, watchedCustomUrl } = useMemo(() => ({
+    watchedVisibility: watchedFields?.[0] || PASTE_VISIBILITY.PUBLIC,
+    watchedBurnAfterRead: watchedFields?.[1] || false,
+    watchedCustomUrl: watchedFields?.[2] || ""
+  }), [watchedFields]);
+
+  // Enhanced URL availability check with retry logic and better error handling
   useEffect(() => {
     if (!isAuthenticated || !watchedCustomUrl?.trim()) {
       setUrlAvailability({ isChecking: false, available: null });
       return;
     }
 
-    const timeoutId = setTimeout(async () => {
-      setUrlAvailability({ isChecking: true, available: null });
-      
+    const checkUrlAvailability = async (url: string, retryCount = 0): Promise<void> => {
       try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 5000); // 5s timeout
+
         const response = await fetch("/api/check-url", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ url: watchedCustomUrl?.trim() }),
+          body: JSON.stringify({ url: url.trim() }),
+          signal: controller.signal,
         });
 
+        clearTimeout(timeoutId);
+
         if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
+          // Retry for server errors (5xx) up to 3 times
+          if (response.status >= 500 && retryCount < 3) {
+            await new Promise(resolve => setTimeout(resolve, 1000 * Math.pow(2, retryCount)));
+            return checkUrlAvailability(url, retryCount + 1);
+          }
+          
+          // Handle different error types
+          if (response.status === 429) {
+            throw new Error("Too many requests. Please wait a moment and try again.");
+          } else if (response.status === 401) {
+            throw new Error("Authentication required to check URL availability.");
+          } else if (response.status >= 400 && response.status < 500) {
+            throw new Error("Invalid request. Please check your input.");
+          } else {
+            throw new Error(`Server error: ${response.status}`);
+          }
         }
 
         const result = await response.json();
@@ -182,12 +215,41 @@ export function usePasteForm({ initialContent = "", editingPaste = null, onSucce
         });
       } catch (error) {
         console.error("URL availability check failed:", error);
-        setUrlAvailability({
-          isChecking: false,
-          available: false,
-          error: "Failed to check URL availability",
-        });
+        
+        // Handle specific error types
+        if (error instanceof Error) {
+          if (error.name === 'AbortError') {
+            setUrlAvailability({
+              isChecking: false,
+              available: false,
+              error: "Request timed out. Please try again.",
+            });
+          } else if (error.message.includes('fetch')) {
+            setUrlAvailability({
+              isChecking: false,
+              available: false,
+              error: "Network error. Please check your connection.",
+            });
+          } else {
+            setUrlAvailability({
+              isChecking: false,
+              available: false,
+              error: error.message,
+            });
+          }
+        } else {
+          setUrlAvailability({
+            isChecking: false,
+            available: false,
+            error: "An unexpected error occurred.",
+          });
+        }
       }
+    };
+
+    const timeoutId = setTimeout(() => {
+      setUrlAvailability({ isChecking: true, available: null });
+      checkUrlAvailability(watchedCustomUrl);
     }, 500);
 
     return () => clearTimeout(timeoutId);

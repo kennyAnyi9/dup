@@ -156,6 +156,7 @@ export function PasteCardView({
         initialColor={paste.qrCodeColor || "#000000"}
         initialBackground={paste.qrCodeBackground || "#ffffff"}
         onColorsChange={handleQrColorChange}
+        isAuthenticated={false} // QR customization disabled in card view
       />
     </>
   );

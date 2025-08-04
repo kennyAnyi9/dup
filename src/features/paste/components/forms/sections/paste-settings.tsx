@@ -23,13 +23,7 @@ import {
 } from "lucide-react";
 import { Textarea } from "@/shared/components/dupui/textarea";
 import { TagsInput } from "../../ui/tags-input";
-import { usePasteForm } from "../hooks/use-paste-form";
-
-interface PasteSettingsProps {
-  form: ReturnType<typeof usePasteForm>["form"];
-  isAuthenticated: boolean;
-  isMobile?: boolean;
-}
+import type { PasteSettingsProps } from "../types";
 
 export function PasteSettings({
   form,
@@ -57,7 +51,7 @@ export function PasteSettings({
     },
     {
       value: PASTE_VISIBILITY.PRIVATE,
-      label: `Private${!isAuthenticated ? " ⭐" : ""}`,
+      label: "Private",
       icon: <Lock className="h-4 w-4" />,
       disabled: !isAuthenticated
     }
@@ -66,10 +60,10 @@ export function PasteSettings({
   // Expiration options
   const expirationOptions = [
     { value: "30m", label: "30 minutes", icon: <ClockFading className="h-4 w-4" /> },
-    { value: "1h", label: `1 hour${!isAuthenticated ? " ⭐" : ""}`, icon: <ClockFading className="h-4 w-4" />, disabled: !isAuthenticated },
-    { value: "1d", label: `1 day${!isAuthenticated ? " ⭐" : ""}`, icon: <ClockFading className="h-4 w-4" />, disabled: !isAuthenticated },
-    { value: "7d", label: `7 days${!isAuthenticated ? " ⭐" : ""}`, icon: <ClockFading className="h-4 w-4" />, disabled: !isAuthenticated },
-    { value: "never", label: `Never${!isAuthenticated ? " ⭐" : ""}`, icon: <ClockFading className="h-4 w-4" />, disabled: !isAuthenticated }
+    { value: "1h", label: "1 hour", icon: <ClockFading className="h-4 w-4" />, disabled: !isAuthenticated },
+    { value: "1d", label: "1 day", icon: <ClockFading className="h-4 w-4" />, disabled: !isAuthenticated },
+    { value: "7d", label: "7 days", icon: <ClockFading className="h-4 w-4" />, disabled: !isAuthenticated },
+    { value: "never", label: "Never", icon: <ClockFading className="h-4 w-4" />, disabled: !isAuthenticated }
   ];
 
   return (
@@ -110,11 +104,22 @@ export function PasteSettings({
             <FormControl>
               <TagsInput
                 value={field.value || []}
-                onChange={field.onChange}
-                placeholder="Optional tags to organize..."
+                onChange={isAuthenticated ? field.onChange : () => {}}
+                placeholder={
+                  isAuthenticated 
+                    ? "Optional tags to organize..." 
+                    : "Sign up to add tags..."
+                }
                 maxTags={5}
+                disabled={!isAuthenticated}
+                className={!isAuthenticated ? "cursor-not-allowed opacity-60" : ""}
               />
             </FormControl>
+            {!isAuthenticated && (
+              <p className="text-xs text-muted-foreground">
+                Sign in to organize your pastes with tags
+              </p>
+            )}
             <FormMessage />
           </FormItem>
         )}

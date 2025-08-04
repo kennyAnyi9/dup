@@ -15,6 +15,8 @@ interface EditingPaste {
   burnAfterReadViews: number | null;
   expiresAt: Date | null;
   hasPassword: boolean;
+  qrCodeColor: string | null;
+  qrCodeBackground: string | null;
   tags?: Array<{ name: string }>;
 }
 

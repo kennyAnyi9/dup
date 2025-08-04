@@ -3,20 +3,9 @@
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/shared/components/dupui/sheet";
 import { Button } from "@/shared/components/dupui/button";
 import { Settings } from "lucide-react";
-import { usePasteForm } from "../hooks/use-paste-form";
 import { PasteSettings } from "./paste-settings";
 import { SecuritySettings } from "./security-settings";
-
-interface PasteSettingsDrawerProps {
-  form: ReturnType<typeof usePasteForm>["form"];
-  showPassword: boolean;
-  setShowPassword: (show: boolean) => void;
-  urlAvailability: ReturnType<typeof usePasteForm>["urlAvailability"];
-  isEditing: boolean;
-  isAuthenticated: boolean;
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-}
+import type { PasteSettingsDrawerProps } from "../types";
 
 export function PasteSettingsDrawer({
   form,
@@ -32,6 +21,7 @@ export function PasteSettingsDrawer({
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetTrigger asChild>
         <Button 
+          type="button"
           variant="outline" 
           size="sm"
           className="lg:hidden"

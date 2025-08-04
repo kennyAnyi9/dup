@@ -9,17 +9,22 @@ interface TagsInputProps {
   onChange: (tags: string[]) => void;
   placeholder?: string;
   maxTags?: number;
+  disabled?: boolean;
+  className?: string;
 }
 
 export function TagsInput({ 
   value = [], 
   onChange, 
   placeholder = "Add tags...", 
-  maxTags = 5 
+  maxTags = 5,
+  disabled = false,
+  className = ""
 }: TagsInputProps) {
   const [inputValue, setInputValue] = useState("");
 
   const addTag = (tag: string) => {
+    if (disabled) return;
     const trimmedTag = tag.trim().toLowerCase();
     if (
       trimmedTag &&
@@ -34,6 +39,7 @@ export function TagsInput({
   };
 
   const removeTag = (tagToRemove: string) => {
+    if (disabled) return;
     onChange(value.filter(tag => tag !== tagToRemove));
   };
 
@@ -53,8 +59,12 @@ export function TagsInput({
   };
 
   return (
-    <div className="space-y-3">
-      <div className="flex flex-wrap gap-2 min-h-[2.5rem] p-3 border rounded-lg bg-background/50 backdrop-blur-sm focus-within:border-ring focus-within:ring-1 focus-within:ring-ring/20 transition-all duration-200">
+    <div className={`space-y-3 ${className}`}>
+      <div className={`flex flex-wrap gap-2 min-h-[2.5rem] p-3 border rounded-lg bg-background/50 backdrop-blur-sm transition-all duration-200 ${
+        disabled 
+          ? "opacity-60 cursor-not-allowed" 
+          : "focus-within:border-ring focus-within:ring-1 focus-within:ring-ring/20"
+      }`}>
         {value.map((tag, index) => (
           <div
             key={tag}
@@ -66,13 +76,16 @@ export function TagsInput({
             <button
               type="button"
               onClick={() => removeTag(tag)}
-              className="ml-0.5 hover:bg-primary/20 rounded-full p-0.5 transition-colors duration-150 group"
+              disabled={disabled}
+              className={`ml-0.5 rounded-full p-0.5 transition-colors duration-150 group ${
+                disabled ? "cursor-not-allowed" : "hover:bg-primary/20"
+              }`}
             >
-              <X className="h-3 w-3 group-hover:text-destructive" />
+              <X className={`h-3 w-3 ${disabled ? "" : "group-hover:text-destructive"}`} />
             </button>
           </div>
         ))}
-        {value.length < maxTags && (
+        {value.length < maxTags && !disabled && (
           <div className="flex-1 min-w-[120px]">
             <Input
               type="text"

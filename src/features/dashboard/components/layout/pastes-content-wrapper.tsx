@@ -113,6 +113,8 @@ export function PastesContentWrapper({ pastes }: PastesContentWrapperProps) {
       burnAfterReadViews: paste.burnAfterReadViews,
       expiresAt: paste.expiresAt,
       hasPassword: paste.hasPassword,
+      qrCodeColor: paste.qrCodeColor,
+      qrCodeBackground: paste.qrCodeBackground,
       tags: paste.tags?.map((tag) => ({ name: tag.name })) || [],
     });
   };

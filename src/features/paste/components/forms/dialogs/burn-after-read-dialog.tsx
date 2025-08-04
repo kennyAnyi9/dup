@@ -13,13 +13,7 @@ import {
 import { Input } from "@/shared/components/dupui/input";
 import { Label } from "@/shared/components/dupui/label";
 import { Flame, Check } from "lucide-react";
-import { usePasteForm } from "../hooks/use-paste-form";
-
-interface BurnAfterReadDialogProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  form: ReturnType<typeof usePasteForm>["form"];
-}
+import type { BurnAfterReadDialogProps } from "../types";
 
 const PRESET_OPTIONS = [
   { value: 1, label: "1 view" },
@@ -32,6 +26,7 @@ export function BurnAfterReadDialog({
   open,
   onOpenChange,
   form,
+  isAuthenticated,
 }: BurnAfterReadDialogProps) {
   const [selectedOption, setSelectedOption] = useState<"off" | "preset" | "custom">("off");
   const [presetValue, setPresetValue] = useState<number>(1);
@@ -153,20 +148,29 @@ export function BurnAfterReadDialog({
           {/* Custom Option */}
           <button
             type="button"
-            onClick={() => setSelectedOption("custom")}
+            onClick={() => isAuthenticated && setSelectedOption("custom")}
+            disabled={!isAuthenticated}
             className={`w-full flex items-center gap-2 p-2 rounded-md border transition-all ${
-              selectedOption === "custom"
+              !isAuthenticated 
+                ? "border-border bg-muted/50 cursor-not-allowed opacity-60"
+                : selectedOption === "custom"
                 ? "border-primary bg-primary/5"
                 : "border-border hover:border-primary/50"
             }`}
           >
             <div className={`w-3 h-3 rounded-full border flex items-center justify-center ${
-              selectedOption === "custom" ? "border-primary" : "border-muted-foreground"
+              !isAuthenticated
+                ? "border-muted-foreground"
+                : selectedOption === "custom" ? "border-primary" : "border-muted-foreground"
             }`}>
-              {selectedOption === "custom" && <Check className="h-2 w-2 text-primary" />}
+              {selectedOption === "custom" && isAuthenticated && <Check className="h-2 w-2 text-primary" />}
             </div>
-            <span className="text-sm font-medium">Custom</span>
-            <span className="text-xs text-muted-foreground ml-auto">Set your own</span>
+            <span className={`text-sm font-medium ${!isAuthenticated ? "text-muted-foreground" : ""}`}>
+              Custom
+            </span>
+            <span className="text-xs text-muted-foreground ml-auto">
+              {!isAuthenticated ? "Sign in required" : "Set your own"}
+            </span>
           </button>
 
           {selectedOption === "custom" && (
@@ -194,10 +198,11 @@ export function BurnAfterReadDialog({
         </div>
 
         <DialogFooter className="gap-2">
-          <Button variant="outline" size="sm" onClick={() => onOpenChange(false)}>
+          <Button type="button" variant="outline" size="sm" onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
           <Button 
+            type="button"
             size="sm"
             onClick={handleSave}
             disabled={selectedOption === "custom" && !isCustomValid}

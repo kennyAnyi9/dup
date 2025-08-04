@@ -19,15 +19,7 @@ import { Edit3, Upload } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { CharacterCounter } from "../../ui/character-counter";
-import { usePasteForm } from "../hooks/use-paste-form";
-
-interface PasteMainContentProps {
-  form: ReturnType<typeof usePasteForm>["form"];
-  contentRef: ReturnType<typeof usePasteForm>["contentRef"];
-  contentLength: ReturnType<typeof usePasteForm>["contentLength"];
-  handleContentInput: ReturnType<typeof usePasteForm>["handleContentInput"];
-  charLimit: number | null;
-}
+import type { PasteMainContentProps } from "../types";
 
 export function PasteMainContent({
   form,
@@ -35,6 +27,7 @@ export function PasteMainContent({
   contentLength,
   handleContentInput,
   charLimit,
+  isAuthenticated,
 }: PasteMainContentProps) {
   const [inputMode, setInputMode] = useState<"type" | "upload">("type");
   const [uploadedFilename, setUploadedFilename] = useState<string>("");
@@ -72,50 +65,68 @@ export function PasteMainContent({
   };
 
   const switchToUploadMode = () => {
-    setInputMode("upload");
+    if (isAuthenticated) {
+      setInputMode("upload");
+    }
   };
 
   return (
-    <div className="h-full flex flex-col space-y-4 p-6">
-      {/* Title */}
-      <FormField
-        control={form.control}
-        name="title"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel className="text-lg font-semibold flex items-center gap-2">
-              Title
-            </FormLabel>
-            <FormControl>
-              <Input
-                placeholder="Give your paste a descriptive title..."
-                className="text-lg h-12 border-2 focus:border-primary"
-                {...field}
-              />
-            </FormControl>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
+    <div className="h-full flex flex-col p-6 overflow-hidden">
+      {/* Title - Fixed height section */}
+      <div className="flex-shrink-0 pb-4">
+        <FormField
+          control={form.control}
+          name="title"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel className="text-lg font-semibold flex items-center gap-2">
+                Title
+              </FormLabel>
+              <FormControl>
+                <Input
+                  placeholder="Give your paste a descriptive title..."
+                  className="text-lg h-12 border-2 focus:border-primary"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                    }
+                  }}
+                  {...field}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+      </div>
 
-
-      {/* Content */}
-      <div className="flex-1 flex flex-col">
+      {/* Content - Flexible height section */}
+      <div className="flex-1 flex flex-col min-h-0">
         <div className="flex items-center justify-between mb-3">
-          <label className="text-lg font-semibold flex items-center gap-2">
+          <label 
+            htmlFor="paste-content"
+            className="text-lg font-semibold flex items-center gap-2"
+          >
             Content
           </label>
           <div className="flex items-center gap-3">
             <CharacterCounter current={contentLength} limit={charLimit} />
-            <div className="flex items-center gap-1">
+            <div 
+              className="flex items-center gap-1"
+              role="tablist"
+              aria-label="Content input method"
+            >
               <Button
                 type="button"
                 variant={inputMode === "type" ? "default" : "outline"}
                 size="sm"
                 onClick={switchToTypeMode}
                 className="h-8 px-3 text-sm"
+                role="tab"
+                aria-selected={inputMode === "type"}
+                aria-controls="content-input-area"
               >
-                <Edit3 className="h-4 w-4 mr-1" />
+                <Edit3 className="h-4 w-4 mr-1" aria-hidden="true" />
                 Type
               </Button>
               <Button
@@ -123,25 +134,37 @@ export function PasteMainContent({
                 variant={inputMode === "upload" ? "default" : "outline"}
                 size="sm"
                 onClick={switchToUploadMode}
-                className="h-8 px-3 text-sm"
+                disabled={!isAuthenticated}
+                className={`h-8 px-3 text-sm ${!isAuthenticated ? "cursor-not-allowed opacity-60" : ""}`}
+                role="tab"
+                aria-selected={inputMode === "upload"}
+                aria-controls="content-input-area"
+                title={!isAuthenticated ? "Sign in to upload files" : "Upload files"}
               >
-                <Upload className="h-4 w-4 mr-1" />
+                <Upload className="h-4 w-4 mr-1" aria-hidden="true" />
                 Upload
               </Button>
             </div>
           </div>
         </div>
 
+        {/* File Upload Section - Fixed height when visible */}
         {inputMode === "upload" && (
-          <FileUpload
-            onFileSelect={handleFileSelect}
-            onError={handleFileError}
-            className="mb-4"
-          />
+          <div className="flex-shrink-0 mb-4">
+            <FileUpload
+              onFileSelect={handleFileSelect}
+              onError={handleFileError}
+            />
+          </div>
         )}
 
-        {/* Content Textarea - Takes remaining space */}
-        <div className="flex-1 relative">
+        {/* Content Textarea - Takes remaining space with proper overflow */}
+        <div 
+          className="flex-1 relative min-h-0"
+          id="content-input-area"
+          role="tabpanel"
+          aria-labelledby="paste-content"
+        >
           {uploadedFilename && inputMode === "type" && (
             <div className="absolute top-3 right-3 z-10">
               <div className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-md border">
@@ -150,16 +173,19 @@ export function PasteMainContent({
             </div>
           )}
           <Textarea
+            id="paste-content"
             ref={contentRef}
             placeholder={
               inputMode === "upload"
                 ? "File content will appear here..."
                 : "Paste or type your content here..."
             }
-            className="h-full text-base leading-relaxed font-mono border-2 focus:border-primary resize-none"
+            className="w-full h-full text-base leading-relaxed font-mono border-2 focus:border-primary resize-none overflow-y-auto scrollbar-thin scrollbar-thumb-muted scrollbar-track-transparent touch-pan-y"
             spellCheck={false}
             onInput={handleContentInput}
             readOnly={inputMode === "upload" && !uploadedFilename}
+            aria-describedby={charLimit ? "character-count" : undefined}
+            aria-label={`Paste content${charLimit ? `, ${contentLength} of ${charLimit.toLocaleString()} characters used` : ""}`}
           />
         </div>
       </div>

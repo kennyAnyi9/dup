@@ -2,6 +2,7 @@
 
 import { usePasteForm } from "@/features/paste/components/forms/hooks/use-paste-form";
 import { AuthNotice } from "@/features/paste/components/forms/sections/auth-notice";
+import { DiscardChangesDialog } from "@/features/paste/components/forms/dialogs/discard-changes-dialog";
 import { PasteMainContent } from "@/features/paste/components/forms/sections/paste-main-content";
 import { PasteSettingsDrawer } from "@/features/paste/components/forms/sections/paste-settings-drawer";
 import { PasteSettingsSidebar } from "@/features/paste/components/forms/sections/paste-settings-sidebar";
@@ -15,6 +16,7 @@ import { useState } from "react";
 export function NewPasteForm() {
   const router = useRouter();
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [showDiscardDialog, setShowDiscardDialog] = useState(false);
 
   const formHook = usePasteForm({
     initialContent: "",
@@ -35,6 +37,7 @@ export function NewPasteForm() {
     contentRef,
     contentLength,
     handleContentInput,
+    watchedBurnAfterRead,
     onSubmit,
     isSubmitDisabled,
   } = formHook;
@@ -44,20 +47,25 @@ export function NewPasteForm() {
     const hasFormData = form.getValues("title") || form.getValues("description");
     
     if (hasContent || hasFormData) {
-      const confirmed = window.confirm("Are you sure you want to discard your changes?");
-      if (!confirmed) return;
+      setShowDiscardDialog(true);
+      return;
     }
     
+    router.back();
+  };
+
+  const handleConfirmDiscard = () => {
+    setShowDiscardDialog(false);
     router.back();
   };
 
   return (
     <div className="h-screen flex flex-col bg-background">
       {/* Header */}
-      <div className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="flex items-center justify-between h-14 px-4">
           <div className="flex items-center gap-4">
-            <ClipboardPenLine />
+            <ClipboardPenLine aria-hidden="true" />
             <h1 className="text-lg font-semibold">New Paste</h1>
           </div>
 
@@ -69,7 +77,7 @@ export function NewPasteForm() {
                   Guest Mode
                 </Badge>
               )}
-              {form.watch("burnAfterRead") && (
+              {watchedBurnAfterRead && (
                 <Badge variant="destructive" className="text-xs px-2 py-0.5">
                   <Zap className="h-2.5 w-2.5 mr-1" />
                   Burn After Read
@@ -96,6 +104,7 @@ export function NewPasteForm() {
                 onClick={handleCancel}
                 disabled={isPending}
                 className="h-9 px-3 text-sm"
+                aria-label="Cancel creating paste"
               >
                 Cancel
               </Button>
@@ -104,10 +113,11 @@ export function NewPasteForm() {
                 form="paste-form"
                 disabled={isSubmitDisabled}
                 className="h-9 px-4 text-sm"
+                aria-label={isPending ? "Creating paste..." : "Create paste"}
               >
                 {isPending ? (
                   <>
-                    <Loader className="h-3 w-3 animate-spin mr-2" />
+                    <Loader className="h-3 w-3 animate-spin mr-2" aria-hidden="true" />
                     Creating...
                   </>
                 ) : (
@@ -117,18 +127,28 @@ export function NewPasteForm() {
             </div>
           </div>
         </div>
-      </div>
+      </header>
 
       {/* Auth Notice */}
       <AuthNotice isAuthenticated={isAuthenticated} />
 
       {/* Main Content Area */}
-      <div className="flex-1 flex overflow-hidden">
+      <main className="flex-1 flex overflow-hidden">
         <Form {...form}>
           <form
             id="paste-form"
             onSubmit={form.handleSubmit(onSubmit)}
+            onKeyDown={(e) => {
+              // Prevent form submission on Enter key unless it's from the submit button
+              if (e.key === 'Enter' && e.target !== e.currentTarget) {
+                const target = e.target as HTMLElement;
+                if (target.tagName === 'INPUT' || (target.tagName === 'BUTTON' && target.getAttribute('type') !== 'submit')) {
+                  e.preventDefault();
+                }
+              }
+            }}
             className="flex-1 flex overflow-hidden"
+            aria-label="Create new paste"
           >
             {/* Main Content */}
             <div className="flex-1 overflow-hidden">
@@ -138,6 +158,7 @@ export function NewPasteForm() {
                 contentLength={contentLength}
                 handleContentInput={handleContentInput}
                 charLimit={charLimit}
+                isAuthenticated={isAuthenticated}
               />
             </div>
 
@@ -154,7 +175,7 @@ export function NewPasteForm() {
             </div>
           </form>
         </Form>
-      </div>
+      </main>
 
       {/* Footer with character count and actions - Mobile only */}
       <div className="border-t bg-background p-4 lg:hidden">
@@ -165,6 +186,13 @@ export function NewPasteForm() {
           </p>
         </div>
       </div>
+
+      {/* Discard Changes Dialog */}
+      <DiscardChangesDialog
+        open={showDiscardDialog}
+        onOpenChange={setShowDiscardDialog}
+        onConfirm={handleConfirmDiscard}
+      />
     </div>
   );
 }

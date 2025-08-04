@@ -194,6 +194,7 @@ export function PasteTable({
           initialColor={showQrCode.qrCodeColor || "#000000"}
           initialBackground={showQrCode.qrCodeBackground || "#ffffff"}
           onColorsChange={handleQrColorChange}
+          isAuthenticated={false} // QR customization disabled in table view
         />
       )}
     </>

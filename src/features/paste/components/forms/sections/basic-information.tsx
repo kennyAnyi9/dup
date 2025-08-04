@@ -17,16 +17,7 @@ import { toast } from "sonner";
 import { detectLanguage, getLanguageDisplayName } from "@/shared/lib/language-detection";
 import { CharacterCounter } from "../../ui/character-counter";
 import { TagsInput } from "../../ui/tags-input";
-import { usePasteForm } from "../hooks/use-paste-form";
-
-interface BasicInformationProps {
-  form: ReturnType<typeof usePasteForm>["form"];
-  contentRef: ReturnType<typeof usePasteForm>["contentRef"];
-  contentLength: ReturnType<typeof usePasteForm>["contentLength"];
-  handleContentInput: ReturnType<typeof usePasteForm>["handleContentInput"];
-  charLimit: number | null;
-  isMobile?: boolean;
-}
+import type { BasicInformationProps } from "../types";
 
 export function BasicInformation({
   form,

@@ -17,17 +17,7 @@ import {
   Loader,
   LockKeyhole,
 } from "lucide-react";
-import { usePasteForm } from "../hooks/use-paste-form";
-
-interface SecuritySettingsProps {
-  form: ReturnType<typeof usePasteForm>["form"];
-  showPassword: boolean;
-  setShowPassword: (show: boolean) => void;
-  urlAvailability: ReturnType<typeof usePasteForm>["urlAvailability"];
-  isEditing: boolean;
-  isAuthenticated: boolean;
-  isMobile?: boolean;
-}
+import type { SecuritySettingsProps } from "../types";
 
 export function SecuritySettings({
   form,
@@ -49,23 +39,31 @@ export function SecuritySettings({
             <FormLabel className="text-sm font-medium flex items-center gap-2">
               <LockKeyhole className="h-4 w-4 text-muted-foreground" />
               Encrypt
+              {!isAuthenticated && <span className="text-xs text-muted-foreground">(Sign in required)</span>}
             </FormLabel>
             <FormControl>
               <div className="relative">
                 <Input
                   type={showPassword ? "text" : "password"}
-                  placeholder="Optional password protection..."
-                  className="h-10 pr-10"
+                  placeholder={isAuthenticated ? "Optional password protection..." : "Sign in to add password protection..."}
+                  className={`h-10 pr-10 ${!isAuthenticated ? "cursor-not-allowed opacity-60" : ""}`}
+                  disabled={!isAuthenticated}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                    }
+                  }}
                   {...field}
                 />
                 <Button
                   type="button"
                   variant="ghost"
                   size="sm"
+                  disabled={!isAuthenticated}
                   className={`absolute right-0 top-0 ${
                     isMobile ? "h-8 w-8" : "h-9 w-9"
-                  } hover:bg-transparent`}
-                  onClick={() => setShowPassword(!showPassword)}
+                  } hover:bg-transparent ${!isAuthenticated ? "cursor-not-allowed opacity-60" : ""}`}
+                  onClick={() => isAuthenticated && setShowPassword(!showPassword)}
                 >
                   {showPassword ? (
                     <EyeOffIcon className="h-3 w-3" />
@@ -80,8 +78,8 @@ export function SecuritySettings({
         )}
       />
 
-      {/* Custom URL - Only for authenticated users when creating */}
-      {isAuthenticated && !isEditing && (
+      {/* Custom URL - Only when creating */}
+      {!isEditing && (
         <FormField
           control={form.control}
           name="customUrl"
@@ -90,6 +88,7 @@ export function SecuritySettings({
               <FormLabel className="text-sm font-medium flex items-center gap-2">
                 <Link2 className="h-4 w-4 text-muted-foreground" />
                 Link
+                {!isAuthenticated && <span className="text-xs text-muted-foreground">(Sign in required)</span>}
               </FormLabel>
               <FormControl>
                 <div className="relative flex rounded-md">
@@ -101,14 +100,22 @@ export function SecuritySettings({
                     </div>
                   </div>
                   <Input
-                    placeholder="Optional custom link"
+                    placeholder={isAuthenticated ? "Optional custom link" : "Sign in to create custom links..."}
+                    disabled={!isAuthenticated}
                     className={`block w-full rounded-r-md rounded-l-none border-l-transparent focus:border-l-input sm:text-sm z-0 focus:z-[1] h-10 ${
-                      field.value && urlAvailability.available === false
+                      !isAuthenticated 
+                        ? "cursor-not-allowed opacity-60"
+                        : field.value && urlAvailability.available === false
                         ? "border-destructive focus-visible:ring-destructive"
                         : field.value && urlAvailability.available === true
                         ? "border-green-500 focus-visible:ring-green-500"
                         : ""
                     }`}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                      }
+                    }}
                     {...field}
                   />
                   {field.value && (

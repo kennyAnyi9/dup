@@ -1,23 +1,14 @@
 "use client";
 
-import { Settings, Flame, QrCode } from "lucide-react";
-import { usePasteForm } from "../hooks/use-paste-form";
-import { SecuritySettings } from "./security-settings";
-import { PasteSettings } from "./paste-settings";
-import { ThemeSwitch } from "@/shared/components/theme/theme-switch";
 import { Button } from "@/shared/components/dupui/button";
+import { ThemeSwitch } from "@/shared/components/theme/theme-switch";
+import { Flame, QrCode, Settings } from "lucide-react";
+import { useState } from "react";
 import { BurnAfterReadDialog } from "../dialogs/burn-after-read-dialog";
 import { QRCodeDialog } from "../dialogs/qr-code-dialog";
-import { useState } from "react";
-
-interface PasteSettingsSidebarProps {
-  form: ReturnType<typeof usePasteForm>["form"];
-  showPassword: boolean;
-  setShowPassword: (show: boolean) => void;
-  urlAvailability: ReturnType<typeof usePasteForm>["urlAvailability"];
-  isEditing: boolean;
-  isAuthenticated: boolean;
-}
+import type { PasteSettingsSidebarProps } from "../types";
+import { PasteSettings } from "./paste-settings";
+import { SecuritySettings } from "./security-settings";
 
 export function PasteSettingsSidebar({
   form,
@@ -29,23 +20,23 @@ export function PasteSettingsSidebar({
 }: PasteSettingsSidebarProps) {
   const [burnDialogOpen, setBurnDialogOpen] = useState(false);
   const [qrDialogOpen, setQrDialogOpen] = useState(false);
-  
+
   // Watch QR code colors from form
   const qrCodeColor = form.watch("qrCodeColor");
   const qrCodeBackground = form.watch("qrCodeBackground");
-  
+
   // Get current burn after read status for button display
   const burnAfterRead = form.watch("burnAfterRead");
   const burnAfterReadViews = form.watch("burnAfterReadViews");
-  
+
   const getBurnButtonText = () => {
     if (!burnAfterRead) return "Burn After Read";
-    return `${burnAfterReadViews} view${burnAfterReadViews !== 1 ? 's' : ''}`;
+    return `${burnAfterReadViews} view${burnAfterReadViews !== 1 ? "s" : ""}`;
   };
 
   // Generate paste URL for QR code (will use actual URL after paste creation)
   const customUrl = form.watch("customUrl");
-  const pasteUrl = customUrl 
+  const pasteUrl = customUrl
     ? `https://dup.it/p/${customUrl}`
     : "https://dup.it/p/preview";
   return (
@@ -87,10 +78,16 @@ export function PasteSettingsSidebar({
             <Button
               type="button"
               variant={burnAfterRead ? "default" : "outline"}
-              onClick={() => setBurnDialogOpen(true)}
-              className="w-40 justify-start gap-2 h-10"
+              onClick={() => isAuthenticated && setBurnDialogOpen(true)}
+              disabled={!isAuthenticated}
+              className={`w-40 justify-start gap-2 h-10 ${!isAuthenticated ? "cursor-not-allowed opacity-60" : ""}`}
+              title={!isAuthenticated ? "Sign in to use burn after read" : ""}
             >
-              <Flame className={`h-4 w-4 ${burnAfterRead ? "text-white" : "text-muted-foreground"}`} />
+              <Flame
+                className={`h-4 w-4 ${
+                  burnAfterRead ? "text-white" : "text-muted-foreground"
+                }`}
+              />
               <span className="truncate">{getBurnButtonText()}</span>
             </Button>
 
@@ -105,7 +102,7 @@ export function PasteSettingsSidebar({
               <span>QR Code</span>
             </Button>
           </div>
-          
+
           {/* Theme Toggle - Far Right */}
           <ThemeSwitch />
         </div>
@@ -116,12 +113,14 @@ export function PasteSettingsSidebar({
         open={burnDialogOpen}
         onOpenChange={setBurnDialogOpen}
         form={form}
+        isAuthenticated={isAuthenticated}
       />
-      
+
       <QRCodeDialog
         open={qrDialogOpen}
         onOpenChange={setQrDialogOpen}
         url={pasteUrl}
+        isAuthenticated={isAuthenticated}
         initialColor={qrCodeColor}
         initialBackground={qrCodeBackground}
         onColorsChange={(foreground, background) => {
