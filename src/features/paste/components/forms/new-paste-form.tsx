@@ -9,7 +9,7 @@ import { PasteSettingsSidebar } from "@/features/paste/components/forms/sections
 import { Badge } from "@/shared/components/dupui/badge";
 import { Button } from "@/shared/components/dupui/button";
 import { Form } from "@/shared/components/dupui/form";
-import { ClipboardPenLine, Globe, Loader, Zap } from "lucide-react";
+import { Globe, Loader, Zap } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
@@ -63,10 +63,9 @@ export function NewPasteForm() {
     <div className="h-screen flex flex-col bg-background">
       {/* Header */}
       <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="flex items-center justify-between h-14 px-4">
-          <div className="flex items-center gap-4">
-            <ClipboardPenLine aria-hidden="true" />
-            <h1 className="text-lg font-semibold">New Paste</h1>
+        <div className="flex items-center justify-between h-14 px-4 lg:px-6">
+          <div>
+            <h1 className="text-base lg:text-lg font-semibold">New Paste</h1>
           </div>
 
           <div className="flex items-center gap-3">
@@ -80,7 +79,7 @@ export function NewPasteForm() {
               {watchedBurnAfterRead && (
                 <Badge variant="destructive" className="text-xs px-2 py-0.5">
                   <Zap className="h-2.5 w-2.5 mr-1" />
-                  Burn After Read
+                  {form.watch("burnAfterReadViews")} view{form.watch("burnAfterReadViews") !== 1 ? "s" : ""} then burn
                 </Badge>
               )}
             </div>
@@ -97,7 +96,8 @@ export function NewPasteForm() {
               onOpenChange={setSettingsOpen}
             />
 
-            <div className="flex items-center gap-2">
+            {/* Desktop Buttons */}
+            <div className="hidden lg:flex items-center gap-2">
               <Button
                 type="button"
                 variant="outline"
@@ -117,7 +117,7 @@ export function NewPasteForm() {
               >
                 {isPending ? (
                   <>
-                    <Loader className="h-3 w-3 animate-spin mr-2" aria-hidden="true" />
+                    <Loader className="h-4 w-4 animate-spin mr-2" aria-hidden="true" />
                     Creating...
                   </>
                 ) : (
@@ -139,11 +139,20 @@ export function NewPasteForm() {
             id="paste-form"
             onSubmit={form.handleSubmit(onSubmit)}
             onKeyDown={(e) => {
-              // Prevent form submission on Enter key unless it's from the submit button
-              if (e.key === 'Enter' && e.target !== e.currentTarget) {
-                const target = e.target as HTMLElement;
-                if (target.tagName === 'INPUT' || (target.tagName === 'BUTTON' && target.getAttribute('type') !== 'submit')) {
-                  e.preventDefault();
+              // Only prevent Enter on text-based inputs to avoid interfering with native interactions
+              if (e.key === 'Enter' && e.target && e.target !== e.currentTarget) {
+                const target = e.target as HTMLInputElement;
+                
+                // Type guard and check for text-based input types only
+                if (target && typeof target.tagName === 'string' && target.tagName.toLowerCase() === 'input') {
+                  const inputType = target.type?.toLowerCase() || 'text';
+                  
+                  // Only prevent Enter for text-based input types
+                  const textBasedTypes = ['text', 'password', 'search', 'url', 'email', 'tel'];
+                  if (textBasedTypes.includes(inputType)) {
+                    e.preventDefault();
+                  }
+                  // Allow native behavior for checkboxes, radio buttons, buttons, etc.
                 }
               }
             }}
@@ -179,11 +188,39 @@ export function NewPasteForm() {
 
       {/* Footer with character count and actions - Mobile only */}
       <div className="border-t bg-background p-4 lg:hidden">
-        <div className="flex items-center justify-between">
-          <p className="text-sm text-muted-foreground">
+        <div className="flex items-center justify-between gap-3">
+          <p className="text-xs lg:text-sm text-muted-foreground flex-1">
             {contentLength} characters
             {charLimit && ` / ${charLimit.toLocaleString()}`}
           </p>
+          <div className="flex items-center gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleCancel}
+              disabled={isPending}
+              className="h-9 px-3 text-sm"
+              aria-label="Cancel creating paste"
+            >
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              form="paste-form"
+              disabled={isSubmitDisabled}
+              className="h-9 px-4 text-sm"
+              aria-label={isPending ? "Creating paste..." : "Create paste"}
+            >
+              {isPending ? (
+                <>
+                  <Loader className="h-4 w-4 animate-spin mr-2" aria-hidden="true" />
+                  Creating...
+                </>
+              ) : (
+                "Create Paste"
+              )}
+            </Button>
+          </div>
         </div>
       </div>
 

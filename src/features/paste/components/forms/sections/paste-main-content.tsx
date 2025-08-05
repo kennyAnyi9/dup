@@ -11,13 +11,8 @@ import {
 } from "@/shared/components/dupui/form";
 import { Input } from "@/shared/components/dupui/input";
 import { Textarea } from "@/shared/components/dupui/textarea";
-import {
-  detectLanguage,
-  getLanguageDisplayName,
-} from "@/shared/lib/language-detection";
 import { Edit3, Upload } from "lucide-react";
-import { useState } from "react";
-import { toast } from "sonner";
+import { useFileUpload } from "../hooks/use-file-upload";
 import { CharacterCounter } from "../../ui/character-counter";
 import type { PasteMainContentProps } from "../types";
 
@@ -29,49 +24,22 @@ export function PasteMainContent({
   charLimit,
   isAuthenticated,
 }: PasteMainContentProps) {
-  const [inputMode, setInputMode] = useState<"type" | "upload">("type");
-  const [uploadedFilename, setUploadedFilename] = useState<string>("");
-
-  const handleFileSelect = (content: string, filename: string) => {
-    if (contentRef.current) {
-      contentRef.current.value = content;
-      handleContentInput();
-    }
-    setUploadedFilename(filename);
-
-    // Auto-fill title if empty
-    if (!form.getValues("title") && filename) {
-      const nameWithoutExt = filename.replace(/\.[^/.]+$/, "");
-      form.setValue("title", nameWithoutExt);
-    }
-
-    // Detect and set language automatically
-    const detection = detectLanguage(filename, content);
-    form.setValue("language", detection.language);
-
-    const languageDisplayName = getLanguageDisplayName(detection.language);
-    toast.success(
-      `File "${filename}" uploaded successfully! Detected language: ${languageDisplayName}`
-    );
-  };
-
-  const handleFileError = (error: string) => {
-    toast.error(error);
-  };
-
-  const switchToTypeMode = () => {
-    setInputMode("type");
-    setUploadedFilename("");
-  };
-
-  const switchToUploadMode = () => {
-    if (isAuthenticated) {
-      setInputMode("upload");
-    }
-  };
+  const {
+    inputMode,
+    uploadedFilename,
+    handleFileSelect,
+    handleFileError,
+    switchToTypeMode,
+    switchToUploadMode,
+  } = useFileUpload({
+    form,
+    contentRef,
+    handleContentInput,
+    isAuthenticated,
+  });
 
   return (
-    <div className="h-full flex flex-col p-6 overflow-hidden">
+    <div className="h-full flex flex-col p-4 lg:p-6 overflow-hidden">
       {/* Title - Fixed height section */}
       <div className="flex-shrink-0 pb-4">
         <FormField
@@ -79,13 +47,13 @@ export function PasteMainContent({
           name="title"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="text-lg font-semibold flex items-center gap-2">
+              <FormLabel className="text-sm font-medium flex items-center gap-2">
                 Title
               </FormLabel>
               <FormControl>
                 <Input
                   placeholder="Give your paste a descriptive title..."
-                  className="text-lg h-12 border-2 focus:border-primary"
+                  className="text-sm h-10 border-2 focus:border-primary"
                   onKeyDown={(e) => {
                     if (e.key === 'Enter') {
                       e.preventDefault();
@@ -105,14 +73,16 @@ export function PasteMainContent({
         <div className="flex items-center justify-between mb-3">
           <label 
             htmlFor="paste-content"
-            className="text-lg font-semibold flex items-center gap-2"
+            className="text-sm font-medium flex items-center gap-2"
           >
             Content
           </label>
           <div className="flex items-center gap-3">
-            <CharacterCounter current={contentLength} limit={charLimit} />
+            <div className="hidden lg:block">
+              <CharacterCounter current={contentLength} limit={charLimit} />
+            </div>
             <div 
-              className="flex items-center gap-1"
+              className="flex items-center gap-2"
               role="tablist"
               aria-label="Content input method"
             >
@@ -127,7 +97,7 @@ export function PasteMainContent({
                 aria-controls="content-input-area"
               >
                 <Edit3 className="h-4 w-4 mr-1" aria-hidden="true" />
-                Type
+                Text
               </Button>
               <Button
                 type="button"
@@ -180,7 +150,7 @@ export function PasteMainContent({
                 ? "File content will appear here..."
                 : "Paste or type your content here..."
             }
-            className="w-full h-full text-base leading-relaxed font-mono border-2 focus:border-primary resize-none overflow-y-auto scrollbar-thin scrollbar-thumb-muted scrollbar-track-transparent touch-pan-y"
+            className="w-full h-full text-sm leading-relaxed font-mono border-2 focus:border-primary resize-none overflow-y-auto scrollbar-thin scrollbar-thumb-muted scrollbar-track-transparent touch-pan-y"
             spellCheck={false}
             onInput={handleContentInput}
             readOnly={inputMode === "upload" && !uploadedFilename}

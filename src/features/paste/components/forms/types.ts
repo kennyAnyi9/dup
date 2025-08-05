@@ -46,6 +46,7 @@ export interface BasicInformationProps {
   contentLength: number;
   handleContentInput: () => void;
   charLimit: number | null;
+  isAuthenticated: boolean;
   isMobile?: boolean;
 }
 

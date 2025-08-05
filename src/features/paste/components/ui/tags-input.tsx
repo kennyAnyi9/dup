@@ -94,7 +94,7 @@ export function TagsInput({
               onKeyDown={handleKeyDown}
               onBlur={handleInputBlur}
               placeholder={value.length === 0 ? placeholder : "Add another tag..."}
-              className="border-0 bg-transparent px-2.5 py-1 h-auto focus-visible:ring-0 text-sm placeholder:text-muted-foreground/60"
+              className="border-0 bg-transparent px-2.5 py-1 h-auto focus-visible:ring-0 text-sm placeholder:text-sm placeholder:text-muted-foreground/60"
             />
           </div>
         )}

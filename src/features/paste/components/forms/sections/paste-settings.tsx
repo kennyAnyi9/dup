@@ -81,7 +81,7 @@ export function PasteSettings({
             <FormControl>
               <Textarea
                 placeholder="Optional comment on your paste..."
-                className="h-20 resize-none"
+                className="h-20 resize-none text-sm"
                 maxLength={500}
                 {...field}
               />

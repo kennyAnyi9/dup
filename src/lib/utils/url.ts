@@ -1,19 +1,22 @@
 /**
  * Get the base URL for the application
- * Uses NEXT_PUBLIC_BASE_URL environment variable if available,
- * otherwise falls back to the current window location origin
+ * Uses environment variable for consistent SSR/client behavior
  */
 export function getBaseUrl(): string {
-  // Check for environment variable first (works in all environments)
+  // Check for environment variables (consistent across server/client)
   if (process.env.NEXT_PUBLIC_BASE_URL) {
-    return process.env.NEXT_PUBLIC_BASE_URL;
+    return process.env.NEXT_PUBLIC_BASE_URL.replace(/\/$/, ''); // Remove trailing slash
   }
   
-  // Fallback to window.location.origin (client-side only)
-  if (typeof window !== "undefined") {
-    return window.location.origin;
+  if (process.env.NEXT_PUBLIC_APP_URL) {
+    return process.env.NEXT_PUBLIC_APP_URL.replace(/\/$/, ''); // Remove trailing slash
   }
   
-  // Server-side fallback (should not happen with NEXT_PUBLIC_BASE_URL set)
+  // Development fallback - consistent for both server and client
+  if (process.env.NODE_ENV === "development") {
+    return "http://localhost:3000";
+  }
+  
+  // Production fallback
   return "https://dup.it.com";
 }

@@ -17,7 +17,31 @@ import {
   Loader,
   LockKeyhole,
 } from "lucide-react";
+import { getBaseUrl } from "@/lib/utils/url";
 import type { SecuritySettingsProps } from "../types";
+
+// Helper function to get meaningful error messages for custom link validation
+const getCustomLinkError = (value: string): string | null => {
+  if (!value) return null;
+  
+  if (value.length < 3) {
+    return "Custom link must be at least 3 characters long";
+  }
+  
+  if (value.length > 50) {
+    return "Custom link must be 50 characters or less";
+  }
+  
+  if (value.includes(' ')) {
+    return "Custom link cannot contain spaces";
+  }
+  
+  if (!/^[a-zA-Z0-9-_]+$/.test(value)) {
+    return "Custom link can only contain letters, numbers, hyphens (-), and underscores (_)";
+  }
+  
+  return null;
+};
 
 export function SecuritySettings({
   form,
@@ -46,7 +70,7 @@ export function SecuritySettings({
                 <Input
                   type={showPassword ? "text" : "password"}
                   placeholder={isAuthenticated ? "Optional password protection..." : "Sign in to add password protection..."}
-                  className={`h-10 pr-10 ${!isAuthenticated ? "cursor-not-allowed opacity-60" : ""}`}
+                  className={`h-10 pr-10 text-sm ${!isAuthenticated ? "cursor-not-allowed opacity-60" : ""}`}
                   disabled={!isAuthenticated}
                   onKeyDown={(e) => {
                     if (e.key === 'Enter') {
@@ -87,7 +111,7 @@ export function SecuritySettings({
             <FormItem>
               <FormLabel className="text-sm font-medium flex items-center gap-2">
                 <Link2 className="h-4 w-4 text-muted-foreground" />
-                Link
+                Custom Link
                 {!isAuthenticated && <span className="text-xs text-muted-foreground">(Sign in required)</span>}
               </FormLabel>
               <FormControl>
@@ -95,14 +119,14 @@ export function SecuritySettings({
                   <div className="z-[1]">
                     <div className="inline-flex items-center whitespace-nowrap rounded-md border text-sm border-input bg-background text-foreground h-10 rounded-r-none border-r-transparent justify-start px-3">
                       <div className="min-w-0 truncate text-left text-muted-foreground font-mono">
-                        dup.it.com/p/
+                        {getBaseUrl()}/p/
                       </div>
                     </div>
                   </div>
                   <Input
-                    placeholder={isAuthenticated ? "Optional custom link" : "Sign in to create custom links..."}
+                    placeholder={isAuthenticated ? "custom" : "Sign in to create custom links..."}
                     disabled={!isAuthenticated}
-                    className={`block w-full rounded-r-md rounded-l-none border-l-transparent focus:border-l-input sm:text-sm z-0 focus:z-[1] h-10 ${
+                    className={`block w-full rounded-r-md rounded-l-none border-l-transparent focus:border-l-input text-sm z-0 focus:z-[1] h-10 ${
                       !isAuthenticated 
                         ? "cursor-not-allowed opacity-60"
                         : field.value && urlAvailability.available === false
@@ -133,7 +157,7 @@ export function SecuritySettings({
               </FormControl>
               {field.value && urlAvailability.available === false && (
                 <p className="text-xs text-destructive">
-                  {urlAvailability.error || `${field.value} is already taken`}
+                  {getCustomLinkError(field.value) || `${field.value} is already taken`}
                 </p>
               )}
               {field.value && urlAvailability.available === true && (

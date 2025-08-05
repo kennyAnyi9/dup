@@ -2,6 +2,7 @@
 
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/shared/components/dupui/sheet";
 import { Button } from "@/shared/components/dupui/button";
+import { Form } from "@/shared/components/dupui/form";
 import { Settings } from "lucide-react";
 import { PasteSettings } from "./paste-settings";
 import { SecuritySettings } from "./security-settings";
@@ -31,34 +32,36 @@ export function PasteSettingsDrawer({
         </Button>
       </SheetTrigger>
       <SheetContent side="bottom" className="h-[80vh]">
-        <SheetHeader>
-          <SheetTitle className="flex items-center gap-2">
-            <Settings className="h-5 w-5" />
+        <SheetHeader className="pb-4">
+          <SheetTitle className="flex items-center gap-2 text-base">
+            <Settings className="h-4 w-4" />
             Paste Settings
           </SheetTitle>
         </SheetHeader>
         
-        <div className="mt-6 overflow-y-auto">
-          <div className="p-4 border-b">
-            <PasteSettings
-              form={form}
-              isAuthenticated={isAuthenticated}
-              isMobile={true}
-            />
-          </div>
+        <Form {...form}>
+          <div className="overflow-y-auto text-sm flex-1">
+            <div className="p-4 border-b">
+              <PasteSettings
+                form={form}
+                isAuthenticated={isAuthenticated}
+                isMobile={true}
+              />
+            </div>
 
-          <div className="p-4">
-            <SecuritySettings
-              form={form}
-              showPassword={showPassword}
-              setShowPassword={setShowPassword}
-              urlAvailability={urlAvailability}
-              isEditing={isEditing}
-              isAuthenticated={isAuthenticated}
-              isMobile={true}
-            />
+            <div className="p-4">
+              <SecuritySettings
+                form={form}
+                showPassword={showPassword}
+                setShowPassword={setShowPassword}
+                urlAvailability={urlAvailability}
+                isEditing={isEditing}
+                isAuthenticated={isAuthenticated}
+                isMobile={true}
+              />
+            </div>
           </div>
-        </div>
+        </Form>
       </SheetContent>
     </Sheet>
   );

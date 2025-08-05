@@ -14,9 +14,19 @@ export const createPasteSchema = z.object({
   password: z.string().optional(),
   burnAfterRead: z.boolean().default(false),
   burnAfterReadViews: z.number().min(1).max(100).optional(),
-  customUrl: z.string().optional().refine((val) => !val || (val.length >= 3 && val.length <= 50 && /^[a-zA-Z0-9-_]+$/.test(val)), {
-    message: "Custom URL must be 3-50 characters and contain only letters, numbers, hyphens, and underscores"
-  }),
+  customUrl: z.string().optional()
+    .refine((val) => !val || val.length >= 3, {
+      message: "Custom link must be at least 3 characters long"
+    })
+    .refine((val) => !val || val.length <= 50, {
+      message: "Custom link must be 50 characters or less"
+    })
+    .refine((val) => !val || !val.includes(' '), {
+      message: "Custom link cannot contain spaces"
+    })
+    .refine((val) => !val || /^[a-zA-Z0-9-_]+$/.test(val), {
+      message: "Custom link can only contain letters, numbers, hyphens (-), and underscores (_)"
+    }),
   tags: z.array(z.string().min(1).max(20)).max(5).optional(),
   expiresIn: z.enum(["30m", "1h", "1d", "7d", "30d", "never"]).default("never"),
   qrCodeColor: z.string().regex(/^#[0-9A-Fa-f]{6}$/).default("#000000"),

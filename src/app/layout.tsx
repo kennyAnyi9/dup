@@ -1,19 +1,15 @@
 import { AppProviders } from "@/shared/components/common/app-providers";
 import { ConditionalFooter } from "@/shared/components/common/conditional-footer";
 import { ConditionalHeader } from "@/shared/components/common/conditional-header";
-import { APP_NAME } from "@/shared/lib/constants";
 import { Toaster } from "@/shared/components/dupui/sonner";
+import { APP_NAME } from "@/shared/lib/constants";
+import { cn } from "@/shared/lib/utils";
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Inter } from "next/font/google";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const inter = Inter({
+  variable: "--font-inter",
   subsets: ["latin"],
 });
 
@@ -37,7 +33,10 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen flex flex-col overflow-x-hidden`}
+        className={cn(
+          inter.className,
+          " antialiased min-h-screen flex flex-col overflow-x-hidden"
+        )}
       >
         <AppProviders>
           <ConditionalHeader />

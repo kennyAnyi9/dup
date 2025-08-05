@@ -46,6 +46,7 @@ interface PasteCardViewProps {
   onEdit?: (paste: PasteCardViewProps["paste"]) => void;
   isSelected?: boolean;
   onSelect?: (pasteId: string, selected: boolean) => void;
+  isAuthenticated?: boolean;
 }
 
 export function PasteCardView({
@@ -53,6 +54,7 @@ export function PasteCardView({
   onEdit,
   isSelected,
   onSelect,
+  isAuthenticated = true,
 }: PasteCardViewProps) {
   const router = useRouter();
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
@@ -156,7 +158,7 @@ export function PasteCardView({
         initialColor={paste.qrCodeColor || "#000000"}
         initialBackground={paste.qrCodeBackground || "#ffffff"}
         onColorsChange={handleQrColorChange}
-        isAuthenticated={false} // QR customization disabled in card view
+        isAuthenticated={isAuthenticated}
       />
     </>
   );

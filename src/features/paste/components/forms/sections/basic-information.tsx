@@ -12,9 +12,7 @@ import { Textarea } from "@/shared/components/dupui/textarea";
 import { Button } from "@/shared/components/dupui/button";
 import { FileUpload } from "@/shared/components/dupui/file-upload";
 import { Code, Tag, Type, Upload, Edit3 } from "lucide-react";
-import { useState } from "react";
-import { toast } from "sonner";
-import { detectLanguage, getLanguageDisplayName } from "@/shared/lib/language-detection";
+import { useFileUpload } from "../hooks/use-file-upload";
 import { CharacterCounter } from "../../ui/character-counter";
 import { TagsInput } from "../../ui/tags-input";
 import type { BasicInformationProps } from "../types";
@@ -25,49 +23,25 @@ export function BasicInformation({
   contentLength,
   handleContentInput,
   charLimit,
+  isAuthenticated,
   isMobile = false,
 }: BasicInformationProps) {
-  const [inputMode, setInputMode] = useState<"type" | "upload">("type");
-  const [uploadedFilename, setUploadedFilename] = useState<string>("");
+  const {
+    inputMode,
+    uploadedFilename,
+    handleFileSelect,
+    handleFileError,
+    switchToTypeMode,
+    switchToUploadMode,
+  } = useFileUpload({
+    form,
+    contentRef,
+    handleContentInput,
+    isAuthenticated,
+  });
   
   const textareaMinHeight = isMobile ? "min-h-[104px]" : "min-h-[200px]";
   const spacing = isMobile ? "space-y-3" : "space-y-4";
-
-  const handleFileSelect = (content: string, filename: string) => {
-    if (contentRef.current) {
-      contentRef.current.value = content;
-      handleContentInput();
-    }
-    setUploadedFilename(filename);
-    
-    // Auto-fill title if empty
-    if (!form.getValues("title") && filename) {
-      const nameWithoutExt = filename.replace(/\.[^/.]+$/, "");
-      form.setValue("title", nameWithoutExt);
-    }
-    
-    // Detect and set language automatically
-    const detection = detectLanguage(filename, content);
-    form.setValue("language", detection.language);
-    
-    const languageDisplayName = getLanguageDisplayName(detection.language);
-    toast.success(
-      `File "${filename}" uploaded successfully! Detected language: ${languageDisplayName}`
-    );
-  };
-
-  const handleFileError = (error: string) => {
-    toast.error(error);
-  };
-
-  const switchToTypeMode = () => {
-    setInputMode("type");
-    setUploadedFilename("");
-  };
-
-  const switchToUploadMode = () => {
-    setInputMode("upload");
-  };
 
   return (
     <div className={spacing}>
@@ -170,7 +144,9 @@ export function BasicInformation({
                 variant={inputMode === "upload" ? "default" : "outline"}
                 size="sm"
                 onClick={switchToUploadMode}
-                className="h-7 px-2 text-xs"
+                disabled={!isAuthenticated}
+                className={`h-7 px-2 text-xs ${!isAuthenticated ? "cursor-not-allowed opacity-60" : ""}`}
+                title={!isAuthenticated ? "Sign in to upload files" : "Upload files"}
               >
                 <Upload className="h-3 w-3 mr-1" />
                 Upload

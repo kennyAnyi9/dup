@@ -98,13 +98,18 @@ export function QRCodeDialog({
     const timer = setTimeout(() => {
       if (isCancelled) return;
       
-      const qrContainer = qrContainerRef.current;
-      if (qrContainer) {
-        // Clear container
-        qrContainer.innerHTML = '';
-        // Append QR code
-        qr.append(qrContainer);
-        setQrCode(qr);
+      try {
+        const qrContainer = qrContainerRef.current;
+        if (qrContainer) {
+          // Clear container
+          qrContainer.innerHTML = '';
+          // Append QR code
+          qr.append(qrContainer);
+          setQrCode(qr);
+        }
+      } catch (error) {
+        console.error('Failed to render QR code:', error);
+        toast.error('Failed to generate QR code. Please try again.');
       }
     }, 50);
 
@@ -126,6 +131,12 @@ export function QRCodeDialog({
   }, [open]);
 
   const handlePresetChange = (presetIndex: number) => {
+    // Validate array bounds to prevent runtime exceptions
+    if (presetIndex < 0 || presetIndex >= COLOR_PRESETS.length) {
+      console.error(`Invalid preset index: ${presetIndex}. Valid range: 0-${COLOR_PRESETS.length - 1}`);
+      return;
+    }
+
     setSelectedPreset(presetIndex);
     const newColors = {
       foreground: COLOR_PRESETS[presetIndex].foreground,

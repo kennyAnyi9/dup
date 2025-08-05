@@ -201,7 +201,13 @@ export function usePasteForm({ initialContent = "", editingPaste = null, onSucce
           } else if (response.status === 401) {
             throw new Error("Authentication required to check URL availability.");
           } else if (response.status >= 400 && response.status < 500) {
-            throw new Error("Invalid request. Please check your input.");
+            // For client errors, try to get the specific error message from response
+            try {
+              const errorResult = await response.json();
+              throw new Error(errorResult.error || "Invalid request. Please check your input.");
+            } catch {
+              throw new Error("Invalid request. Please check your input.");
+            }
           } else {
             throw new Error(`Server error: ${response.status}`);
           }
@@ -309,8 +315,12 @@ export function usePasteForm({ initialContent = "", editingPaste = null, onSucce
             );
           }
           
-          onSuccess?.();
           form.reset();
+          
+          // Call onSuccess outside of transition for immediate redirect
+          setTimeout(() => {
+            onSuccess?.();
+          }, 0);
         } else {
           toast.error(result.error || (isEditing ? "Failed to update paste" : "Failed to create paste"));
         }

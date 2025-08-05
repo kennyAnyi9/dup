@@ -51,6 +51,7 @@ export function PasteFormContent({
             contentLength={contentLength}
             handleContentInput={handleContentInput}
             charLimit={charLimit}
+            isAuthenticated={isAuthenticated}
             isMobile={isMobile}
           />
 

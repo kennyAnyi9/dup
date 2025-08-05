@@ -53,6 +53,7 @@ interface PasteTableProps {
   onSelectPaste?: (pasteId: string, selected: boolean) => void;
   onSelectAll?: (selected: boolean) => void;
   allSelected?: boolean;
+  isAuthenticated?: boolean;
 }
 
 export function PasteTable({
@@ -69,6 +70,7 @@ export function PasteTable({
   onSelectPaste,
   onSelectAll,
   allSelected = false,
+  isAuthenticated = true,
 }: PasteTableProps) {
   const router = useRouter();
   const [showDeleteDialog, setShowDeleteDialog] = useState<string | null>(null);
@@ -194,7 +196,7 @@ export function PasteTable({
           initialColor={showQrCode.qrCodeColor || "#000000"}
           initialBackground={showQrCode.qrCodeBackground || "#ffffff"}
           onColorsChange={handleQrColorChange}
-          isAuthenticated={false} // QR customization disabled in table view
+          isAuthenticated={isAuthenticated}
         />
       )}
     </>

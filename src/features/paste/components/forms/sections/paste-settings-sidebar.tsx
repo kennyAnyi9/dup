@@ -25,13 +25,10 @@ export function PasteSettingsSidebar({
   const qrCodeColor = form.watch("qrCodeColor");
   const qrCodeBackground = form.watch("qrCodeBackground");
 
-  // Get current burn after read status for button display
-  const burnAfterRead = form.watch("burnAfterRead");
-  const burnAfterReadViews = form.watch("burnAfterReadViews");
+  // Get current burn after read status for button display (removed unused variables)
 
   const getBurnButtonText = () => {
-    if (!burnAfterRead) return "Burn After Read";
-    return `${burnAfterReadViews} view${burnAfterReadViews !== 1 ? "s" : ""}`;
+    return "Burn After Read";
   };
 
   // Generate paste URL for QR code (will use actual URL after paste creation)
@@ -73,21 +70,17 @@ export function PasteSettingsSidebar({
       {/* Footer - Controls */}
       <div className="border-t bg-background/50 p-4">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
             {/* Burn After Read Button */}
             <Button
               type="button"
-              variant={burnAfterRead ? "default" : "outline"}
+              variant="outline"
               onClick={() => isAuthenticated && setBurnDialogOpen(true)}
               disabled={!isAuthenticated}
               className={`w-40 justify-start gap-2 h-10 ${!isAuthenticated ? "cursor-not-allowed opacity-60" : ""}`}
               title={!isAuthenticated ? "Sign in to use burn after read" : ""}
             >
-              <Flame
-                className={`h-4 w-4 ${
-                  burnAfterRead ? "text-white" : "text-muted-foreground"
-                }`}
-              />
+              <Flame className="h-4 w-4 text-muted-foreground" />
               <span className="truncate">{getBurnButtonText()}</span>
             </Button>
 
