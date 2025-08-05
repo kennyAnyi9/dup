@@ -83,6 +83,49 @@ export async function createPaste(input: CreatePasteInput): Promise<CreatePasteR
     // Validate input
     const validatedInput = createPasteSchema.parse(input);
     
+    // Additional server-side content validation
+    const { validateTextContent } = await import("@/shared/lib/file-validation");
+    const contentValidation = validateTextContent(validatedInput.content);
+    
+    if (!contentValidation.isValid) {
+      return {
+        success: false,
+        error: contentValidation.error || "Invalid content detected",
+      };
+    }
+    
+    // Log warnings if any
+    if (contentValidation.warnings && contentValidation.warnings.length > 0) {
+      console.warn("Content validation warnings:", contentValidation.warnings);
+    }
+    
+    // Validate QR code colors if provided
+    if (validatedInput.qrCodeColor || validatedInput.qrCodeBackground) {
+      const { validateHexColor } = await import("@/shared/lib/url-sanitization");
+      
+      if (validatedInput.qrCodeColor) {
+        const colorValidation = validateHexColor(validatedInput.qrCodeColor);
+        if (!colorValidation.isValid) {
+          return {
+            success: false,
+            error: `Invalid QR code color: ${colorValidation.error}`,
+          };
+        }
+        validatedInput.qrCodeColor = colorValidation.sanitizedColor!;
+      }
+      
+      if (validatedInput.qrCodeBackground) {
+        const bgValidation = validateHexColor(validatedInput.qrCodeBackground);
+        if (!bgValidation.isValid) {
+          return {
+            success: false,
+            error: `Invalid QR code background color: ${bgValidation.error}`,
+          };
+        }
+        validatedInput.qrCodeBackground = bgValidation.sanitizedColor!;
+      }
+    }
+    
     // Get current user
     const user = await getCurrentUser();
     const isAuthenticated = !!user;
@@ -1311,6 +1354,33 @@ export async function updateQrCodeColors(input: UpdateQrCodeColorsInput): Promis
     // Validate input
     const validatedInput = updateQrCodeColorsSchema.parse(input);
     
+    // Additional server-side color validation
+    const { validateHexColor } = await import("@/shared/lib/url-sanitization");
+    
+    const foregroundValidation = validateHexColor(validatedInput.qrCodeColor);
+    if (!foregroundValidation.isValid) {
+      return {
+        success: false,
+        error: `Invalid foreground color: ${foregroundValidation.error}`,
+      };
+    }
+    
+    const backgroundValidation = validateHexColor(validatedInput.qrCodeBackground);
+    if (!backgroundValidation.isValid) {
+      return {
+        success: false,
+        error: `Invalid background color: ${backgroundValidation.error}`,
+      };
+    }
+    
+    // Ensure colors are not identical
+    if (foregroundValidation.sanitizedColor === backgroundValidation.sanitizedColor) {
+      return {
+        success: false,
+        error: "Foreground and background colors cannot be identical",
+      };
+    }
+    
     // Get current user
     const user = await getCurrentUser();
     if (!user) {
@@ -1361,12 +1431,12 @@ export async function updateQrCodeColors(input: UpdateQrCodeColorsInput): Promis
       };
     }
 
-    // Update the QR code colors
+    // Update the QR code colors with sanitized values
     await db
       .update(paste)
       .set({
-        qrCodeColor: validatedInput.qrCodeColor,
-        qrCodeBackground: validatedInput.qrCodeBackground,
+        qrCodeColor: foregroundValidation.sanitizedColor,
+        qrCodeBackground: backgroundValidation.sanitizedColor,
         updatedAt: new Date(),
       })
       .where(eq(paste.id, validatedInput.id));

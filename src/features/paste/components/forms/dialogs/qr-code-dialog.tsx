@@ -69,57 +69,86 @@ export function QRCodeDialog({
 
     let isCancelled = false;
 
-    // Create new QR code instance
-    const qr = new QRCodeStyling({
-      width: 180,
-      height: 180,
-      type: "svg",
-      data: url,
-      image: "/qr-avatar.png",
-      dotsOptions: {
-        color: customColors.foreground,
-        type: "square",
-      },
-      backgroundOptions: {
-        color: customColors.background,
-      },
-      imageOptions: {
-        crossOrigin: "anonymous",
-        margin: 8,
-        imageSize: 0.45,
-      },
-      cornersSquareOptions: {
-        type: "square",
-        color: customColors.foreground,
-      },
-      cornersDotOptions: {
-        type: "square",
-        color: customColors.foreground,
-      },
-    });
-
-    // Small delay to ensure DOM is ready
-    const timer = setTimeout(() => {
-      if (isCancelled) return;
-      
+    // Sanitize URL before using in QR code
+    const sanitizeUrl = async () => {
       try {
-        const qrContainer = qrContainerRef.current;
-        if (qrContainer) {
-          // Clear container
-          qrContainer.innerHTML = '';
-          // Append QR code
-          qr.append(qrContainer);
-          setQrCode(qr);
+        const { sanitizeQrUrl } = await import("@/shared/lib/url-sanitization");
+        const urlValidation = sanitizeQrUrl(url);
+        
+        if (!urlValidation.isValid) {
+          console.error('URL validation failed:', urlValidation.error);
+          toast.error(urlValidation.error || 'Invalid URL for QR code generation');
+          return;
         }
+
+        const sanitizedUrl = urlValidation.sanitizedUrl!;
+        
+        // Show warnings if any
+        if (urlValidation.warnings && urlValidation.warnings.length > 0) {
+          console.warn('URL validation warnings:', urlValidation.warnings);
+        }
+
+        // Create new QR code instance with sanitized URL
+        const qr = new QRCodeStyling({
+          width: 180,
+          height: 180,
+          type: "svg",
+          data: sanitizedUrl,
+          image: "/qr-avatar.png",
+          dotsOptions: {
+            color: customColors.foreground,
+            type: "square",
+          },
+          backgroundOptions: {
+            color: customColors.background,
+          },
+          imageOptions: {
+            crossOrigin: "anonymous",
+            margin: 8,
+            imageSize: 0.45,
+          },
+          cornersSquareOptions: {
+            type: "square",
+            color: customColors.foreground,
+          },
+          cornersDotOptions: {
+            type: "square",
+            color: customColors.foreground,
+          },
+        });
+
+        // Small delay to ensure DOM is ready
+        const timer = setTimeout(() => {
+          if (isCancelled) return;
+          
+          try {
+            const qrContainer = qrContainerRef.current;
+            if (qrContainer) {
+              // Clear container
+              qrContainer.innerHTML = '';
+              // Append QR code
+              qr.append(qrContainer);
+              setQrCode(qr);
+            }
+          } catch (error) {
+            console.error('Failed to render QR code:', error);
+            toast.error('Failed to generate QR code. Please try again.');
+          }
+        }, 50);
+
+        return () => {
+          clearTimeout(timer);
+        };
       } catch (error) {
-        console.error('Failed to render QR code:', error);
-        toast.error('Failed to generate QR code. Please try again.');
+        console.error('Failed to sanitize URL:', error);
+        toast.error('Failed to process URL for QR code generation');
       }
-    }, 50);
+    };
+
+    sanitizeUrl();
 
     return () => {
       isCancelled = true;
-      clearTimeout(timer);
     };
   }, [open, url, customColors]);
 
@@ -150,34 +179,62 @@ export function QRCodeDialog({
     onColorsChange?.(newColors.foreground, newColors.background);
   };
 
-  const handleCustomColorChange = (type: 'foreground' | 'background', color: string) => {
-    // Validate hex color format
-    if (!isValidHexColor(color)) {
-      toast.error("Please enter a valid hex color (e.g., #FF0000 or #F00)");
-      return;
-    }
+  const handleCustomColorChange = async (type: 'foreground' | 'background', color: string) => {
+    try {
+      // Use comprehensive color validation
+      const { validateHexColor } = await import("@/shared/lib/url-sanitization");
+      const validation = validateHexColor(color);
+      
+      if (!validation.isValid) {
+        toast.error(validation.error || "Invalid color format");
+        return;
+      }
 
-    const newColors = {
-      ...customColors,
-      [type]: color,
-    };
-    setCustomColors(newColors);
-    setSelectedPreset(-1); // Set to custom when manually changing colors
-    onColorsChange?.(newColors.foreground, newColors.background);
+      const sanitizedColor = validation.sanitizedColor!;
+      const newColors = {
+        ...customColors,
+        [type]: sanitizedColor,
+      };
+      
+      setCustomColors(newColors);
+      setSelectedPreset(-1); // Set to custom when manually changing colors
+      onColorsChange?.(newColors.foreground, newColors.background);
+    } catch (error) {
+      console.error('Color validation error:', error);
+      toast.error("Failed to validate color. Please try again.");
+    }
   };
 
   const handleDownload = () => {
-    if (!qrCode) return;
+    if (!qrCode) {
+      toast.error("QR code is not ready for download. Please wait for it to generate.");
+      return;
+    }
     
-    qrCode.download({
-      name: `qr-code-${Date.now()}`,
-      extension: "png",
-    });
-    toast.success("QR code downloaded successfully!");
+    try {
+      qrCode.download({
+        name: `qr-code-${Date.now()}`,
+        extension: "png",
+      });
+      toast.success("QR code downloaded successfully!");
+    } catch (error) {
+      console.error("Download failed:", error);
+      toast.error("Failed to download QR code. Please try again.");
+    }
   };
 
   const handleCopyUrl = async () => {
+    if (!url || url.trim().length === 0) {
+      toast.error("No URL available to copy.");
+      return;
+    }
+
     try {
+      // Check if clipboard API is available
+      if (!navigator.clipboard) {
+        throw new Error("Clipboard API not available");
+      }
+      
       await navigator.clipboard.writeText(url);
       toast.success("URL copied to clipboard!");
     } catch (error) {

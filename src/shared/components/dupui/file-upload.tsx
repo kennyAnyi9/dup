@@ -40,18 +40,28 @@ export function FileUpload({
     setIsReading(true);
     
     try {
-      // Check file size
-      if (file.size > maxSizeBytes) {
-        throw new Error(`File size exceeds ${Math.round(maxSizeBytes / 1024 / 1024)}MB limit`);
+      // Import validation utilities
+      const { validateFile } = await import("@/shared/lib/file-validation");
+      
+      // Comprehensive server-side style validation
+      const validationResult = await validateFile(file, {
+        maxSizeBytes,
+        allowBinary: false,
+        strictMimeValidation: true,
+      });
+
+      if (!validationResult.isValid) {
+        throw new Error(validationResult.error || "File validation failed");
       }
 
-      // Read file content
-      const text = await file.text();
-      
-      // Check if file appears to be text-based
-      if (containsBinaryContent(text)) {
-        throw new Error("File appears to contain binary content and cannot be displayed as text");
+      // Show warnings if any were detected
+      if (validationResult.warnings && validationResult.warnings.length > 0) {
+        console.warn("File validation warnings:", validationResult.warnings);
+        // Could show these to user via toast notifications if needed
       }
+
+      // Read file content after validation passes
+      const text = await file.text();
 
       setSelectedFile(file);
       onFileSelect(text, file.name);
@@ -103,16 +113,6 @@ export function FileUpload({
     fileInputRef.current?.click();
   }, []);
 
-  // Simple binary content detection
-  const containsBinaryContent = (text: string): boolean => {
-    // Check for null bytes (common in binary files)
-    if (text.includes('\0')) return true;
-    
-    // Check for high ratio of non-printable characters
-    const nonPrintable = text.replace(/[\x20-\x7E\x0A\x0D\x09]/g, '').length;
-    const ratio = nonPrintable / text.length;
-    return ratio > 0.3; // If more than 30% non-printable, likely binary
-  };
 
   return (
     <div className={cn("space-y-3", className)}>
