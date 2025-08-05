@@ -17,6 +17,6 @@ export function getBaseUrl(): string {
     return "http://localhost:3000";
   }
   
-  // Production fallback
-  return "https://dup.it.com";
+  // Production fallback - configurable via environment variable
+  return process.env.NEXT_PUBLIC_PRODUCTION_URL || "https://dup.it.com";
 }

@@ -25,6 +25,10 @@ const COLOR_PRESETS = [
   { name: "Dark Mode", foreground: "#ffffff", background: "#1f2937" },
 ];
 
+const isValidHexColor = (color: string): boolean => {
+  return /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/.test(color);
+};
+
 
 export function QRCodeDialog({ 
   open, 
@@ -147,6 +151,12 @@ export function QRCodeDialog({
   };
 
   const handleCustomColorChange = (type: 'foreground' | 'background', color: string) => {
+    // Validate hex color format
+    if (!isValidHexColor(color)) {
+      toast.error("Please enter a valid hex color (e.g., #FF0000 or #F00)");
+      return;
+    }
+
     const newColors = {
       ...customColors,
       [type]: color,
@@ -166,9 +176,14 @@ export function QRCodeDialog({
     toast.success("QR code downloaded successfully!");
   };
 
-  const handleCopyUrl = () => {
-    navigator.clipboard.writeText(url);
-    toast.success("URL copied to clipboard!");
+  const handleCopyUrl = async () => {
+    try {
+      await navigator.clipboard.writeText(url);
+      toast.success("URL copied to clipboard!");
+    } catch (error) {
+      console.error("Failed to copy to clipboard:", error);
+      toast.error("Failed to copy URL. Please try again.");
+    }
   };
 
 
@@ -243,12 +258,21 @@ export function QRCodeDialog({
                   {COLOR_PRESETS.map((preset, index) => (
                     <button
                       key={preset.name}
+                      type="button"
                       onClick={() => handlePresetChange(index)}
-                      className={`w-8 h-8 rounded-full border-2 ${
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          handlePresetChange(index);
+                        }
+                      }}
+                      className={`w-8 h-8 rounded-full border-2 focus:outline-none focus:ring-2 focus:ring-primary/50 ${
                         selectedPreset === index ? "border-primary ring-2 ring-primary/20" : "border-gray-300"
                       }`}
                       style={{ backgroundColor: preset.foreground }}
                       title={preset.name}
+                      aria-label={`Apply ${preset.name} color preset`}
+                      aria-pressed={selectedPreset === index}
                     />
                   ))}
                 </div>
@@ -265,10 +289,13 @@ export function QRCodeDialog({
                   {COLOR_PRESETS.map((preset) => (
                     <button
                       key={preset.name}
+                      type="button"
                       disabled
-                      className="w-8 h-8 rounded-full border-2 border-gray-300 cursor-not-allowed opacity-50"
+                      className="w-8 h-8 rounded-full border-2 border-gray-300 cursor-not-allowed opacity-50 focus:outline-none"
                       style={{ backgroundColor: preset.foreground }}
                       title={`${preset.name} - Sign in to customize`}
+                      aria-label={`${preset.name} color preset - Sign in to customize`}
+                      aria-disabled="true"
                     />
                   ))}
                 </div>
