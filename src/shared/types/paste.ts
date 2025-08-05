@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { SUPPORTED_LANGUAGES, PASTE_VISIBILITY } from "@/shared/lib/constants";
+import { validateHexColor } from "@/shared/lib/url-sanitization";
 
 export const createPasteSchema = z.object({
   title: z.string().max(100).optional(),
@@ -29,8 +30,18 @@ export const createPasteSchema = z.object({
     }),
   tags: z.array(z.string().min(1).max(20)).max(5).optional(),
   expiresIn: z.enum(["30m", "1h", "1d", "7d", "30d", "never"]).default("never"),
-  qrCodeColor: z.string().regex(/^#[0-9A-Fa-f]{6}$/).default("#000000"),
-  qrCodeBackground: z.string().regex(/^#[0-9A-Fa-f]{6}$/).default("#ffffff"),
+  qrCodeColor: z.string().refine((color) => {
+    const validation = validateHexColor(color);
+    return validation.isValid;
+  }, {
+    message: "Must be a valid hex color code (e.g., #FF0000)"
+  }).default("#000000"),
+  qrCodeBackground: z.string().refine((color) => {
+    const validation = validateHexColor(color);
+    return validation.isValid;
+  }, {
+    message: "Must be a valid hex color code (e.g., #FFFFFF)"
+  }).default("#ffffff"),
 }).refine((data) => {
   // If burnAfterReadViews is defined, burnAfterRead must be true
   if (data.burnAfterReadViews !== undefined && !data.burnAfterRead) {
@@ -57,8 +68,18 @@ export const checkUrlAvailabilitySchema = z.object({
 
 export const updateQrCodeColorsSchema = z.object({
   id: z.string().min(1),
-  qrCodeColor: z.string().regex(/^#[0-9A-Fa-f]{6}$/),
-  qrCodeBackground: z.string().regex(/^#[0-9A-Fa-f]{6}$/),
+  qrCodeColor: z.string().refine((color) => {
+    const validation = validateHexColor(color);
+    return validation.isValid;
+  }, {
+    message: "Must be a valid hex color code (e.g., #FF0000)"
+  }),
+  qrCodeBackground: z.string().refine((color) => {
+    const validation = validateHexColor(color);
+    return validation.isValid;
+  }, {
+    message: "Must be a valid hex color code (e.g., #FFFFFF)"
+  }),
 });
 
 export const updatePasteSettingsSchema = z.object({
@@ -99,8 +120,18 @@ export const updatePasteSchema = z.object({
   burnAfterReadViews: z.number().min(1).max(100).optional(),
   tags: z.array(z.string().min(1).max(20)).max(5).optional(),
   expiresIn: z.enum(["1h", "1d", "7d", "30d", "never", "remove"]).optional(),
-  qrCodeColor: z.string().regex(/^#[0-9A-Fa-f]{6}$/).optional(),
-  qrCodeBackground: z.string().regex(/^#[0-9A-Fa-f]{6}$/).optional(),
+  qrCodeColor: z.string().refine((color) => {
+    const validation = validateHexColor(color);
+    return validation.isValid;
+  }, {
+    message: "Must be a valid hex color code (e.g., #FF0000)"
+  }).optional(),
+  qrCodeBackground: z.string().refine((color) => {
+    const validation = validateHexColor(color);
+    return validation.isValid;
+  }, {
+    message: "Must be a valid hex color code (e.g., #FFFFFF)"
+  }).optional(),
 }).refine((data) => {
   // If burnAfterReadViews is defined, burnAfterRead must be true
   if (data.burnAfterReadViews !== undefined && !data.burnAfterRead) {
