@@ -8,6 +8,8 @@ import { db } from "@/db";
 import { paste, user, tag, pasteTag } from "@/db/schema";
 import { getCurrentUser } from "@/shared/lib/auth-server";
 import { checkRateLimit } from "@/shared/lib/rate-limit";
+import { validatePasteContent } from "@/shared/lib/file-validation";
+import { validateColorContrast } from "@/shared/lib/url-sanitization";
 import {
   CHAR_LIMIT_ANONYMOUS,
   EXPIRY_ANONYMOUS,
@@ -93,6 +95,15 @@ export async function createPaste(input: CreatePasteInput): Promise<CreatePasteR
       return {
         success: false,
         error: `Rate limit exceeded. Try again in a few minutes.`,
+      };
+    }
+
+    // Validate content for security
+    const contentValidation = validatePasteContent(validatedInput.content);
+    if (!contentValidation.isValid) {
+      return {
+        success: false,
+        error: contentValidation.error || "Invalid content",
       };
     }
 
@@ -1310,6 +1321,15 @@ export async function updateQrCodeColors(input: UpdateQrCodeColorsInput): Promis
   try {
     // Validate input
     const validatedInput = updateQrCodeColorsSchema.parse(input);
+    
+    // Validate color contrast
+    const contrastValidation = validateColorContrast(validatedInput.qrCodeColor, validatedInput.qrCodeBackground);
+    if (!contrastValidation.isValid) {
+      return {
+        success: false,
+        error: contrastValidation.error || "Invalid color combination",
+      };
+    }
     
     // Get current user
     const user = await getCurrentUser();

@@ -2,6 +2,7 @@
 
 import { useState, useRef, useCallback } from "react";
 import { cn } from "@/shared/lib/utils";
+import { validateFileType } from "@/shared/lib/file-validation";
 import { Button } from "./button";
 import { Card } from "./card";
 import { Upload, File, X, AlertCircle } from "lucide-react";
@@ -40,7 +41,13 @@ export function FileUpload({
     setIsReading(true);
     
     try {
-      // Check file size
+      // Comprehensive file validation
+      const validation = await validateFileType(file);
+      if (!validation.isValid) {
+        throw new Error(validation.error || "File validation failed");
+      }
+
+      // Additional size check (client-side backup)
       if (file.size > maxSizeBytes) {
         throw new Error(`File size exceeds ${Math.round(maxSizeBytes / 1024 / 1024)}MB limit`);
       }
@@ -48,11 +55,6 @@ export function FileUpload({
       // Read file content
       const text = await file.text();
       
-      // Check if file appears to be text-based
-      if (containsBinaryContent(text)) {
-        throw new Error("File appears to contain binary content and cannot be displayed as text");
-      }
-
       setSelectedFile(file);
       onFileSelect(text, file.name);
     } catch (error) {
@@ -103,16 +105,6 @@ export function FileUpload({
     fileInputRef.current?.click();
   }, []);
 
-  // Simple binary content detection
-  const containsBinaryContent = (text: string): boolean => {
-    // Check for null bytes (common in binary files)
-    if (text.includes('\0')) return true;
-    
-    // Check for high ratio of non-printable characters
-    const nonPrintable = text.replace(/[\x20-\x7E\x0A\x0D\x09]/g, '').length;
-    const ratio = nonPrintable / text.length;
-    return ratio > 0.3; // If more than 30% non-printable, likely binary
-  };
 
   return (
     <div className={cn("space-y-3", className)}>

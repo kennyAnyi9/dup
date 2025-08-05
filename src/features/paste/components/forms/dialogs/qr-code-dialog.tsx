@@ -14,6 +14,7 @@ import { Label } from "@/shared/components/dupui/label";
 import { QrCode, Download, Copy } from "lucide-react";
 import QRCodeStyling from "qr-code-styling";
 import { toast } from "sonner";
+import { sanitizeQRUrl, validateColorContrast } from "@/shared/lib/url-sanitization";
 import type { QRCodeDialogProps } from "../types";
 
 const COLOR_PRESETS = [
@@ -25,9 +26,6 @@ const COLOR_PRESETS = [
   { name: "Dark Mode", foreground: "#ffffff", background: "#1f2937" },
 ];
 
-const isValidHexColor = (color: string): boolean => {
-  return /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/.test(color);
-};
 
 
 export function QRCodeDialog({ 
@@ -69,12 +67,29 @@ export function QRCodeDialog({
 
     let isCancelled = false;
 
+    // Sanitize URL before using in QR code
+    const urlValidation = sanitizeQRUrl(url);
+    if (!urlValidation.isValid) {
+      console.error('Invalid URL for QR code:', urlValidation.error);
+      toast.error(urlValidation.error || 'Invalid URL for QR code');
+      return;
+    }
+
+    // Validate color contrast
+    const contrastValidation = validateColorContrast(customColors.foreground, customColors.background);
+    if (!contrastValidation.isValid) {
+      console.warn('Color contrast warning:', contrastValidation.error);
+      // Don't block QR generation for contrast issues, just warn
+    }
+
+    const sanitizedUrl = urlValidation.sanitizedUrl || url;
+
     // Create new QR code instance
     const qr = new QRCodeStyling({
       width: 180,
       height: 180,
       type: "svg",
-      data: url,
+      data: sanitizedUrl,
       image: "/qr-avatar.png",
       dotsOptions: {
         color: customColors.foreground,
@@ -104,16 +119,43 @@ export function QRCodeDialog({
       
       try {
         const qrContainer = qrContainerRef.current;
-        if (qrContainer) {
-          // Clear container
-          qrContainer.innerHTML = '';
-          // Append QR code
-          qr.append(qrContainer);
-          setQrCode(qr);
+        if (!qrContainer) {
+          console.warn('QR container ref is null, skipping QR code generation');
+          return;
         }
+
+        // Verify container is still attached to DOM
+        if (!document.contains(qrContainer)) {
+          console.warn('QR container is detached from DOM, skipping QR code generation');
+          return;
+        }
+
+        // Clear container safely
+        while (qrContainer.firstChild) {
+          qrContainer.removeChild(qrContainer.firstChild);
+        }
+        
+        // Append QR code with additional error handling
+        qr.append(qrContainer);
+        
+        // Verify QR code was actually rendered
+        if (qrContainer.children.length === 0) {
+          throw new Error('QR code failed to render - no content generated');
+        }
+        
+        setQrCode(qr);
       } catch (error) {
         console.error('Failed to render QR code:', error);
         toast.error('Failed to generate QR code. Please try again.');
+        
+        // Reset QR code state on error
+        setQrCode(null);
+        
+        // Clear container on error
+        const container = qrContainerRef.current;
+        if (container) {
+          container.innerHTML = '<div class="text-muted-foreground text-sm">Failed to generate QR code</div>';
+        }
       }
     }, 50);
 
@@ -126,10 +168,18 @@ export function QRCodeDialog({
   // Clean up when dialog closes
   useEffect(() => {
     if (!open) {
-      const container = qrContainerRef.current;
-      if (container) {
-        container.innerHTML = '';
+      // Safe cleanup
+      try {
+        const container = qrContainerRef.current;
+        if (container && document.contains(container)) {
+          while (container.firstChild) {
+            container.removeChild(container.firstChild);
+          }
+        }
+      } catch (error) {
+        console.warn('Error during QR container cleanup:', error);
       }
+      
       setQrCode(null);
     }
   }, [open]);
@@ -138,51 +188,99 @@ export function QRCodeDialog({
     // Validate array bounds to prevent runtime exceptions
     if (presetIndex < 0 || presetIndex >= COLOR_PRESETS.length) {
       console.error(`Invalid preset index: ${presetIndex}. Valid range: 0-${COLOR_PRESETS.length - 1}`);
+      toast.error('Invalid color preset selected');
+      return;
+    }
+
+    const preset = COLOR_PRESETS[presetIndex];
+    if (!preset) {
+      console.error(`Preset not found at index: ${presetIndex}`);
+      toast.error('Color preset not found');
+      return;
+    }
+
+    // Validate color contrast before applying
+    const contrastValidation = validateColorContrast(preset.foreground, preset.background);
+    if (!contrastValidation.isValid) {
+      toast.error(contrastValidation.error || 'Invalid color combination');
       return;
     }
 
     setSelectedPreset(presetIndex);
     const newColors = {
-      foreground: COLOR_PRESETS[presetIndex].foreground,
-      background: COLOR_PRESETS[presetIndex].background,
+      foreground: preset.foreground,
+      background: preset.background,
     };
     setCustomColors(newColors);
     onColorsChange?.(newColors.foreground, newColors.background);
   };
 
   const handleCustomColorChange = (type: 'foreground' | 'background', color: string) => {
-    // Validate hex color format
-    if (!isValidHexColor(color)) {
-      toast.error("Please enter a valid hex color (e.g., #FF0000 or #F00)");
-      return;
-    }
-
     const newColors = {
       ...customColors,
       [type]: color,
     };
+
+    // Validate color contrast
+    const contrastValidation = validateColorContrast(newColors.foreground, newColors.background);
+    if (!contrastValidation.isValid) {
+      toast.error(contrastValidation.error || 'Invalid color combination');
+      return;
+    }
+
     setCustomColors(newColors);
     setSelectedPreset(-1); // Set to custom when manually changing colors
     onColorsChange?.(newColors.foreground, newColors.background);
   };
 
   const handleDownload = () => {
-    if (!qrCode) return;
+    if (!qrCode) {
+      toast.error('No QR code available to download');
+      return;
+    }
     
-    qrCode.download({
-      name: `qr-code-${Date.now()}`,
-      extension: "png",
-    });
-    toast.success("QR code downloaded successfully!");
+    try {
+      qrCode.download({
+        name: `qr-code-${Date.now()}`,
+        extension: "png",
+      });
+      toast.success("QR code downloaded successfully!");
+    } catch (error) {
+      console.error('QR code download failed:', error);
+      toast.error('Failed to download QR code. Please try again.');
+    }
   };
 
   const handleCopyUrl = async () => {
+    if (!url) {
+      toast.error('No URL available to copy');
+      return;
+    }
+
     try {
+      // Check if clipboard API is available
+      if (!navigator.clipboard) {
+        throw new Error('Clipboard API not available');
+      }
+      
       await navigator.clipboard.writeText(url);
       toast.success("URL copied to clipboard!");
     } catch (error) {
       console.error("Failed to copy to clipboard:", error);
-      toast.error("Failed to copy URL. Please try again.");
+      
+      // Fallback to legacy method
+      try {
+        const textArea = document.createElement('textarea');
+        textArea.value = url;
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+        toast.success("URL copied to clipboard!");
+      } catch (fallbackError) {
+        console.error("Fallback copy method also failed:", fallbackError);
+        toast.error("Failed to copy URL. Please manually copy the URL.");
+      }
     }
   };
 
