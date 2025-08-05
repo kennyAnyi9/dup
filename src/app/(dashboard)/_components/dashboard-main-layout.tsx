@@ -33,16 +33,9 @@ export function DashboardMainLayout({
 }: DashboardMainLayoutProps) {
   return (
     <main className="z-10 flex w-full flex-1 flex-col items-start overflow-hidden min-w-0">
-      <div className="flex w-full flex-1 flex-col gap-4 lg:flex-row lg:gap-6 overflow-hidden min-w-0">
-        {/* Sidebar */}
-        <DashboardSidebar
-          recentPublicPastes={recentPublicPastes}
-          totalPublicPastes={totalPublicPastes}
-          user={user}
-        />
-
+      <div className="flex w-full flex-1 flex-col lg:flex-row overflow-hidden min-w-0">
         {/* Main Content Area */}
-        <div className="flex-1 lg:basis-4/5 rounded-lg border border-border backdrop-blur-[2px] relative overflow-hidden min-w-0">
+        <div className="flex-1 lg:basis-4/5 backdrop-blur-[2px] relative overflow-hidden min-w-0">
           <div className="h-full overflow-auto px-3 py-4 md:p-6">
             <div className="flex flex-col gap-3">
               {/* Search and Filters */}
@@ -61,6 +54,13 @@ export function DashboardMainLayout({
             </div>
           </div>
         </div>
+
+        {/* Sidebar */}
+        <DashboardSidebar
+          recentPublicPastes={recentPublicPastes}
+          totalPublicPastes={totalPublicPastes}
+          user={user}
+        />
       </div>
     </main>
   );

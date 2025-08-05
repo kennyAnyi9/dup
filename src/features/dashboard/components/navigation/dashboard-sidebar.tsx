@@ -23,13 +23,13 @@ interface DashboardSidebarProps {
 
 export function DashboardSidebar({ recentPublicPastes = [], totalPublicPastes = 0, user, isLoading = false }: DashboardSidebarProps) {
   return (
-    <div className="basis-1/5 rounded-lg border border-border px-3 py-4 backdrop-blur-[2px] md:p-4 hidden max-h-full shrink-0 lg:block overflow-hidden">
+    <div className="basis-1/5 border-l border-border py-4 backdrop-blur-[2px] hidden max-h-full shrink-0 lg:block overflow-hidden">
       <div className="flex flex-col h-full">
         {/* Public Pastes Feed - Now takes full height */}
-        <div className="flex-1 min-h-0">
+        <div className="flex-1 min-h-0 px-3 md:px-4">
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse shadow-sm" />
+              <Globe className="h-4 w-4 text-muted-foreground" />
               <p className="font-semibold text-base text-foreground">Recent Public Pastes</p>
             </div>
             <div className="px-2 py-1 text-xs text-muted-foreground font-mono bg-muted/50 rounded-md border border-border/50">
@@ -38,10 +38,11 @@ export function DashboardSidebar({ recentPublicPastes = [], totalPublicPastes = 
           </div>
           
           <ScrollArea className="h-[calc(100%-4rem)]">
-            {isLoading ? (
-              <PublicPasteFeedSkeleton count={5} compact={false} />
-            ) : (
-              <div className="space-y-3">
+            <div className="pr-3">
+              {isLoading ? (
+                <PublicPasteFeedSkeleton count={5} compact={false} />
+              ) : (
+                <div className="space-y-3">
                 {recentPublicPastes.length > 0 ? (
                   recentPublicPastes.map((paste) => (
                     <PublicPasteFeedCard
@@ -68,15 +69,27 @@ export function DashboardSidebar({ recentPublicPastes = [], totalPublicPastes = 
                   </div>
                 </div>
               )}
-              </div>
-            )}
+                </div>
+              )}
+            </div>
           </ScrollArea>
         </div>
         
         {/* User Profile at bottom */}
         {user && (
-          <div className="mt-auto pt-6 border-t border-border">
-            <DashboardProfileDropdown user={user} />
+          <div className="mt-auto pt-6 border-t border-border px-3 md:px-4">
+            <div className="flex items-center justify-between">
+              <a 
+                href="https://dup.openstatus.dev" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 hover:opacity-80 transition-opacity"
+              >
+                <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse shadow-sm" />
+                <span className="text-xs text-muted-foreground font-medium">Operational</span>
+              </a>
+              <DashboardProfileDropdown user={user} />
+            </div>
           </div>
         )}
       </div>

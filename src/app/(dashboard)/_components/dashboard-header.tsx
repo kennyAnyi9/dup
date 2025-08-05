@@ -35,8 +35,8 @@ export function DashboardHeader({
   ];
 
   return (
-    <header className="sticky top-2 z-50 w-full">
-      <div className="w-full rounded-lg border border-border bg-background/70 px-4 py-2 backdrop-blur-lg">
+    <header className="z-50 w-full border-b border-border">
+      <div className="w-full bg-background/70 px-4 py-2 backdrop-blur-lg">
         <div className="flex w-full items-center justify-between h-12">
           <div className="flex items-center gap-3">
             <DashboardMobileSidebar

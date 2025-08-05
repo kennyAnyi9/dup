@@ -47,7 +47,7 @@ export default async function DashboardPage({
 
   return (
     <PasteModalProvider>
-      <div className="container relative mx-auto flex h-screen w-full flex-col items-center gap-6 p-4 overflow-hidden">
+      <div className="container relative mx-auto flex h-screen w-full flex-col items-center overflow-hidden border border-border rounded-lg m-4 max-w-[calc(100vw-2rem)] max-h-[calc(100vh-2rem)]">
         {/* Header */}
         <DashboardHeader
           recentPublicPastes={recentPublicPastesData.pastes}
