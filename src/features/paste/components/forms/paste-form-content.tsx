@@ -7,8 +7,8 @@ import { Settings } from "lucide-react";
 import { usePasteForm } from "./hooks/use-paste-form";
 import { AuthNotice } from "./sections/auth-notice";
 import { BasicInformation } from "./sections/basic-information";
-import { BasicSettings } from "./sections/basic-settings";
-import { AdvancedOptions } from "./sections/advanced-options";
+import { PasteSettings } from "./sections/paste-settings";
+import { SecuritySettings } from "./sections/security-settings";
 
 interface PasteFormContentProps {
   form: ReturnType<typeof usePasteForm>["form"];
@@ -18,8 +18,9 @@ interface PasteFormContentProps {
   charLimit: number | null;
   isEditing: boolean;
   isAuthenticated: boolean;
-  watchedContent: string;
-  watchedBurnAfterRead: boolean;
+  contentRef: ReturnType<typeof usePasteForm>["contentRef"];
+  contentLength: ReturnType<typeof usePasteForm>["contentLength"];
+  handleContentInput: ReturnType<typeof usePasteForm>["handleContentInput"];
   isMobile?: boolean;
 }
 
@@ -31,8 +32,9 @@ export function PasteFormContent({
   charLimit,
   isEditing,
   isAuthenticated,
-  watchedContent,
-  watchedBurnAfterRead,
+  contentRef,
+  contentLength,
+  handleContentInput,
   isMobile = false,
 }: PasteFormContentProps) {
   return (
@@ -45,8 +47,11 @@ export function PasteFormContent({
           {/* Basic Information Section */}
           <BasicInformation
             form={form}
-            watchedContent={watchedContent}
+            contentRef={contentRef}
+            contentLength={contentLength}
+            handleContentInput={handleContentInput}
             charLimit={charLimit}
+            isAuthenticated={isAuthenticated}
             isMobile={isMobile}
           />
 
@@ -64,8 +69,8 @@ export function PasteFormContent({
                 Settings
               </div>
               
-              {/* Basic Settings */}
-              <BasicSettings
+              {/* Paste Settings */}
+              <PasteSettings
                 form={form}
                 isAuthenticated={isAuthenticated}
                 isMobile={isMobile}
@@ -73,15 +78,14 @@ export function PasteFormContent({
 
               <div className="h-px bg-border" />
 
-              {/* Advanced Options */}
-              <AdvancedOptions
+              {/* Security Settings */}
+              <SecuritySettings
                 form={form}
                 showPassword={showPassword}
                 setShowPassword={setShowPassword}
                 urlAvailability={urlAvailability}
                 isEditing={isEditing}
                 isAuthenticated={isAuthenticated}
-                watchedBurnAfterRead={watchedBurnAfterRead}
                 isMobile={isMobile}
               />
             </div>
@@ -94,8 +98,8 @@ export function PasteFormContent({
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">
-                {/* Basic Settings */}
-                <BasicSettings
+                {/* Paste Settings */}
+                <PasteSettings
                   form={form}
                   isAuthenticated={isAuthenticated}
                   isMobile={isMobile}
@@ -103,15 +107,14 @@ export function PasteFormContent({
 
                 <Separator />
 
-                {/* Advanced Options */}
-                <AdvancedOptions
+                {/* Security Settings */}
+                <SecuritySettings
                   form={form}
                   showPassword={showPassword}
                   setShowPassword={setShowPassword}
                   urlAvailability={urlAvailability}
                   isEditing={isEditing}
                   isAuthenticated={isAuthenticated}
-                  watchedBurnAfterRead={watchedBurnAfterRead}
                   isMobile={isMobile}
                 />
               </CardContent>

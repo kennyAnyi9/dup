@@ -4,7 +4,7 @@ import { Button } from "@/shared/components/dupui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/shared/components/dupui/avatar";
 import { useAuth } from "@/shared/hooks/use-auth";
 import { deleteComment, toggleCommentLike, updateComment } from "@/features/paste/actions/comment.actions";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
 import { 
@@ -34,7 +34,7 @@ import {
   AlertDialogTitle,
 } from "@/shared/components/dupui/alert-dialog";
 import { Textarea } from "@/shared/components/dupui/textarea";
-import { CommentForm } from "./comment-form";
+import { CommentForm, CommentFormRef } from "./comment-form";
 import type { Comment } from "@/shared/types/comment";
 
 interface CommentItemProps {
@@ -58,6 +58,9 @@ export function CommentItem({ comment, onCommentUpdated, onCommentLikeToggle, on
   const [optimisticIsLiked, setOptimisticIsLiked] = useState(comment.isLikedByUser || false);
   const [optimisticContent, setOptimisticContent] = useState(comment.content);
 
+  // Refs
+  const replyFormRef = useRef<CommentFormRef>(null);
+
   const isOwner = user && comment.author && comment.author.id === user.id;
 
   // Sync optimistic state when comment prop changes
@@ -67,6 +70,16 @@ export function CommentItem({ comment, onCommentUpdated, onCommentLikeToggle, on
     setOptimisticContent(comment.content);
     setEditContent(comment.content);
   }, [comment.likeCount, comment.isLikedByUser, comment.content]);
+
+  // Auto-focus reply form when shown
+  useEffect(() => {
+    if (showReplyForm && replyFormRef.current) {
+      // Small delay to ensure the form is rendered
+      setTimeout(() => {
+        replyFormRef.current?.focus();
+      }, 100);
+    }
+  }, [showReplyForm]);
 
   const handleLike = async () => {
     if (!user) {
@@ -330,6 +343,7 @@ export function CommentItem({ comment, onCommentUpdated, onCommentLikeToggle, on
         {showReplyForm && (
           <div className="ml-4 sm:ml-8 lg:ml-11">
             <CommentForm
+              ref={replyFormRef}
               pasteId={comment.pasteId}
               parentId={comment.id}
               onCommentAdded={handleReplyAdded}

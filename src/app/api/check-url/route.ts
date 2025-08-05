@@ -8,16 +8,30 @@ export async function POST(request: NextRequest) {
 
     if (!url || typeof url !== "string") {
       return NextResponse.json(
-        { available: false, error: "URL is required" },
+        { available: false, error: "Custom link is required" },
         { status: 400 }
       );
     }
 
     // Trim and validate URL format
     const trimmedUrl = url.trim();
-    if (trimmedUrl.length < 3 || trimmedUrl.length > 50) {
+    if (trimmedUrl.length < 3) {
       return NextResponse.json(
-        { available: false, error: "URL must be 3-50 characters" },
+        { available: false, error: "Custom link must be at least 3 characters long" },
+        { status: 400 }
+      );
+    }
+    if (trimmedUrl.length > 50) {
+      return NextResponse.json(
+        { available: false, error: "Custom link must be 50 characters or less" },
+        { status: 400 }
+      );
+    }
+
+    // Check for spaces first
+    if (trimmedUrl.includes(' ')) {
+      return NextResponse.json(
+        { available: false, error: "Custom link cannot contain spaces" },
         { status: 400 }
       );
     }
@@ -25,7 +39,7 @@ export async function POST(request: NextRequest) {
     // Check URL format (letters, numbers, hyphens, underscores only)
     if (!/^[a-zA-Z0-9-_]+$/.test(trimmedUrl)) {
       return NextResponse.json(
-        { available: false, error: "URL can only contain letters, numbers, hyphens, and underscores" },
+        { available: false, error: "Custom link can only contain letters, numbers, hyphens (-), and underscores (_)" },
         { status: 400 }
       );
     }

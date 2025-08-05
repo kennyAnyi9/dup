@@ -14,11 +14,23 @@ export const createPasteSchema = z.object({
   password: z.string().optional(),
   burnAfterRead: z.boolean().default(false),
   burnAfterReadViews: z.number().min(1).max(100).optional(),
-  customUrl: z.string().optional().refine((val) => !val || (val.length >= 3 && val.length <= 50 && /^[a-zA-Z0-9-_]+$/.test(val)), {
-    message: "Custom URL must be 3-50 characters and contain only letters, numbers, hyphens, and underscores"
-  }),
+  customUrl: z.string().optional()
+    .refine((val) => !val || val.length >= 3, {
+      message: "Custom link must be at least 3 characters long"
+    })
+    .refine((val) => !val || val.length <= 50, {
+      message: "Custom link must be 50 characters or less"
+    })
+    .refine((val) => !val || !val.includes(' '), {
+      message: "Custom link cannot contain spaces"
+    })
+    .refine((val) => !val || /^[a-zA-Z0-9-_]+$/.test(val), {
+      message: "Custom link can only contain letters, numbers, hyphens (-), and underscores (_)"
+    }),
   tags: z.array(z.string().min(1).max(20)).max(5).optional(),
   expiresIn: z.enum(["30m", "1h", "1d", "7d", "30d", "never"]).default("never"),
+  qrCodeColor: z.string().regex(/^#[0-9A-Fa-f]{6}$/).default("#000000"),
+  qrCodeBackground: z.string().regex(/^#[0-9A-Fa-f]{6}$/).default("#ffffff"),
 }).refine((data) => {
   // If burnAfterReadViews is defined, burnAfterRead must be true
   if (data.burnAfterReadViews !== undefined && !data.burnAfterRead) {
@@ -41,6 +53,12 @@ export const deletePasteSchema = z.object({
 
 export const checkUrlAvailabilitySchema = z.object({
   url: z.string().min(3).max(50),
+});
+
+export const updateQrCodeColorsSchema = z.object({
+  id: z.string().min(1),
+  qrCodeColor: z.string().regex(/^#[0-9A-Fa-f]{6}$/),
+  qrCodeBackground: z.string().regex(/^#[0-9A-Fa-f]{6}$/),
 });
 
 export const updatePasteSettingsSchema = z.object({
@@ -81,6 +99,8 @@ export const updatePasteSchema = z.object({
   burnAfterReadViews: z.number().min(1).max(100).optional(),
   tags: z.array(z.string().min(1).max(20)).max(5).optional(),
   expiresIn: z.enum(["1h", "1d", "7d", "30d", "never", "remove"]).optional(),
+  qrCodeColor: z.string().regex(/^#[0-9A-Fa-f]{6}$/).optional(),
+  qrCodeBackground: z.string().regex(/^#[0-9A-Fa-f]{6}$/).optional(),
 }).refine((data) => {
   // If burnAfterReadViews is defined, burnAfterRead must be true
   if (data.burnAfterReadViews !== undefined && !data.burnAfterRead) {
@@ -96,6 +116,7 @@ export type CreatePasteInput = z.infer<typeof createPasteSchema>;
 export type GetPasteInput = z.infer<typeof getPasteSchema>;
 export type DeletePasteInput = z.infer<typeof deletePasteSchema>;
 export type CheckUrlAvailabilityInput = z.infer<typeof checkUrlAvailabilitySchema>;
+export type UpdateQrCodeColorsInput = z.infer<typeof updateQrCodeColorsSchema>;
 export type UpdatePasteSettingsInput = z.infer<typeof updatePasteSettingsSchema>;
 export type UpdatePasteInput = z.infer<typeof updatePasteSchema>;
 
@@ -113,6 +134,8 @@ export interface PasteResult {
   expiresAt?: Date;
   userId?: string;
   hasPassword: boolean;
+  qrCodeColor?: string;
+  qrCodeBackground?: string;
   createdAt: Date;
   updatedAt: Date;
   tags?: Array<{
@@ -155,6 +178,11 @@ export interface RateLimitResult {
 
 export interface CheckUrlAvailabilityResult {
   available: boolean;
+  error?: string;
+}
+
+export interface UpdateQrCodeColorsResult {
+  success: boolean;
   error?: string;
 }
 

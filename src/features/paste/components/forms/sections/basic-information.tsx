@@ -8,27 +8,38 @@ import {
   FormMessage,
 } from "@/shared/components/dupui/form";
 import { Input } from "@/shared/components/dupui/input";
-import { ScrollArea } from "@/shared/components/dupui/scroll-area";
 import { Textarea } from "@/shared/components/dupui/textarea";
-import { Code, Tag, Type } from "lucide-react";
+import { Button } from "@/shared/components/dupui/button";
+import { FileUpload } from "@/shared/components/dupui/file-upload";
+import { Code, Tag, Type, Upload, Edit3 } from "lucide-react";
+import { useFileUpload } from "../hooks/use-file-upload";
 import { CharacterCounter } from "../../ui/character-counter";
 import { TagsInput } from "../../ui/tags-input";
-import { usePasteForm } from "../hooks/use-paste-form";
-
-interface BasicInformationProps {
-  form: ReturnType<typeof usePasteForm>["form"];
-  watchedContent: string;
-  charLimit: number | null;
-  isMobile?: boolean;
-}
+import type { BasicInformationProps } from "../types";
 
 export function BasicInformation({
   form,
-  watchedContent,
+  contentRef,
+  contentLength,
+  handleContentInput,
   charLimit,
+  isAuthenticated,
   isMobile = false,
 }: BasicInformationProps) {
-  const contentAreaHeight = isMobile ? "h-28" : "h-52";
+  const {
+    inputMode,
+    uploadedFilename,
+    handleFileSelect,
+    handleFileError,
+    switchToTypeMode,
+    switchToUploadMode,
+  } = useFileUpload({
+    form,
+    contentRef,
+    handleContentInput,
+    isAuthenticated,
+  });
+  
   const textareaMinHeight = isMobile ? "min-h-[104px]" : "min-h-[200px]";
   const spacing = isMobile ? "space-y-3" : "space-y-4";
 
@@ -106,34 +117,74 @@ export function BasicInformation({
       </div>
 
       {/* Content */}
-      <FormField
-        control={form.control}
-        name="content"
-        render={({ field }) => (
-          <FormItem>
-            <div className="flex items-center justify-between">
-              <FormLabel className={`text-sm font-medium flex items-center gap-1.5`}>
-                <Code className={`${isMobile ? 'h-3 w-3' : 'h-4 w-4'}`} />
-                Content
-              </FormLabel>
-              <CharacterCounter
-                current={watchedContent.length}
-                limit={charLimit}
-              />
+      <div>
+        <div className="flex items-center justify-between mb-3">
+          <label className={`text-sm font-medium flex items-center gap-1.5`}>
+            <Code className={`${isMobile ? 'h-3 w-3' : 'h-4 w-4'}`} />
+            Content
+          </label>
+          <div className="flex items-center gap-2">
+            <CharacterCounter
+              current={contentLength}
+              limit={charLimit}
+            />
+            <div className="flex items-center gap-1">
+              <Button
+                type="button"
+                variant={inputMode === "type" ? "default" : "outline"}
+                size="sm"
+                onClick={switchToTypeMode}
+                className="h-7 px-2 text-xs"
+              >
+                <Edit3 className="h-3 w-3 mr-1" />
+                Type
+              </Button>
+              <Button
+                type="button"
+                variant={inputMode === "upload" ? "default" : "outline"}
+                size="sm"
+                onClick={switchToUploadMode}
+                disabled={!isAuthenticated}
+                className={`h-7 px-2 text-xs ${!isAuthenticated ? "cursor-not-allowed opacity-60" : ""}`}
+                title={!isAuthenticated ? "Sign in to upload files" : "Upload files"}
+              >
+                <Upload className="h-3 w-3 mr-1" />
+                Upload
+              </Button>
             </div>
-            <FormControl>
-              <ScrollArea className={`${contentAreaHeight} border rounded-md`}>
-                <Textarea
-                  placeholder="Paste your content here..."
-                  className={`${textareaMinHeight} border-0 resize-none focus-visible:ring-0 font-mono ${isMobile ? 'text-xs' : 'text-sm'} leading-relaxed`}
-                  {...field}
-                />
-              </ScrollArea>
-            </FormControl>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
+          </div>
+        </div>
+
+        {inputMode === "upload" ? (
+          <FileUpload
+            onFileSelect={handleFileSelect}
+            onError={handleFileError}
+            className="mb-4"
+          />
+        ) : null}
+
+        {/* Always show textarea, but indicate file source */}
+        <div className="relative">
+          {uploadedFilename && inputMode === "type" && (
+            <div className="absolute top-2 right-2 z-10">
+              <div className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-md border">
+                From: {uploadedFilename}
+              </div>
+            </div>
+          )}
+          <Textarea
+            ref={contentRef}
+            placeholder={inputMode === "upload" ? "File content will appear here..." : "Paste your content here..."}
+            className={`${textareaMinHeight} ${isMobile ? 'text-xs' : 'text-sm'} leading-relaxed font-mono border rounded-md resize-none`}
+            style={{
+              height: isMobile ? '112px' : '208px',
+            }}
+            spellCheck={false}
+            onInput={handleContentInput}
+            readOnly={inputMode === "upload" && !uploadedFilename}
+          />
+        </div>
+      </div>
     </div>
   );
 }

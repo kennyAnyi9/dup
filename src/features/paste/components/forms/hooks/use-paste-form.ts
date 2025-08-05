@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useTransition, useEffect } from "react";
-import { useForm } from "react-hook-form";
+import { useState, useTransition, useEffect, useRef, useMemo } from "react";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { useAuth } from "@/shared/hooks/use-auth";
@@ -13,6 +13,7 @@ import {
 } from "@/shared/lib/constants";
 import { createPasteSchema, type CreatePasteInput, type UpdatePasteInput } from "@/shared/types/paste";
 import { createPaste, updatePaste } from "@/features/paste/actions/paste.actions";
+import type { URLAvailability } from "../types";
 
 interface EditingPaste {
   id: string;
@@ -25,6 +26,8 @@ interface EditingPaste {
   burnAfterReadViews: number | null;
   expiresAt: Date | null;
   hasPassword: boolean;
+  qrCodeColor: string | null;
+  qrCodeBackground: string | null;
   tags?: Array<{ name: string }>;
 }
 
@@ -38,21 +41,25 @@ export function usePasteForm({ initialContent = "", editingPaste = null, onSucce
   const { isAuthenticated } = useAuth();
   const [isPending, startTransition] = useTransition();
   const [showPassword, setShowPassword] = useState(false);
-  const [urlAvailability, setUrlAvailability] = useState<{
-    isChecking: boolean;
-    available: boolean | null;
-    error?: string;
-  }>({ isChecking: false, available: null });
+  const [urlAvailability, setUrlAvailability] = useState<URLAvailability>({ 
+    isChecking: false, 
+    available: null 
+  });
+
+  // Uncontrolled textarea for performance
+  const contentRef = useRef<HTMLTextAreaElement>(null);
+  const [contentLength, setContentLength] = useState(0);
 
   const charLimit = isAuthenticated ? null : CHAR_LIMIT_ANONYMOUS;
   const isEditing = !!editingPaste;
 
   const form = useForm({
     resolver: zodResolver(createPasteSchema),
+    mode: "onSubmit",
     defaultValues: {
       title: "",
       description: "",
-      content: "",
+      content: initialContent,
       language: "plain",
       visibility: PASTE_VISIBILITY.PUBLIC,
       password: "",
@@ -61,6 +68,8 @@ export function usePasteForm({ initialContent = "", editingPaste = null, onSucce
       burnAfterRead: false,
       burnAfterReadViews: undefined,
       expiresIn: isAuthenticated ? "never" : "30m",
+      qrCodeColor: "#000000",
+      qrCodeBackground: "#ffffff",
     },
   });
 
@@ -83,24 +92,41 @@ export function usePasteForm({ initialContent = "", editingPaste = null, onSucce
     return "never";
   };
 
+  // Handle content input changes for uncontrolled textarea
+  const handleContentInput = () => {
+    if (contentRef.current) {
+      const content = contentRef.current.value;
+      setContentLength(content.length);
+      form.setValue("content", content);
+    }
+  };
+
   // Reset form values when editingPaste changes
   useEffect(() => {
     if (editingPaste) {
       const resetData = {
-        id: editingPaste.id,
         title: editingPaste.title || "",
         description: editingPaste.description || "",
         content: editingPaste.content,
         language: (editingPaste.language as SupportedLanguage) || "plain",
         visibility: (editingPaste.visibility as PasteVisibility) || PASTE_VISIBILITY.PUBLIC,
         password: "",
+        customUrl: "",
         tags: editingPaste.tags?.map(tag => tag.name) || [],
         burnAfterRead: editingPaste.burnAfterRead,
         burnAfterReadViews: editingPaste.burnAfterRead ? (editingPaste.burnAfterReadViews || 1) : undefined,
         expiresIn: getExpiresInValue(editingPaste.expiresAt),
+        qrCodeColor: editingPaste.qrCodeColor || "#000000",
+        qrCodeBackground: editingPaste.qrCodeBackground || "#ffffff",
       };
       
       form.reset(resetData);
+      
+      // Set content in uncontrolled textarea
+      if (contentRef.current) {
+        contentRef.current.value = editingPaste.content;
+        setContentLength(editingPaste.content.length);
+      }
     } else {
       form.reset({
         title: "",
@@ -114,36 +140,77 @@ export function usePasteForm({ initialContent = "", editingPaste = null, onSucce
         burnAfterRead: false,
         burnAfterReadViews: undefined,
         expiresIn: isAuthenticated ? "never" : "30m",
+        qrCodeColor: "#000000",
+        qrCodeBackground: "#ffffff",
       });
+      
+      // Set initial content in uncontrolled textarea
+      if (contentRef.current) {
+        contentRef.current.value = initialContent;
+        setContentLength(initialContent.length);
+      }
     }
   }, [editingPaste, initialContent, isAuthenticated, form]);
 
-  const watchedContent = form.watch("content") || "";
-  const watchedVisibility = form.watch("visibility") || PASTE_VISIBILITY.PUBLIC;
-  const watchedBurnAfterRead = form.watch("burnAfterRead") || false;
-  const watchedCustomUrl = form.watch("customUrl") || "";
+  // Optimized form watching using useWatch for better performance
+  const watchedFields = useWatch({
+    control: form.control,
+    name: ["visibility", "burnAfterRead", "customUrl"]
+  });
 
-  // Check URL availability with debouncing
+  // Memoize watched values to prevent unnecessary re-renders
+  const { watchedVisibility, watchedBurnAfterRead, watchedCustomUrl } = useMemo(() => ({
+    watchedVisibility: watchedFields?.[0] || PASTE_VISIBILITY.PUBLIC,
+    watchedBurnAfterRead: watchedFields?.[1] || false,
+    watchedCustomUrl: watchedFields?.[2] || ""
+  }), [watchedFields]);
+
+  // Enhanced URL availability check with retry logic and better error handling
   useEffect(() => {
-    if (!isAuthenticated || !watchedCustomUrl.trim()) {
+    if (!isAuthenticated || !watchedCustomUrl?.trim()) {
       setUrlAvailability({ isChecking: false, available: null });
       return;
     }
 
-    const timeoutId = setTimeout(async () => {
-      setUrlAvailability({ isChecking: true, available: null });
-      
+    const checkUrlAvailability = async (url: string, retryCount = 0): Promise<void> => {
       try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 5000); // 5s timeout
+
         const response = await fetch("/api/check-url", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ url: watchedCustomUrl.trim() }),
+          body: JSON.stringify({ url: url.trim() }),
+          signal: controller.signal,
         });
 
+        clearTimeout(timeoutId);
+
         if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
+          // Retry for server errors (5xx) up to 3 times
+          if (response.status >= 500 && retryCount < 3) {
+            await new Promise(resolve => setTimeout(resolve, 1000 * Math.pow(2, retryCount)));
+            return checkUrlAvailability(url, retryCount + 1);
+          }
+          
+          // Handle different error types
+          if (response.status === 429) {
+            throw new Error("Too many requests. Please wait a moment and try again.");
+          } else if (response.status === 401) {
+            throw new Error("Authentication required to check URL availability.");
+          } else if (response.status >= 400 && response.status < 500) {
+            // For client errors, try to get the specific error message from response
+            try {
+              const errorResult = await response.json();
+              throw new Error(errorResult.error || "Invalid request. Please check your input.");
+            } catch {
+              throw new Error("Invalid request. Please check your input.");
+            }
+          } else {
+            throw new Error(`Server error: ${response.status}`);
+          }
         }
 
         const result = await response.json();
@@ -154,20 +221,52 @@ export function usePasteForm({ initialContent = "", editingPaste = null, onSucce
         });
       } catch (error) {
         console.error("URL availability check failed:", error);
-        setUrlAvailability({
-          isChecking: false,
-          available: false,
-          error: "Failed to check URL availability",
-        });
+        
+        // Handle specific error types
+        if (error instanceof Error) {
+          if (error.name === 'AbortError') {
+            setUrlAvailability({
+              isChecking: false,
+              available: false,
+              error: "Request timed out. Please try again.",
+            });
+          } else if (error.message.includes('fetch')) {
+            setUrlAvailability({
+              isChecking: false,
+              available: false,
+              error: "Network error. Please check your connection.",
+            });
+          } else {
+            setUrlAvailability({
+              isChecking: false,
+              available: false,
+              error: error.message,
+            });
+          }
+        } else {
+          setUrlAvailability({
+            isChecking: false,
+            available: false,
+            error: "An unexpected error occurred.",
+          });
+        }
       }
+    };
+
+    const timeoutId = setTimeout(() => {
+      setUrlAvailability({ isChecking: true, available: null });
+      checkUrlAvailability(watchedCustomUrl);
     }, 500);
 
     return () => clearTimeout(timeoutId);
   }, [watchedCustomUrl, isAuthenticated]);
 
-  const onSubmit = (data: CreatePasteInput) => {
+  const onSubmit = (data: Omit<CreatePasteInput, 'content'>) => {
     startTransition(async () => {
       try {
+        // Get content from uncontrolled textarea
+        const content = contentRef.current?.value || "";
+        
         let result;
         
         if (isEditing && editingPaste) {
@@ -175,7 +274,7 @@ export function usePasteForm({ initialContent = "", editingPaste = null, onSucce
             id: editingPaste.id,
             title: data.title,
             description: data.description,
-            content: data.content,
+            content: content,
             language: data.language,
             visibility: data.visibility,
             password: data.password,
@@ -187,7 +286,15 @@ export function usePasteForm({ initialContent = "", editingPaste = null, onSucce
           };
           result = await updatePaste(updateData);
         } else {
-          result = await createPaste(data);
+          const createData: CreatePasteInput = {
+            ...data,
+            content: content,
+            // Set defaults for empty values
+            language: data.language || "plain",
+            visibility: data.visibility || PASTE_VISIBILITY.PUBLIC,
+            expiresIn: data.expiresIn || (isAuthenticated ? "never" : "30m"),
+          };
+          result = await createPaste(createData);
         }
 
         if (result.success && result.paste) {
@@ -208,8 +315,12 @@ export function usePasteForm({ initialContent = "", editingPaste = null, onSucce
             );
           }
           
-          onSuccess?.();
           form.reset();
+          
+          // Call onSuccess outside of transition for immediate redirect
+          setTimeout(() => {
+            onSuccess?.();
+          }, 0);
         } else {
           toast.error(result.error || (isEditing ? "Failed to update paste" : "Failed to create paste"));
         }
@@ -222,8 +333,8 @@ export function usePasteForm({ initialContent = "", editingPaste = null, onSucce
 
   const isSubmitDisabled = 
     isPending ||
-    watchedContent.length === 0 ||
-    (charLimit && watchedContent.length > charLimit) ||
+    contentLength === 0 ||
+    (charLimit && contentLength > charLimit) ||
     (!!watchedCustomUrl.trim() && urlAvailability.isChecking) ||
     (!!watchedCustomUrl.trim() && urlAvailability.available === false);
 
@@ -236,7 +347,10 @@ export function usePasteForm({ initialContent = "", editingPaste = null, onSucce
     charLimit,
     isEditing,
     isAuthenticated,
-    watchedContent,
+    // Replace watchedContent with uncontrolled alternatives
+    contentRef,
+    contentLength,
+    handleContentInput,
     watchedVisibility,
     watchedBurnAfterRead,
     watchedCustomUrl,

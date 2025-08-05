@@ -5,10 +5,12 @@ import { Table, TableBody } from "@/shared/components/dupui/table";
 import { useRouter } from "next/navigation";
 import { useState, useTransition, useCallback } from "react";
 import { toast } from "sonner";
+import { getBaseUrl } from "@/lib/utils/url";
+import { updateQrCodeColors } from "../../actions/paste.actions";
 import { PasteTableHeader } from "./table/paste-table-header";
 import { PasteTableRow } from "./table/paste-table-row";
 import { DeletePasteDialog } from "./table/delete-paste-dialog";
-import { QRCodeModal } from "./qr-code-modal";
+import { QRCodeDialog } from "../forms/dialogs/qr-code-dialog";
 
 interface PasteTableProps {
   pastes: Array<{
@@ -24,6 +26,8 @@ interface PasteTableProps {
     expiresAt: Date | null;
     burnAfterRead: boolean;
     burnAfterReadViews: number | null;
+    qrCodeColor: string | null;
+    qrCodeBackground: string | null;
     hasPassword: boolean;
     tags?: Array<{
       id: string;
@@ -49,6 +53,7 @@ interface PasteTableProps {
   onSelectPaste?: (pasteId: string, selected: boolean) => void;
   onSelectAll?: (selected: boolean) => void;
   allSelected?: boolean;
+  isAuthenticated?: boolean;
 }
 
 export function PasteTable({
@@ -65,10 +70,11 @@ export function PasteTable({
   onSelectPaste,
   onSelectAll,
   allSelected = false,
+  isAuthenticated = true,
 }: PasteTableProps) {
   const router = useRouter();
   const [showDeleteDialog, setShowDeleteDialog] = useState<string | null>(null);
-  const [showQrCode, setShowQrCode] = useState<{ slug: string; title: string | null } | null>(null);
+  const [showQrCode, setShowQrCode] = useState<{ id: string; slug: string; title: string | null; qrCodeColor?: string; qrCodeBackground?: string } | null>(null);
   const [copied, setCopied] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
@@ -81,8 +87,36 @@ export function PasteTable({
   }, []);
 
   const handleShowQrCode = useCallback((paste: PasteTableProps["pastes"][0]) => {
-    setShowQrCode({ slug: paste.slug, title: paste.title });
+    setShowQrCode({ 
+      id: paste.id,
+      slug: paste.slug, 
+      title: paste.title,
+      qrCodeColor: paste.qrCodeColor || undefined,
+      qrCodeBackground: paste.qrCodeBackground || undefined
+    });
   }, []);
+
+  const handleQrColorChange = useCallback(async (foreground: string, background: string) => {
+    if (!showQrCode) return;
+    
+    try {
+      const result = await updateQrCodeColors({
+        id: showQrCode.id,
+        qrCodeColor: foreground,
+        qrCodeBackground: background,
+      });
+
+      if (result.success) {
+        toast.success("QR code colors updated!");
+        router.refresh(); // Refresh to get updated data
+      } else {
+        toast.error(result.error || "Failed to update QR code colors");
+      }
+    } catch (error) {
+      console.error("Failed to update QR code colors:", error);
+      toast.error("Failed to update QR code colors");
+    }
+  }, [router, showQrCode]);
 
   const confirmDelete = useCallback(() => {
     if (!showDeleteDialog) return;
@@ -155,10 +189,14 @@ export function PasteTable({
       />
 
       {showQrCode && (
-        <QRCodeModal
+        <QRCodeDialog
           open={!!showQrCode}
           onOpenChange={(open) => !open && setShowQrCode(null)}
-          paste={showQrCode}
+          url={`${getBaseUrl()}/p/${showQrCode.slug}`}
+          initialColor={showQrCode.qrCodeColor || "#000000"}
+          initialBackground={showQrCode.qrCodeBackground || "#ffffff"}
+          onColorsChange={handleQrColorChange}
+          isAuthenticated={isAuthenticated}
         />
       )}
     </>

@@ -25,6 +25,8 @@ interface PasteCardContentProps {
     expiresAt: Date | null;
     burnAfterRead: boolean;
     hasPassword: boolean;
+    qrCodeColor?: string | null;
+    qrCodeBackground?: string | null;
   };
   displayTitle: string;
   isExpired: boolean;
@@ -45,7 +47,7 @@ export function PasteCardContent({
   const handleQrDownload = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    downloadQrCode(paste.slug, paste.title);
+    downloadQrCode(paste.slug, paste.title, paste.qrCodeColor, paste.qrCodeBackground);
   };
 
   return (

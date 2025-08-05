@@ -38,6 +38,8 @@ interface PastesContentWrapperProps {
     expiresAt: Date | null;
     burnAfterRead: boolean;
     burnAfterReadViews: number | null;
+    qrCodeColor: string | null;
+    qrCodeBackground: string | null;
     hasPassword: boolean;
     tags?: Array<{
       id: string;
@@ -111,6 +113,8 @@ export function PastesContentWrapper({ pastes }: PastesContentWrapperProps) {
       burnAfterReadViews: paste.burnAfterReadViews,
       expiresAt: paste.expiresAt,
       hasPassword: paste.hasPassword,
+      qrCodeColor: paste.qrCodeColor,
+      qrCodeBackground: paste.qrCodeBackground,
       tags: paste.tags?.map((tag) => ({ name: tag.name })) || [],
     });
   };

@@ -24,6 +24,8 @@ interface EditingPaste {
   burnAfterReadViews: number | null;
   expiresAt: Date | null;
   hasPassword: boolean;
+  qrCodeColor: string | null;
+  qrCodeBackground: string | null;
   tags?: Array<{ name: string }>;
 }
 
@@ -55,7 +57,9 @@ export function PasteFormDialog({
     charLimit,
     isEditing,
     isAuthenticated,
-    watchedContent,
+    contentRef,
+    contentLength,
+    handleContentInput,
     watchedVisibility,
     watchedBurnAfterRead,
     onSubmit,
@@ -104,8 +108,9 @@ export function PasteFormDialog({
               charLimit={charLimit}
               isEditing={isEditing}
               isAuthenticated={isAuthenticated}
-              watchedContent={watchedContent}
-              watchedBurnAfterRead={watchedBurnAfterRead}
+              contentRef={contentRef}
+              contentLength={contentLength}
+              handleContentInput={handleContentInput}
               isMobile={false}
             />
           </ScrollArea>
