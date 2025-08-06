@@ -17,6 +17,7 @@ export function PasteSettingsSidebar({
   urlAvailability,
   isEditing,
   isAuthenticated,
+  currentSlug,
 }: PasteSettingsSidebarProps) {
   const [burnDialogOpen, setBurnDialogOpen] = useState(false);
   const [qrDialogOpen, setQrDialogOpen] = useState(false);
@@ -62,6 +63,7 @@ export function PasteSettingsSidebar({
             urlAvailability={urlAvailability}
             isEditing={isEditing}
             isAuthenticated={isAuthenticated}
+            currentSlug={currentSlug}
             isMobile={false}
           />
         </div>

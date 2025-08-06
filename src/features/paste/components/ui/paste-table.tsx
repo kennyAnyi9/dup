@@ -41,7 +41,6 @@ interface PasteTableProps {
       image: string | null;
     } | null;
   }>;
-  onEdit?: (paste: PasteTableProps["pastes"][0]) => void;
   visibleColumns?: {
     avatar: boolean;
     language: boolean;
@@ -58,7 +57,6 @@ interface PasteTableProps {
 
 export function PasteTable({
   pastes,
-  onEdit,
   visibleColumns = {
     avatar: true,
     language: true,
@@ -168,7 +166,6 @@ export function PasteTable({
                 isSelected={selectedPastes.has(paste.id)}
                 onSelect={onSelectPaste}
                 onRowClick={handleRowClick}
-                onEdit={onEdit}
                 onDelete={handleDelete}
                 onShowQrCode={handleShowQrCode}
                 copied={copied}

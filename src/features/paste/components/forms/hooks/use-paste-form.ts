@@ -13,6 +13,7 @@ import {
 } from "@/shared/lib/constants";
 import { createPasteSchema, type CreatePasteInput, type UpdatePasteInput } from "@/shared/types/paste";
 import { createPaste, updatePaste } from "@/features/paste/actions/paste.actions";
+import { checkUrlAvailability } from "@/shared/lib/api-client";
 import type { URLAvailability } from "../types";
 
 interface EditingPaste {
@@ -34,11 +35,13 @@ interface EditingPaste {
 interface UsePasteFormProps {
   initialContent?: string;
   editingPaste?: EditingPaste | null;
+  isAuthenticated?: boolean; // Override auth state
   onSuccess?: () => void;
 }
 
-export function usePasteForm({ initialContent = "", editingPaste = null, onSuccess }: UsePasteFormProps) {
-  const { isAuthenticated } = useAuth();
+export function usePasteForm({ initialContent = "", editingPaste = null, isAuthenticated: overrideAuth, onSuccess }: UsePasteFormProps) {
+  const { isAuthenticated: authState } = useAuth();
+  const isAuthenticated = overrideAuth !== undefined ? overrideAuth : authState;
   const [isPending, startTransition] = useTransition();
   const [showPassword, setShowPassword] = useState(false);
   const [urlAvailability, setUrlAvailability] = useState<URLAvailability>({ 
@@ -55,7 +58,7 @@ export function usePasteForm({ initialContent = "", editingPaste = null, onSucce
 
   const form = useForm({
     resolver: zodResolver(createPasteSchema),
-    mode: "onSubmit",
+    mode: editingPaste ? "onChange" : "onSubmit", // More responsive validation in edit mode
     defaultValues: {
       title: "",
       description: "",
@@ -101,9 +104,10 @@ export function usePasteForm({ initialContent = "", editingPaste = null, onSucce
     }
   };
 
-  // Reset form values when editingPaste changes
+  // Only reset form when editingPaste initially loads, not on every change
   useEffect(() => {
-    if (editingPaste) {
+    // Only run when editingPaste first becomes available (not on subsequent changes)
+    if (editingPaste && editingPaste.id) {
       const resetData = {
         title: editingPaste.title || "",
         description: editingPaste.description || "",
@@ -120,6 +124,7 @@ export function usePasteForm({ initialContent = "", editingPaste = null, onSucce
         qrCodeBackground: editingPaste.qrCodeBackground || "#ffffff",
       };
       
+      // Only reset once when editingPaste first loads
       form.reset(resetData);
       
       // Set content in uncontrolled textarea
@@ -127,7 +132,8 @@ export function usePasteForm({ initialContent = "", editingPaste = null, onSucce
         contentRef.current.value = editingPaste.content;
         setContentLength(editingPaste.content.length);
       }
-    } else {
+    } else if (!editingPaste && initialContent !== "") {
+      // Only reset for new paste creation
       form.reset({
         title: "",
         description: "",
@@ -150,7 +156,9 @@ export function usePasteForm({ initialContent = "", editingPaste = null, onSucce
         setContentLength(initialContent.length);
       }
     }
-  }, [editingPaste, initialContent, isAuthenticated, form]);
+    // Only depend on the paste ID to avoid unnecessary resets
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [editingPaste?.id]);
 
   // Optimized form watching using useWatch for better performance
   const watchedFields = useWatch({
@@ -165,97 +173,30 @@ export function usePasteForm({ initialContent = "", editingPaste = null, onSucce
     watchedCustomUrl: watchedFields?.[2] || ""
   }), [watchedFields]);
 
-  // Enhanced URL availability check with retry logic and better error handling
+  // Standardized URL availability check with consistent error handling
   useEffect(() => {
     if (!isAuthenticated || !watchedCustomUrl?.trim()) {
       setUrlAvailability({ isChecking: false, available: null });
       return;
     }
 
-    const checkUrlAvailability = async (url: string, retryCount = 0): Promise<void> => {
-      try {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 5000); // 5s timeout
-
-        const response = await fetch("/api/check-url", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ url: url.trim() }),
-          signal: controller.signal,
-        });
-
-        clearTimeout(timeoutId);
-
-        if (!response.ok) {
-          // Retry for server errors (5xx) up to 3 times
-          if (response.status >= 500 && retryCount < 3) {
-            await new Promise(resolve => setTimeout(resolve, 1000 * Math.pow(2, retryCount)));
-            return checkUrlAvailability(url, retryCount + 1);
-          }
-          
-          // Handle different error types
-          if (response.status === 429) {
-            throw new Error("Too many requests. Please wait a moment and try again.");
-          } else if (response.status === 401) {
-            throw new Error("Authentication required to check URL availability.");
-          } else if (response.status >= 400 && response.status < 500) {
-            // For client errors, try to get the specific error message from response
-            try {
-              const errorResult = await response.json();
-              throw new Error(errorResult.error || "Invalid request. Please check your input.");
-            } catch {
-              throw new Error("Invalid request. Please check your input.");
-            }
-          } else {
-            throw new Error(`Server error: ${response.status}`);
-          }
-        }
-
-        const result = await response.json();
+    const timeoutId = setTimeout(async () => {
+      setUrlAvailability({ isChecking: true, available: null });
+      
+      const result = await checkUrlAvailability(watchedCustomUrl);
+      
+      if (result.success && result.data) {
         setUrlAvailability({
           isChecking: false,
-          available: result.available,
+          available: result.data.available,
+        });
+      } else {
+        setUrlAvailability({
+          isChecking: false,
+          available: false,
           error: result.error,
         });
-      } catch (error) {
-        console.error("URL availability check failed:", error);
-        
-        // Handle specific error types
-        if (error instanceof Error) {
-          if (error.name === 'AbortError') {
-            setUrlAvailability({
-              isChecking: false,
-              available: false,
-              error: "Request timed out. Please try again.",
-            });
-          } else if (error.message.includes('fetch')) {
-            setUrlAvailability({
-              isChecking: false,
-              available: false,
-              error: "Network error. Please check your connection.",
-            });
-          } else {
-            setUrlAvailability({
-              isChecking: false,
-              available: false,
-              error: error.message,
-            });
-          }
-        } else {
-          setUrlAvailability({
-            isChecking: false,
-            available: false,
-            error: "An unexpected error occurred.",
-          });
-        }
       }
-    };
-
-    const timeoutId = setTimeout(() => {
-      setUrlAvailability({ isChecking: true, available: null });
-      checkUrlAvailability(watchedCustomUrl);
     }, 500);
 
     return () => clearTimeout(timeoutId);

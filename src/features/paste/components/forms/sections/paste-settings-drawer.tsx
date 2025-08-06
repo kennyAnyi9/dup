@@ -15,6 +15,7 @@ export function PasteSettingsDrawer({
   urlAvailability,
   isEditing,
   isAuthenticated,
+  currentSlug,
   open,
   onOpenChange,
 }: PasteSettingsDrawerProps) {
@@ -57,6 +58,7 @@ export function PasteSettingsDrawer({
                 urlAvailability={urlAvailability}
                 isEditing={isEditing}
                 isAuthenticated={isAuthenticated}
+                currentSlug={currentSlug}
                 isMobile={true}
               />
             </div>
