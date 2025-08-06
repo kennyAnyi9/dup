@@ -31,14 +31,12 @@ interface PasteCardsGridProps {
       image: string | null;
     } | null;
   }>;
-  onEdit?: (paste: PasteCardsGridProps["pastes"][0]) => void;
   selectedPastes?: Set<string>;
   onSelectPaste?: (pasteId: string, selected: boolean) => void;
 }
 
 export function PasteCardsGrid({
   pastes,
-  onEdit,
   selectedPastes,
   onSelectPaste,
 }: PasteCardsGridProps) {
@@ -77,7 +75,6 @@ export function PasteCardsGrid({
         <PasteCardView
           key={paste.id}
           paste={paste}
-          onEdit={onEdit}
           isSelected={selectedPastes?.has(paste.id)}
           onSelect={onSelectPaste}
         />

@@ -12,7 +12,6 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/shared/components/dupui/alert-dialog";
-import { usePasteModal } from "@/features/paste/components/providers/paste-modal-provider";
 import { PasteTable } from "@/features/paste/components/ui/paste-table";
 import { PasteCardsGrid } from "@/features/paste/components/ui/paste-cards-grid";
 import { Button } from "@/shared/components/dupui/button";
@@ -56,7 +55,6 @@ interface PastesContentWrapperProps {
 }
 
 export function PastesContentWrapper({ pastes }: PastesContentWrapperProps) {
-  const { openEditModal } = usePasteModal();
   const [isPending, startTransition] = useTransition();
   const [selectedPastes, setSelectedPastes] = useState(() => new Set<string>());
   const { view: currentView, setView: setCurrentView } = useViewPreference();
@@ -101,23 +99,6 @@ export function PastesContentWrapper({ pastes }: PastesContentWrapperProps) {
     });
   }, [isMobile]);
 
-  const handleEdit = (paste: PastesContentWrapperProps["pastes"][0]) => {
-    openEditModal({
-      id: paste.id,
-      title: paste.title,
-      description: paste.description,
-      content: paste.content,
-      language: paste.language,
-      visibility: paste.visibility,
-      burnAfterRead: paste.burnAfterRead,
-      burnAfterReadViews: paste.burnAfterReadViews,
-      expiresAt: paste.expiresAt,
-      hasPassword: paste.hasPassword,
-      qrCodeColor: paste.qrCodeColor,
-      qrCodeBackground: paste.qrCodeBackground,
-      tags: paste.tags?.map((tag) => ({ name: tag.name })) || [],
-    });
-  };
 
   const handleColumnToggle = (key: string) => {
     // Track user toggles but remove if returning to default state
@@ -257,7 +238,6 @@ export function PastesContentWrapper({ pastes }: PastesContentWrapperProps) {
         {effectiveView === "table" ? (
           <PasteTable
             pastes={pastes}
-            onEdit={handleEdit}
             visibleColumns={visibleColumns}
             selectedPastes={selectedPastes}
             onSelectPaste={handleSelectPaste}
@@ -267,7 +247,6 @@ export function PastesContentWrapper({ pastes }: PastesContentWrapperProps) {
         ) : (
           <PasteCardsGrid
             pastes={pastes}
-            onEdit={handleEdit}
             selectedPastes={selectedPastes}
             onSelectPaste={handleSelectPaste}
           />

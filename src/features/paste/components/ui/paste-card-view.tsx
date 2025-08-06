@@ -43,7 +43,6 @@ interface PasteCardViewProps {
       image: string | null;
     } | null;
   };
-  onEdit?: (paste: PasteCardViewProps["paste"]) => void;
   isSelected?: boolean;
   onSelect?: (pasteId: string, selected: boolean) => void;
   isAuthenticated?: boolean;
@@ -51,7 +50,6 @@ interface PasteCardViewProps {
 
 export function PasteCardView({
   paste,
-  onEdit,
   isSelected,
   onSelect,
   isAuthenticated = true,
@@ -73,11 +71,6 @@ export function PasteCardView({
     router.refresh();
   };
 
-  const handleEditPaste = () => {
-    if (onEdit) {
-      onEdit(paste);
-    }
-  };
 
   const handleQrColorChange = async (foreground: string, background: string) => {
     try {
@@ -135,7 +128,6 @@ export function PasteCardView({
           isSelected={isSelected}
           onSelect={onSelect}
           onCopyUrl={handleCopyUrl}
-          onEditPaste={handleEditPaste}
           onDeletePaste={() => setShowDeleteDialog(true)}
           onShowQrCode={() => setShowQrCode(true)}
         />

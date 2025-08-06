@@ -50,6 +50,7 @@ export function SecuritySettings({
   urlAvailability,
   isEditing,
   isAuthenticated,
+  currentSlug,
   isMobile = false,
 }: SecuritySettingsProps) {
   return (
@@ -102,74 +103,113 @@ export function SecuritySettings({
         )}
       />
 
-      {/* Custom URL - Only when creating */}
-      {!isEditing && (
-        <FormField
-          control={form.control}
-          name="customUrl"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className="text-sm font-medium flex items-center gap-2">
-                <Link2 className="h-4 w-4 text-muted-foreground" />
-                Custom Link
-                {!isAuthenticated && <span className="text-xs text-muted-foreground">(Sign in required)</span>}
-              </FormLabel>
-              <FormControl>
-                <div className="relative flex rounded-md">
-                  <div className="z-[1]">
-                    <div className="inline-flex items-center whitespace-nowrap rounded-md border text-sm border-input bg-background text-foreground h-10 rounded-r-none border-r-transparent justify-start px-3">
-                      <div className="min-w-0 truncate text-left text-muted-foreground font-mono">
-                        {getBaseUrl()}/p/
+      {/* Custom URL - Show current URL when editing, allow custom when creating */}
+      <div>
+        <div className="flex items-center gap-2 mb-2">
+          <Link2 className="h-4 w-4 text-muted-foreground" />
+          <span className="text-sm font-medium">
+            {isEditing ? "Current Link" : "Custom Link"}
+          </span>
+          {!isAuthenticated && !isEditing && (
+            <span className="text-xs text-muted-foreground">(Sign in required)</span>
+          )}
+        </div>
+        
+        {isEditing ? (
+          currentSlug ? (
+            // Show current URL when editing (read-only)
+            <div className="relative flex rounded-md">
+              <div className="z-[1]">
+                <div className="inline-flex items-center whitespace-nowrap rounded-md border text-sm border-input bg-background text-foreground h-10 rounded-r-none border-r-transparent justify-start px-3">
+                  <div className="min-w-0 truncate text-left text-muted-foreground font-mono">
+                    {getBaseUrl()}/p/
+                  </div>
+                </div>
+              </div>
+              <Input
+                value={currentSlug}
+                readOnly
+                className="block w-full rounded-r-md rounded-l-none border-l-transparent text-sm bg-muted cursor-not-allowed h-10"
+              />
+            </div>
+          ) : (
+            // Fallback when currentSlug is missing
+            <div className="relative flex rounded-md border border-destructive/50 bg-destructive/5">
+              <div className="flex items-center px-3 py-2 text-sm text-destructive">
+                <span>⚠️ Unable to load current URL</span>
+              </div>
+            </div>
+          )
+        ) : (
+          // Show editable custom URL field when creating
+          <FormField
+            control={form.control}
+            name="customUrl"
+            render={({ field }) => (
+              <FormItem>
+                <FormControl>
+                  <div className="relative flex rounded-md">
+                    <div className="z-[1]">
+                      <div className="inline-flex items-center whitespace-nowrap rounded-md border text-sm border-input bg-background text-foreground h-10 rounded-r-none border-r-transparent justify-start px-3">
+                        <div className="min-w-0 truncate text-left text-muted-foreground font-mono">
+                          {getBaseUrl()}/p/
+                        </div>
                       </div>
                     </div>
+                    <Input
+                      placeholder={isAuthenticated ? "custom" : "Sign in to create custom links..."}
+                      disabled={!isAuthenticated}
+                      className={`block w-full rounded-r-md rounded-l-none border-l-transparent focus:border-l-input text-sm z-0 focus:z-[1] h-10 ${
+                        !isAuthenticated 
+                          ? "cursor-not-allowed opacity-60"
+                          : field.value && urlAvailability.available === false
+                          ? "border-destructive focus-visible:ring-destructive"
+                          : field.value && urlAvailability.available === true
+                          ? "border-green-500 focus-visible:ring-green-500"
+                          : ""
+                      }`}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                        }
+                      }}
+                      {...field}
+                    />
+                    {field.value && (
+                      <div className="absolute right-2 top-1/2 -translate-y-1/2">
+                        {urlAvailability.isChecking ? (
+                          <Loader className="h-3 w-3 animate-spin text-muted-foreground" />
+                        ) : urlAvailability.available === true ? (
+                          <Check className="h-3 w-3 text-green-500" />
+                        ) : urlAvailability.available === false ? (
+                          <div className="h-3 w-3 rounded-full bg-destructive" />
+                        ) : null}
+                      </div>
+                    )}
                   </div>
-                  <Input
-                    placeholder={isAuthenticated ? "custom" : "Sign in to create custom links..."}
-                    disabled={!isAuthenticated}
-                    className={`block w-full rounded-r-md rounded-l-none border-l-transparent focus:border-l-input text-sm z-0 focus:z-[1] h-10 ${
-                      !isAuthenticated 
-                        ? "cursor-not-allowed opacity-60"
-                        : field.value && urlAvailability.available === false
-                        ? "border-destructive focus-visible:ring-destructive"
-                        : field.value && urlAvailability.available === true
-                        ? "border-green-500 focus-visible:ring-green-500"
-                        : ""
-                    }`}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') {
-                        e.preventDefault();
-                      }
-                    }}
-                    {...field}
-                  />
-                  {field.value && (
-                    <div className="absolute right-2 top-1/2 -translate-y-1/2">
-                      {urlAvailability.isChecking ? (
-                        <Loader className="h-3 w-3 animate-spin text-muted-foreground" />
-                      ) : urlAvailability.available === true ? (
-                        <Check className="h-3 w-3 text-green-500" />
-                      ) : urlAvailability.available === false ? (
-                        <div className="h-3 w-3 rounded-full bg-destructive" />
-                      ) : null}
-                    </div>
-                  )}
-                </div>
-              </FormControl>
-              {field.value && urlAvailability.available === false && (
-                <p className="text-xs text-destructive">
-                  {getCustomLinkError(field.value) || `${field.value} is already taken`}
-                </p>
-              )}
-              {field.value && urlAvailability.available === true && (
-                <p className="text-xs text-green-600">
-                  {field.value} is available
-                </p>
-              )}
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-      )}
+                </FormControl>
+                {field.value && urlAvailability.available === false && (
+                  <p className="text-xs text-destructive">
+                    {getCustomLinkError(field.value) || `${field.value} is already taken`}
+                  </p>
+                )}
+                {field.value && urlAvailability.available === true && (
+                  <p className="text-xs text-green-600">
+                    {field.value} is available
+                  </p>
+                )}
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        )}
+        
+        {isEditing && (
+          <p className="text-xs text-muted-foreground mt-1">
+            URLs cannot be changed after creation to avoid breaking existing links.
+          </p>
+        )}
+      </div>
     </div>
   );
 }

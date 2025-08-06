@@ -47,8 +47,127 @@ import {
 } from "@/shared/types/paste";
 import bcrypt from "bcryptjs";
 
+/**
+ * Atomically checks if current user can edit a paste
+ * Combines authentication and ownership verification in a single operation
+ */
+export async function getPasteForEdit(input: GetPasteInput): Promise<GetPasteResult> {
+  try {
+    // Validate input
+    const validatedInput = getPasteSchema.parse(input);
+    
+    // Get current user first
+    const currentUser = await getCurrentUser();
+    if (!currentUser) {
+      return {
+        success: false,
+        error: "Authentication required",
+      };
+    }
+
+    // Atomic query: find paste AND verify ownership in single operation
+    const pasteData = await db
+      .select()
+      .from(paste)
+      .where(
+        and(
+          eq(paste.slug, validatedInput.slug),
+          eq(paste.isDeleted, false),
+          eq(paste.userId, currentUser.id) // Ownership check in same query
+        )
+      )
+      .limit(1);
+
+    if (pasteData.length === 0) {
+      return {
+        success: false,
+        error: "Paste not found or access denied",
+      };
+    }
+
+    const foundPaste = pasteData[0];
+
+    // Get paste tags
+    const pasteTags = await db
+      .select({
+        id: tag.id,
+        name: tag.name,
+        slug: tag.slug,
+        color: tag.color,
+      })
+      .from(tag)
+      .innerJoin(pasteTag, eq(tag.id, pasteTag.tagId))
+      .where(eq(pasteTag.pasteId, foundPaste.id));
+
+    // Check if paste has expired
+    if (foundPaste.expiresAt && new Date() > foundPaste.expiresAt) {
+      return {
+        success: false,
+        error: "Paste has expired",
+      };
+    }
+
+    return {
+      success: true,
+      paste: {
+        id: foundPaste.id,
+        slug: foundPaste.slug,
+        title: foundPaste.title || undefined,
+        description: foundPaste.description || undefined,
+        content: foundPaste.content,
+        language: foundPaste.language,
+        visibility: foundPaste.visibility,
+        userId: foundPaste.userId || undefined,
+        burnAfterRead: foundPaste.burnAfterRead,
+        burnAfterReadViews: foundPaste.burnAfterReadViews || undefined,
+        views: foundPaste.views,
+        expiresAt: foundPaste.expiresAt || undefined,
+        qrCodeColor: foundPaste.qrCodeColor || undefined,
+        qrCodeBackground: foundPaste.qrCodeBackground || undefined,
+        createdAt: foundPaste.createdAt,
+        updatedAt: foundPaste.updatedAt,
+        hasPassword: !!foundPaste.password,
+        tags: pasteTags,
+      },
+    };
+  } catch (error) {
+    console.error("Error in getPasteForEdit:", error);
+    return {
+      success: false,
+      error: "Failed to retrieve paste for editing",
+    };
+  }
+}
+
 function generateSlug(): string {
   return nanoid(8); // 8 character URL-safe ID
+}
+
+/**
+ * Generate a deterministic color for a tag based on its name
+ * Uses hash-based selection from predefined palette for consistency
+ */
+function generateTagColor(tagName: string): string {
+  const colors = [
+    '#3B82F6', // Blue
+    '#10B981', // Green
+    '#F59E0B', // Yellow
+    '#EF4444', // Red
+    '#8B5CF6', // Purple
+    '#06B6D4', // Cyan
+    '#F97316', // Orange
+    '#84CC16', // Lime
+    '#EC4899', // Pink
+    '#6366F1', // Indigo
+  ];
+  
+  // Create hash from tag name for deterministic color selection
+  let hash = 0;
+  for (let i = 0; i < tagName.length; i++) {
+    hash = ((hash << 5) - hash + tagName.charCodeAt(i)) & 0xffffffff;
+  }
+  
+  return colors[Math.abs(hash) % colors.length];
 }
 
 function calculateExpiryDate(expiresIn: string, isAuthenticated: boolean): Date | null {
@@ -1242,50 +1361,69 @@ export async function updatePaste(input: UpdatePasteInput): Promise<UpdatePasteR
       };
     }
 
-    // Handle tags
+    // Handle tags with optimized batch processing
     if (validatedInput.tags) {
       // Remove existing tags
       await db.delete(pasteTag).where(eq(pasteTag.pasteId, validatedInput.id));
 
-      // Add new tags
+      // Add new tags using batch processing to avoid N+1 queries
       if (validatedInput.tags.length > 0) {
-        for (const tagName of validatedInput.tags) {
-          // Create a slug from the tag name
-          const tagSlug = tagName.toLowerCase().replace(/[^a-z0-9-_]/g, '-').replace(/-+/g, '-').trim();
-          const tagId = nanoid();
+        // Process tags in batches for better performance
+        const tagSlugs = validatedInput.tags.map(tagName => 
+          tagName.toLowerCase().replace(/[^a-z0-9-_]/g, '-').replace(/-+/g, '-').trim()
+        );
 
-          // Insert tag if it doesn't exist
-          const existingTag = await db
-            .select({ id: tag.id })
-            .from(tag)
-            .where(eq(tag.slug, tagSlug))
-            .limit(1);
+        // Find existing tags in a single query
+        const existingTags = await db
+          .select({ id: tag.id, slug: tag.slug })
+          .from(tag)
+          .where(inArray(tag.slug, tagSlugs));
 
-          let tagIdToUse: string;
+        const existingTagMap = new Map(existingTags.map(t => [t.slug, t.id]));
+        const tagsToCreate: Array<{ 
+          id: string; 
+          name: string; 
+          slug: string; 
+          color: string;
+          createdAt: Date;
+          updatedAt: Date;
+        }> = [];
+        const pasteTags: Array<{ pasteId: string; tagId: string }> = [];
+
+        // Prepare new tags and relationships
+        for (let i = 0; i < validatedInput.tags.length; i++) {
+          const tagName = validatedInput.tags[i];
+          const tagSlug = tagSlugs[i];
           
-          if (existingTag.length === 0) {
-            // Create new tag
-            const newTag = await db
-              .insert(tag)
-              .values({
-                id: tagId,
-                name: tagName,
-                slug: tagSlug,
-                color: `#${Math.floor(Math.random()*16777215).toString(16)}`, // Random color
-                createdAt: new Date(),
-                updatedAt: new Date(),
-              })
-              .returning({ id: tag.id });
-            tagIdToUse = newTag[0].id;
-          } else {
-            tagIdToUse = existingTag[0].id;
+          let tagIdToUse = existingTagMap.get(tagSlug);
+          
+          if (!tagIdToUse) {
+            // Tag doesn't exist, prepare to create it
+            tagIdToUse = nanoid();
+            tagsToCreate.push({
+              id: tagIdToUse,
+              name: tagName,
+              slug: tagSlug,
+              color: generateTagColor(tagName),
+              createdAt: new Date(),
+              updatedAt: new Date(),
+            });
           }
 
-          // Link tag to paste
-          await db.insert(pasteTag).values({
+          pasteTags.push({
             pasteId: validatedInput.id,
             tagId: tagIdToUse,
           });
+        }
+
+        // Create new tags in batch if any
+        if (tagsToCreate.length > 0) {
+          await db.insert(tag).values(tagsToCreate);
+        }
+
+        // Create paste-tag relationships in batch
+        if (pasteTags.length > 0) {
+          await db.insert(pasteTag).values(pasteTags);
         }
       }
     }

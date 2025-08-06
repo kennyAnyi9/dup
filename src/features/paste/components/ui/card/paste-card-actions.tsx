@@ -30,7 +30,6 @@ interface PasteCardActionsProps {
   isSelected?: boolean;
   onSelect?: (pasteId: string, selected: boolean) => void;
   onCopyUrl: () => void;
-  onEditPaste: () => void;
   onDeletePaste: () => void;
   onShowQrCode: () => void;
 }
@@ -41,7 +40,6 @@ export function PasteCardActions({
   isSelected,
   onSelect,
   onCopyUrl,
-  onEditPaste,
   onDeletePaste,
   onShowQrCode,
 }: PasteCardActionsProps) {
@@ -95,9 +93,14 @@ export function PasteCardActions({
               View Paste
             </Link>
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={onEditPaste}>
-            <Pencil className="h-4 w-4" />
-            Edit Paste
+          <DropdownMenuItem asChild>
+            <Link
+              href={`/p/${paste.slug}/edit`}
+              className="flex items-center gap-2"
+            >
+              <Pencil className="h-4 w-4" />
+              Edit Paste
+            </Link>
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem onClick={onCopyUrl}>

@@ -3,14 +3,13 @@
 import { getPaste } from "@/features/paste/actions/paste.actions";
 import { Logo } from "@/shared/components/common/logo";
 import { Badge } from "@/shared/components/dupui/badge";
-import { Skeleton } from "@/shared/components/dupui/skeleton";
-import { useRouter } from "next/navigation";
 import { Button } from "@/shared/components/dupui/button";
 import { Card, CardContent } from "@/shared/components/dupui/card";
 import { Separator } from "@/shared/components/dupui/separator";
+import { Skeleton } from "@/shared/components/dupui/skeleton";
+import { ThemeSwitch } from "@/shared/components/theme/theme-switch";
 import { useAuth } from "@/shared/hooks/use-auth";
 import type { PasteResult } from "@/shared/types/paste";
-import { ThemeSwitch } from "@/shared/components/theme/theme-switch";
 import { format, formatDistanceToNow } from "date-fns";
 import {
   AlertTriangle,
@@ -28,13 +27,17 @@ import {
   Zap,
 } from "lucide-react";
 import Link from "next/link";
-import { useCallback, useEffect, useState, useRef } from "react";
+import { useRouter } from "next/navigation";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
+import { getCommentCount } from "../../actions/comment.actions";
 import { PasswordDialog } from "../forms/password-dialog";
 import { usePasteModal } from "../providers/paste-modal-provider";
+import {
+  CommentsSection,
+  CommentsSectionRef,
+} from "../ui/comments/comments-section";
 import { PasteViewer } from "../ui/paste-viewer";
-import { CommentsSection, CommentsSectionRef } from "../ui/comments/comments-section";
-import { getCommentCount } from "../../actions/comment.actions";
 
 interface PublicPasteClientProps {
   slug: string;
@@ -54,47 +57,53 @@ export function PublicPasteClient({ slug }: PublicPasteClientProps) {
   const [commentCount, setCommentCount] = useState(0);
   const commentsSectionRef = useRef<CommentsSectionRef>(null);
 
-  const loadPaste = useCallback(async (password?: string) => {
-    try {
-      setLoading(true);
-      setError(null);
+  const loadPaste = useCallback(
+    async (password?: string) => {
+      try {
+        setLoading(true);
+        setError(null);
 
-      const result = await getPaste({ slug, password });
+        const result = await getPaste({ slug, password });
 
-      if (result.success && result.paste) {
-        setPaste(result.paste);
-        setShowPasswordDialog(false);
-        setPasswordError(null);
+        if (result.success && result.paste) {
+          setPaste(result.paste);
+          setShowPasswordDialog(false);
+          setPasswordError(null);
 
-        // Load comment count
-        loadCommentCount(result.paste.id);
+          // Load comment count
+          loadCommentCount(result.paste.id);
 
-        // Show burn after read notification
-        if (result.burnedAfterRead) {
-          toast.warning("This paste has been deleted after being viewed!", {
-            duration: 5000,
-          });
+          // Show burn after read notification
+          if (result.burnedAfterRead) {
+            toast.warning("This paste has been deleted after being viewed!", {
+              duration: 5000,
+            });
+          }
+        } else if (result.requiresPassword) {
+          setShowPasswordDialog(true);
+          setPasswordError(result.error || null);
+        } else {
+          setError(result.error || "Paste not found");
         }
-      } else if (result.requiresPassword) {
-        setShowPasswordDialog(true);
-        setPasswordError(result.error || null);
-      } else {
-        setError(result.error || "Paste not found");
+      } catch (error) {
+        console.error("Failed to load paste:", error);
+        setError("Failed to load paste");
+      } finally {
+        setLoading(false);
       }
-    } catch (error) {
-      console.error("Failed to load paste:", error);
-      setError("Failed to load paste");
-    } finally {
-      setLoading(false);
-    }
-  }, [slug]);
+    },
+    [slug]
+  );
 
   const loadCommentCount = async (pasteId: string) => {
     try {
       const result = await getCommentCount(pasteId);
-      
+
       if (result.success && result.count !== undefined) {
-        const count = typeof result.count === 'string' ? parseInt(result.count, 10) : result.count;
+        const count =
+          typeof result.count === "string"
+            ? parseInt(result.count, 10)
+            : result.count;
         setCommentCount(count);
       } else {
         // Fallback to 0 if result is not successful
@@ -234,25 +243,25 @@ export function PublicPasteClient({ slug }: PublicPasteClientProps) {
                   <Skeleton className="h-4 w-4" />
                   <Skeleton className="h-4 w-32" />
                 </div>
-                
+
                 {/* Views */}
                 <div className="flex items-center gap-1">
                   <Skeleton className="h-4 w-4" />
                   <Skeleton className="h-4 w-16" />
                 </div>
-                
+
                 {/* Visibility */}
                 <div className="flex items-center gap-1">
                   <Skeleton className="h-4 w-4" />
                   <Skeleton className="h-4 w-12" />
                 </div>
-                
+
                 {/* Expiry */}
                 <div className="flex items-center gap-1">
                   <Skeleton className="h-4 w-4" />
                   <Skeleton className="h-4 w-20" />
                 </div>
-                
+
                 {/* Burn after read */}
                 <div className="flex items-center gap-1">
                   <Skeleton className="h-4 w-4" />
@@ -279,26 +288,29 @@ export function PublicPasteClient({ slug }: PublicPasteClientProps) {
                     <Skeleton className="h-8 w-8 rounded" />
                   </div>
                 </div>
-                
+
                 {/* Code content area */}
                 <div className="relative">
                   {/* Line numbers and code */}
                   <div className="p-4 space-y-3 bg-muted/5 font-mono text-sm">
                     {Array.from({ length: 15 }).map((_, i) => {
                       // Deterministic width based on line index for consistent SSR/client rendering
-                      const widths = [85, 60, 40, 75, 45, 90, 35, 80, 55, 70, 25, 95, 50, 65, 30];
+                      const widths = [
+                        85, 60, 40, 75, 45, 90, 35, 80, 55, 70, 25, 95, 50, 65,
+                        30,
+                      ];
                       const width = widths[i % widths.length];
-                      
+
                       return (
                         <div key={i} className="flex items-center gap-4">
                           {/* Line number */}
                           <Skeleton className="h-4 w-6 flex-shrink-0" />
                           {/* Code line with realistic varying widths */}
-                          <Skeleton 
-                            className="h-4" 
-                            style={{ 
+                          <Skeleton
+                            className="h-4"
+                            style={{
                               width: `${width}%`,
-                              maxWidth: '95%'
+                              maxWidth: "95%",
                             }}
                           />
                         </div>
@@ -433,7 +445,9 @@ export function PublicPasteClient({ slug }: PublicPasteClientProps) {
                         variant="secondary"
                         className="text-xs px-2 py-1 h-6"
                         style={{
-                          backgroundColor: tag.color ? `${tag.color}20` : undefined,
+                          backgroundColor: tag.color
+                            ? `${tag.color}20`
+                            : undefined,
                           borderColor: tag.color || undefined,
                           color: tag.color || undefined,
                         }}
@@ -442,7 +456,10 @@ export function PublicPasteClient({ slug }: PublicPasteClientProps) {
                       </Badge>
                     ))}
                     {paste.tags.length > 3 && (
-                      <Badge variant="secondary" className="text-xs px-2 py-1 h-6">
+                      <Badge
+                        variant="secondary"
+                        className="text-xs px-2 py-1 h-6"
+                      >
                         +{paste.tags.length - 3} more
                       </Badge>
                     )}

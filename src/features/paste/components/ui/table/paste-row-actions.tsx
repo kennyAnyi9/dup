@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { getBaseUrl } from "@/lib/utils/url";
+import { useRouter } from "next/navigation";
 
 interface PasteRowActionsProps {
   paste: {
@@ -49,7 +50,6 @@ interface PasteRowActionsProps {
       image: string | null;
     } | null;
   };
-  onEdit?: (paste: PasteRowActionsProps["paste"]) => void;
   onDelete: (pasteId: string) => void;
   onShowQrCode?: (paste: PasteRowActionsProps["paste"]) => void;
   copied: string | null;
@@ -58,12 +58,13 @@ interface PasteRowActionsProps {
 
 export function PasteRowActions({
   paste,
-  onEdit,
   onDelete,
   onShowQrCode,
   copied,
   setCopied,
 }: PasteRowActionsProps) {
+  const router = useRouter();
+  
   const copyToClipboard = async (text: string, type: string) => {
     try {
       await navigator.clipboard.writeText(text);
@@ -73,6 +74,11 @@ export function PasteRowActions({
     } catch {
       toast.error(`Failed to copy ${type.toLowerCase()}`);
     }
+  };
+
+  const handleEdit = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    router.push(`/p/${paste.slug}/edit`);
   };
 
   const pasteUrl = `${getBaseUrl()}/p/${paste.slug}`;
@@ -123,20 +129,13 @@ export function PasteRowActions({
           <ExternalLink className="h-4 w-4 mr-2" />
           Open in new tab
         </DropdownMenuItem>
-        {onEdit && (
-          <>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem
-              onClick={(e) => {
-                e.stopPropagation();
-                onEdit(paste);
-              }}
-            >
-              <Pencil className="h-4 w-4 mr-2" />
-              Edit
-            </DropdownMenuItem>
-          </>
-        )}
+        <>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem onClick={handleEdit}>
+            <Pencil className="h-4 w-4 mr-2" />
+            Edit
+          </DropdownMenuItem>
+        </>
         <DropdownMenuSeparator />
         <DropdownMenuItem
           onClick={(e) => {

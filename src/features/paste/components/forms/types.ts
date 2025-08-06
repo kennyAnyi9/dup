@@ -37,6 +37,7 @@ export interface SecuritySettingsProps {
   urlAvailability: URLAvailability;
   isEditing: boolean;
   isAuthenticated: boolean;
+  currentSlug?: string; // Current paste slug when editing
   isMobile?: boolean;
 }
 
@@ -57,6 +58,7 @@ export interface PasteSettingsDrawerProps {
   urlAvailability: URLAvailability;
   isEditing: boolean;
   isAuthenticated: boolean;
+  currentSlug?: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
@@ -68,6 +70,7 @@ export interface PasteSettingsSidebarProps {
   urlAvailability: URLAvailability;
   isEditing: boolean;
   isAuthenticated: boolean;
+  currentSlug?: string;
 }
 
 export interface BurnAfterReadDialogProps {
