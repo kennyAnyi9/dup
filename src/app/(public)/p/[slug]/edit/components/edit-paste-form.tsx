@@ -92,12 +92,12 @@ export function EditPasteForm({ paste }: EditPasteFormProps) {
       return;
     }
 
-    router.back();
+    router.push('/dashboard');
   }, [contentRef, form, router]);
 
   const handleConfirmDiscard = useCallback(() => {
     setShowDiscardDialog(false);
-    router.back();
+    router.push('/dashboard');
   }, [router]);
 
   // Memoized keyboard event handler to prevent recreation on every render
@@ -110,12 +110,8 @@ export function EditPasteForm({ paste }: EditPasteFormProps) {
     ) {
       const target = e.target as HTMLInputElement;
 
-      // Type guard and check for text-based input types only
-      if (
-        target &&
-        typeof target.tagName === "string" &&
-        target.tagName.toLowerCase() === "input"
-      ) {
+      // Check for text-based input types only
+      if (target.tagName === "INPUT") {
         const inputType = target.type?.toLowerCase() || "text";
 
         // Only prevent Enter for text-based input types
@@ -138,15 +134,10 @@ export function EditPasteForm({ paste }: EditPasteFormProps) {
   // Cleanup effect to prevent memory leaks
   useEffect(() => {
     return () => {
-      // Reset form state on unmount to prevent memory leaks
-      if (form) {
-        form.reset();
-      }
-      // Clear any pending state updates
-      setShowDiscardDialog(false);
-      setSettingsOpen(false);
+      // Form and state will be garbage collected on unmount
+      // Avoid setting state in cleanup to prevent React warnings
     };
-  }, [form]);
+  }, []);
 
   return (
     <div className="h-screen flex flex-col bg-background">

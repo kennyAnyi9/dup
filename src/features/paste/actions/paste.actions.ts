@@ -143,6 +143,33 @@ function generateSlug(): string {
   return nanoid(8); // 8 character URL-safe ID
 }
 
+/**
+ * Generate a deterministic color for a tag based on its name
+ * Uses hash-based selection from predefined palette for consistency
+ */
+function generateTagColor(tagName: string): string {
+  const colors = [
+    '#3B82F6', // Blue
+    '#10B981', // Green
+    '#F59E0B', // Yellow
+    '#EF4444', // Red
+    '#8B5CF6', // Purple
+    '#06B6D4', // Cyan
+    '#F97316', // Orange
+    '#84CC16', // Lime
+    '#EC4899', // Pink
+    '#6366F1', // Indigo
+  ];
+  
+  // Create hash from tag name for deterministic color selection
+  let hash = 0;
+  for (let i = 0; i < tagName.length; i++) {
+    hash = ((hash << 5) - hash + tagName.charCodeAt(i)) & 0xffffffff;
+  }
+  
+  return colors[Math.abs(hash) % colors.length];
+}
+
 function calculateExpiryDate(expiresIn: string, isAuthenticated: boolean): Date | null {
   if (expiresIn === "never") {
     return null;
@@ -1377,7 +1404,7 @@ export async function updatePaste(input: UpdatePasteInput): Promise<UpdatePasteR
               id: tagIdToUse,
               name: tagName,
               slug: tagSlug,
-              color: `#${Math.floor(Math.random()*16777215).toString(16)}`, // Random color
+              color: generateTagColor(tagName),
               createdAt: new Date(),
               updatedAt: new Date(),
             });

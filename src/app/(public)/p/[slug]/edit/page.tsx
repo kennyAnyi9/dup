@@ -23,9 +23,5 @@ export default async function EditPage({ params }: EditPageProps) {
     notFound();
   }
 
-  if (!result.paste) {
-    notFound();
-  }
-
-  return <EditPasteForm paste={result.paste} />;
+  return <EditPasteForm paste={result.paste!} />;
 }

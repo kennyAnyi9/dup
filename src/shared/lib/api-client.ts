@@ -2,6 +2,19 @@
  * Standardized API client with consistent error handling and retry logic
  */
 
+// Simple request cache to prevent duplicate requests
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const requestCache = new Map<string, Promise<ApiResponse<any>>>();
+
+/**
+ * Clear request cache entry after completion to prevent memory leaks
+ */
+function clearCacheEntry(cacheKey: string, delay: number = 1000) {
+  setTimeout(() => {
+    requestCache.delete(cacheKey);
+  }, delay);
+}
+
 interface ApiRequestOptions {
   method?: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
   body?: unknown;
@@ -34,6 +47,35 @@ class ApiError extends Error {
 export async function apiRequest<T = unknown>(
   url: string,
   options: ApiRequestOptions = {}
+): Promise<ApiResponse<T>> {
+  // Create cache key for request deduplication (only for GET requests)
+  if (options.method === 'GET' || !options.method) {
+    const method = options.method || 'GET';
+    const cacheKey = `${method}:${url}:${JSON.stringify({ headers: options.headers, body: options.body })}`;
+    
+    if (requestCache.has(cacheKey)) {
+      return requestCache.get(cacheKey)! as Promise<ApiResponse<T>>;
+    }
+    
+    // Create and cache the promise
+    const requestPromise = performRequest<T>(url, options);
+    requestCache.set(cacheKey, requestPromise);
+    
+    // Clear cache entry after completion
+    requestPromise.finally(() => clearCacheEntry(cacheKey));
+    
+    return requestPromise;
+  }
+
+  return performRequest<T>(url, options);
+}
+
+/**
+ * Perform the actual HTTP request with retry logic
+ */
+async function performRequest<T = unknown>(
+  url: string,
+  options: ApiRequestOptions
 ): Promise<ApiResponse<T>> {
   const {
     method = 'GET',
@@ -102,9 +144,15 @@ export async function apiRequest<T = unknown>(
         error instanceof TypeError ||
         (error as Error).name === 'AbortError'
       ) {
-        // Only retry server errors (5xx), not client errors (4xx) or network issues
+        // Only retry server errors (5xx) and specific retryable 4xx errors (429, 408)
         if (error instanceof ApiError && error.status && error.status < 500) {
-          break;
+          // Allow retry for rate limit (429) and timeout (408) errors
+          if (error.status === 429 || error.status === 408) {
+            // Continue to retry logic
+          } else {
+            // Don't retry other 4xx errors
+            break;
+          }
         }
         if ((error as Error).name === 'AbortError' && attempt === retries) {
           break;

@@ -115,22 +115,31 @@ export function SecuritySettings({
           )}
         </div>
         
-        {isEditing && currentSlug ? (
-          // Show current URL when editing (read-only)
-          <div className="relative flex rounded-md">
-            <div className="z-[1]">
-              <div className="inline-flex items-center whitespace-nowrap rounded-md border text-sm border-input bg-background text-foreground h-10 rounded-r-none border-r-transparent justify-start px-3">
-                <div className="min-w-0 truncate text-left text-muted-foreground font-mono">
-                  {getBaseUrl()}/p/
+        {isEditing ? (
+          currentSlug ? (
+            // Show current URL when editing (read-only)
+            <div className="relative flex rounded-md">
+              <div className="z-[1]">
+                <div className="inline-flex items-center whitespace-nowrap rounded-md border text-sm border-input bg-background text-foreground h-10 rounded-r-none border-r-transparent justify-start px-3">
+                  <div className="min-w-0 truncate text-left text-muted-foreground font-mono">
+                    {getBaseUrl()}/p/
+                  </div>
                 </div>
               </div>
+              <Input
+                value={currentSlug}
+                readOnly
+                className="block w-full rounded-r-md rounded-l-none border-l-transparent text-sm bg-muted cursor-not-allowed h-10"
+              />
             </div>
-            <Input
-              value={currentSlug}
-              readOnly
-              className="block w-full rounded-r-md rounded-l-none border-l-transparent text-sm bg-muted cursor-not-allowed h-10"
-            />
-          </div>
+          ) : (
+            // Fallback when currentSlug is missing
+            <div className="relative flex rounded-md border border-destructive/50 bg-destructive/5">
+              <div className="flex items-center px-3 py-2 text-sm text-destructive">
+                <span>⚠️ Unable to load current URL</span>
+              </div>
+            </div>
+          )
         ) : (
           // Show editable custom URL field when creating
           <FormField

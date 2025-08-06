@@ -5,5 +5,5 @@ interface PublicLayoutProps {
 }
 
 export default function PublicLayout({ children }: PublicLayoutProps) {
-  return <div className="">{children}</div>;
+  return <div>{children}</div>;
 }
