@@ -19,8 +19,8 @@ export function SearchHighlight({
   highlightClassName = "bg-yellow-200 dark:bg-yellow-800 px-0.5 rounded",
   maxLength = 200 
 }: SearchHighlightProps) {
-  const highlightedText = useMemo(() => {
-    if (!searchTerm || !text) return text;
+  const highlightedContent = useMemo(() => {
+    if (!searchTerm || !text) return [];
     
     const trimmedText = maxLength && text.length > maxLength 
       ? text.substring(0, maxLength) + "..." 
@@ -45,33 +45,44 @@ export function SearchHighlight({
       index = matchIndex + 1;
     }
     
-    if (matches.length === 0) return trimmedText;
+    if (matches.length === 0) return [{ type: 'text', content: trimmedText }];
     
-    // Build highlighted text
-    let result = "";
+    // Build content parts array for safe rendering
+    const parts: Array<{ type: 'text' | 'highlight', content: string }> = [];
     let lastIndex = 0;
     
     for (const match of matches) {
       // Add text before the match
-      result += trimmedText.slice(lastIndex, match.start);
+      if (lastIndex < match.start) {
+        parts.push({ type: 'text', content: trimmedText.slice(lastIndex, match.start) });
+      }
       
       // Add highlighted match
-      result += `<span class="${highlightClassName}">${trimmedText.slice(match.start, match.end)}</span>`;
+      parts.push({ type: 'highlight', content: trimmedText.slice(match.start, match.end) });
       
       lastIndex = match.end;
     }
     
     // Add remaining text
-    result += trimmedText.slice(lastIndex);
+    if (lastIndex < trimmedText.length) {
+      parts.push({ type: 'text', content: trimmedText.slice(lastIndex) });
+    }
     
-    return result;
-  }, [text, searchTerm, highlightClassName, maxLength]);
+    return parts;
+  }, [text, searchTerm, maxLength]);
   
   return (
-    <span 
-      className={className}
-      dangerouslySetInnerHTML={{ __html: highlightedText }}
-    />
+    <span className={className}>
+      {highlightedContent.map((part, index) => 
+        part.type === 'highlight' ? (
+          <span key={index} className={highlightClassName}>
+            {part.content}
+          </span>
+        ) : (
+          part.content
+        )
+      )}
+    </span>
   );
 }
 

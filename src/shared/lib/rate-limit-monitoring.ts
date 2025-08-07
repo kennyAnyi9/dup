@@ -103,12 +103,38 @@ export async function detectAbusePatterns(): Promise<AbusePattern[]> {
     const now = Date.now();
     const last10Minutes = now - (10 * 60 * 1000);
     
-    // Get recent events
-    const keys = await redis.keys('rl:events:*');
-    const recentKeys = keys.filter(key => {
-      const timestamp = parseInt(key.split(':')[2], 10);
-      return timestamp > last10Minutes;
-    });
+    // Use SCAN instead of KEYS to avoid blocking Redis
+    const keys: string[] = [];
+    let cursor = 0;
+    const maxScanIterations = 100; // Prevent infinite loops
+    let scanCount = 0;
+    
+    do {
+      const result = await redis.scan(cursor, {
+        match: 'rl:events:*',
+        count: 100 // Process in batches
+      });
+      
+      cursor = typeof result[0] === 'number' ? result[0] : parseInt(result[0] as string, 10);
+      const batchKeys = result[1] as string[];
+      
+      // Filter keys by timestamp during scan to reduce memory usage
+      const recentBatchKeys = batchKeys.filter(key => {
+        const timestamp = parseInt(key.split(':')[2], 10);
+        return timestamp > last10Minutes;
+      });
+      
+      keys.push(...recentBatchKeys);
+      scanCount++;
+      
+      // Limit scan iterations to prevent excessive load
+      if (scanCount >= maxScanIterations) {
+        console.warn(`Rate limit monitoring: Reached max scan iterations (${maxScanIterations})`);
+        break;
+      }
+    } while (cursor !== 0);
+    
+    const recentKeys = keys;
 
     if (recentKeys.length === 0) return patterns;
 
@@ -280,12 +306,34 @@ export async function cleanupRateLimitData(): Promise<void> {
     const now = Date.now();
     const cutoff = now - (7 * 24 * 60 * 60 * 1000); // 7 days ago
 
-    // Clean up old events
-    const eventKeys = await redis.keys('rl:events:*');
-    const oldEventKeys = eventKeys.filter(key => {
-      const timestamp = parseInt(key.split(':')[2], 10);
-      return timestamp < cutoff;
-    });
+    // Clean up old events using SCAN instead of KEYS
+    const oldEventKeys: string[] = [];
+    let cursor = 0;
+    const maxScanIterations = 100;
+    let scanCount = 0;
+    
+    do {
+      const result = await redis.scan(cursor, {
+        match: 'rl:events:*',
+        count: 100
+      });
+      
+      cursor = typeof result[0] === 'number' ? result[0] : parseInt(result[0] as string, 10);
+      const batchKeys = result[1] as string[];
+      
+      const oldBatchKeys = batchKeys.filter(key => {
+        const timestamp = parseInt(key.split(':')[2], 10);
+        return timestamp < cutoff;
+      });
+      
+      oldEventKeys.push(...oldBatchKeys);
+      scanCount++;
+      
+      if (scanCount >= maxScanIterations) {
+        console.warn(`Rate limit cleanup: Reached max scan iterations (${maxScanIterations})`);
+        break;
+      }
+    } while (cursor !== 0);
 
     if (oldEventKeys.length > 0) {
       await redis.del(...oldEventKeys);
@@ -294,7 +342,25 @@ export async function cleanupRateLimitData(): Promise<void> {
 
     // Clean up old metric keys (older than 30 days)
     const oldMetricCutoff = now - (30 * 24 * 60 * 60 * 1000);
-    const metricKeys = await redis.keys('rl:metrics:*');
+    const metricKeys: string[] = [];
+    cursor = 0;
+    scanCount = 0;
+    
+    do {
+      const result = await redis.scan(cursor, {
+        match: 'rl:metrics:*',
+        count: 100
+      });
+      
+      cursor = typeof result[0] === 'number' ? result[0] : parseInt(result[0] as string, 10);
+      metricKeys.push(...(result[1] as string[]));
+      scanCount++;
+      
+      if (scanCount >= maxScanIterations) {
+        console.warn(`Metric cleanup: Reached max scan iterations (${maxScanIterations})`);
+        break;
+      }
+    } while (cursor !== 0);
     
     const oldMetricKeys = metricKeys.filter(key => {
       const parts = key.split(':');

@@ -25,34 +25,49 @@ export interface SearchOptions {
 }
 
 /**
- * Calculate Levenshtein distance between two strings
+ * Calculate optimized Levenshtein distance with early termination
  */
-function levenshteinDistance(a: string, b: string): number {
+function levenshteinDistance(a: string, b: string, maxDistance = Infinity): number {
   if (a.length === 0) return b.length;
   if (b.length === 0) return a.length;
+  
+  // Early exit if strings are too different in length
+  const lengthDiff = Math.abs(a.length - b.length);
+  if (lengthDiff > maxDistance) return maxDistance + 1;
 
-  const matrix = Array(b.length + 1).fill(null).map(() => Array(a.length + 1).fill(null));
+  // Use single array instead of matrix for memory optimization
+  let previousRow = Array(a.length + 1);
+  let currentRow = Array(a.length + 1);
 
-  for (let i = 0; i <= a.length; i += 1) {
-    matrix[0][i] = i;
+  // Initialize first row
+  for (let i = 0; i <= a.length; i++) {
+    previousRow[i] = i;
   }
 
-  for (let j = 0; j <= b.length; j += 1) {
-    matrix[j][0] = j;
-  }
+  for (let j = 1; j <= b.length; j++) {
+    currentRow[0] = j;
+    let minInRow = j;
 
-  for (let j = 1; j <= b.length; j += 1) {
-    for (let i = 1; i <= a.length; i += 1) {
-      const indicator = a[i - 1] === b[j - 1] ? 0 : 1;
-      matrix[j][i] = Math.min(
-        matrix[j][i - 1] + 1, // deletion
-        matrix[j - 1][i] + 1, // insertion
-        matrix[j - 1][i - 1] + indicator, // substitution
+    for (let i = 1; i <= a.length; i++) {
+      const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+      currentRow[i] = Math.min(
+        currentRow[i - 1] + 1,     // deletion
+        previousRow[i] + 1,        // insertion
+        previousRow[i - 1] + cost  // substitution
       );
+      minInRow = Math.min(minInRow, currentRow[i]);
     }
+
+    // Early termination if minimum distance in row exceeds threshold
+    if (minInRow > maxDistance) {
+      return maxDistance + 1;
+    }
+
+    // Swap rows
+    [previousRow, currentRow] = [currentRow, previousRow];
   }
 
-  return matrix[b.length][a.length];
+  return previousRow[a.length];
 }
 
 /**
@@ -74,11 +89,16 @@ function fuzzyScore(query: string, target: string): number {
     return Math.min(0.95, containmentScore + 0.3);
   }
   
-  // Calculate fuzzy match using Levenshtein distance
-  const distance = levenshteinDistance(queryLower, targetLower);
+  // Calculate fuzzy match using optimized Levenshtein distance
   const maxLength = Math.max(queryLower.length, targetLower.length);
-  
   if (maxLength === 0) return 0;
+  
+  // Set reasonable max distance threshold for performance
+  const maxDistance = Math.ceil(maxLength * 0.7); // Allow up to 70% differences
+  const distance = levenshteinDistance(queryLower, targetLower, maxDistance);
+  
+  // Early exit if distance exceeds threshold
+  if (distance > maxDistance) return 0;
   
   const similarity = 1 - (distance / maxLength);
   return Math.max(0, similarity);

@@ -118,18 +118,53 @@ export interface RateLimitOptions {
 }
 
 /**
- * Get client IP address from request headers
+ * Get client IP address from request headers with validation
  */
 async function getClientIP(): Promise<string> {
   const headersList = await headers();
-  const forwarded = headersList.get("x-forwarded-for");
-  const realIP = headersList.get("x-real-ip");
-  const cfIP = headersList.get("cf-connecting-ip"); // Cloudflare
   
-  return forwarded?.split(",")[0]?.trim() || 
-         realIP || 
-         cfIP || 
-         "127.0.0.1";
+  // Validate IP address format
+  const isValidIP = (ip: string): boolean => {
+    const ipv4Regex = /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
+    const ipv6Regex = /^(?:[0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}$|^::1$|^::$/;
+    return ipv4Regex.test(ip) || ipv6Regex.test(ip);
+  };
+  
+  // Check if we're behind a trusted proxy (Cloudflare, Vercel, etc.)
+  const isTrustedProxy = process.env.NODE_ENV === 'production' && 
+                        (process.env.VERCEL_URL || process.env.CF_PAGES);
+  
+  if (isTrustedProxy) {
+    // In production behind trusted proxies, prioritize CF headers then x-forwarded-for
+    const cfIP = headersList.get("cf-connecting-ip");
+    if (cfIP && isValidIP(cfIP)) {
+      return cfIP;
+    }
+    
+    const forwarded = headersList.get("x-forwarded-for");
+    if (forwarded) {
+      const firstIP = forwarded.split(",")[0]?.trim();
+      if (firstIP && isValidIP(firstIP)) {
+        return firstIP;
+      }
+    }
+    
+    const realIP = headersList.get("x-real-ip");
+    if (realIP && isValidIP(realIP)) {
+      return realIP;
+    }
+  }
+  
+  // Fallback for development or untrusted environments
+  return "127.0.0.1";
+}
+
+/**
+ * Sanitize identifier to prevent Redis key injection
+ */
+function sanitizeIdentifier(identifier: string): string {
+  // Allow only alphanumeric chars, hyphens, underscores, and colons
+  return identifier.replace(/[^a-zA-Z0-9\-_:]/g, '_');
 }
 
 /**
@@ -139,7 +174,8 @@ async function checkAbuseBan(identifier: string): Promise<{ isBanned: boolean; b
   if (!redis) return { isBanned: false };
   
   try {
-    const banKey = `abuse:ban:${identifier}`;
+    const sanitizedIdentifier = sanitizeIdentifier(identifier);
+    const banKey = `abuse:ban:${sanitizedIdentifier}`;
     const banData = await redis.get(banKey);
     
     if (banData) {
@@ -173,7 +209,8 @@ async function recordAbuseAttempt(
   if (!redis) return;
   
   try {
-    const abuseKey = `abuse:${type}:${identifier}`;
+    const sanitizedIdentifier = sanitizeIdentifier(identifier);
+    const abuseKey = `abuse:${type}:${sanitizedIdentifier}`;
     const currentCount = await redis.incr(abuseKey);
     
     // Set TTL on first attempt
@@ -186,7 +223,7 @@ async function recordAbuseAttempt(
     
     if (currentCount >= threshold) {
       // Implement ban
-      const banKey = `abuse:ban:${identifier}`;
+      const banKey = `abuse:ban:${sanitizedIdentifier}`;
       const banExpiry = Date.now() + parseDuration(banDuration);
       
       await redis.setex(banKey, Math.ceil(parseDuration(banDuration) / 1000), {
@@ -288,7 +325,8 @@ export async function checkAdvancedRateLimit(options: RateLimitOptions): Promise
     }
 
     // Check primary rate limit
-    const identifier = `${primaryIdentifier}:${action}`;
+    const sanitizedPrimaryIdentifier = sanitizeIdentifier(primaryIdentifier);
+    const identifier = `${sanitizedPrimaryIdentifier}:${action}`;
     const result = await rateLimiter.limit(identifier);
     
     // If rate limit exceeded, record potential abuse

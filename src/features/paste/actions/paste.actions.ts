@@ -720,11 +720,24 @@ export async function getUserPastes(
       );
     }
 
-    // If search is provided, get all matching pastes first (for fuzzy search)
-    // Otherwise use traditional pagination
-    const shouldUseFuzzySearch = search && search.trim().length > 0;
-    const searchLimit = shouldUseFuzzySearch ? 1000 : limit; // Get more for fuzzy search
-    const searchOffset = shouldUseFuzzySearch ? 0 : (page - 1) * limit;
+    // Implement database-first search with fallback to fuzzy search
+    const shouldUseSearch = search && search.trim().length > 0;
+    
+    let searchConditions = whereConditions;
+    if (shouldUseSearch) {
+      const searchTerm = `%${search.trim()}%`;
+      searchConditions = and(
+        whereConditions,
+        or(
+          sql`${paste.title} ILIKE ${searchTerm}`,
+          sql`${paste.description} ILIKE ${searchTerm}`,
+          sql`${paste.language} ILIKE ${searchTerm}`
+        )
+      );
+    }
+    
+    const searchLimit = shouldUseSearch ? Math.min(limit * 5, 200) : limit; // Reasonable fuzzy search limit
+    const searchOffset = (page - 1) * limit;
 
     // Get pastes from database
     const userPastes = await db
@@ -746,10 +759,10 @@ export async function getUserPastes(
         hasPassword: sql<boolean>`${paste.password} IS NOT NULL`,
       })
       .from(paste)
-      .where(whereConditions)
-      .orderBy(desc(paste.createdAt)) // Use default order for fuzzy search
+      .where(searchConditions)
+      .orderBy(desc(paste.createdAt)) // Use default order for search
       .limit(searchLimit)
-      .offset(searchOffset);
+      .offset(shouldUseSearch ? 0 : searchOffset); // Only offset for non-search queries
 
     // Fetch tags for each paste in batch
     const pasteIds = userPastes.map(p => p.id);
@@ -788,65 +801,61 @@ export async function getUserPastes(
       tags: allTags[pasteItem.id] || [],
     }));
 
-    // Apply fuzzy search if search query is provided
+    // Apply fuzzy search only for complex queries that database search missed
     let finalPastes = pastesWithTags;
     let totalCount = pastesWithTags.length;
     
-    if (shouldUseFuzzySearch) {
-      const searchResults = fuzzySearch(pastesWithTags, search.trim(), {
-        keys: [
-          'title',
-          'description', 
-          'content',
-          'language',
-          'tags.name'
-        ],
-        weights: {
-          title: 3,           // Highest weight for title matches
-          'tags.name': 2.5,   // High weight for tag matches
-          description: 2,      // Medium-high weight for description
-          language: 1.5,       // Medium weight for language
-          content: 1           // Lower weight for content (since it can be large)
-        },
-        threshold: 0.2,       // Lower threshold for more inclusive search
-        maxResults: 1000,     // Get many results for pagination
-        fuzzyThreshold: 0.5,  // Moderate fuzzy matching
-        includeMatches: true
-      });
+    if (shouldUseSearch) {
+      // Get total count for search results
+      const totalResult = await db
+        .select({ count: count() })
+        .from(paste)
+        .where(searchConditions);
+      
+      totalCount = totalResult[0]?.count || 0;
+      
+      // Apply fuzzy search only if database results are insufficient and we have room for more
+      const shouldApplyFuzzySearch = pastesWithTags.length < limit && pastesWithTags.length < 50;
+      
+      if (shouldApplyFuzzySearch && pastesWithTags.length < totalCount) {
+        const fuzzyResults = fuzzySearch(pastesWithTags, search.trim(), {
+          keys: ['title', 'description', 'language', 'tags.name'],
+          weights: {
+            title: 3,
+            'tags.name': 2.5,
+            description: 2,
+            language: 1.5
+          },
+          threshold: 0.3,
+          maxResults: limit,
+          fuzzyThreshold: 0.6,
+          includeMatches: false // Skip matches to save memory
+        });
 
-      // Extract items and apply sorting
-      const searchedPastes = searchResults.map(result => ({
-        ...result.item,
-        _searchScore: result.score,
-        _searchMatches: result.matches
-      }));
-
-      totalCount = searchedPastes.length;
-
-      // Apply sorting (relevance is default for search results)
-      if (sort === "relevance" || !sort) {
-        // Already sorted by relevance score
-        finalPastes = searchedPastes;
-      } else {
-        // Apply other sorting methods
+        finalPastes = fuzzyResults.map(result => result.item);
+      }
+      
+      // Apply sorting for search results
+      if (sort !== "relevance") {
         switch (sort) {
           case "oldest":
-            searchedPastes.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+            finalPastes.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
             break;
           case "views":
-            searchedPastes.sort((a, b) => b.views - a.views);
+            finalPastes.sort((a, b) => b.views - a.views);
             break;
           case "newest":
           default:
-            searchedPastes.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+            finalPastes.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
             break;
         }
-        finalPastes = searchedPastes;
       }
 
       // Apply pagination to search results
-      const startIndex = (page - 1) * limit;
-      finalPastes = finalPastes.slice(startIndex, startIndex + limit);
+      if (!shouldApplyFuzzySearch) {
+        const startIndex = (page - 1) * limit;
+        finalPastes = finalPastes.slice(startIndex, startIndex + limit);
+      }
     } else {
       // Get total count for regular pagination
       const totalResult = await db
