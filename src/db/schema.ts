@@ -1,4 +1,11 @@
-import { boolean, pgTable, text, timestamp, integer, index, primaryKey } from "drizzle-orm/pg-core";
+import { boolean, pgTable, text, timestamp, integer, index, primaryKey, customType } from "drizzle-orm/pg-core";
+
+// Define tsvector type for PostgreSQL full-text search
+const tsvector = customType<{ data: string }>({
+  dataType() {
+    return "tsvector";
+  },
+});
 
 export const user = pgTable("user", {
   id: text("id").primaryKey(),
@@ -72,6 +79,8 @@ export const paste = pgTable("paste", {
   qrCodeBackground: text("qr_code_background").default("#ffffff"), // QR code background color
   userId: text("user_id").references(() => user.id, { onDelete: "cascade" }), // null for anonymous
   isDeleted: boolean("is_deleted").default(false).notNull(),
+  // Full-text search vector for efficient search
+  searchVector: tsvector("search_vector"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 }, (table) => [
@@ -85,6 +94,8 @@ export const paste = pgTable("paste", {
   index("idx_paste_user_created").on(table.userId, table.createdAt.desc()),
   // Composite index for public paste queries
   index("idx_paste_public_created").on(table.visibility, table.isDeleted, table.createdAt.desc()),
+  // Full-text search index
+  index("idx_paste_search_vector").on(table.searchVector),
 ]);
 
 export const tag = pgTable("tag", {

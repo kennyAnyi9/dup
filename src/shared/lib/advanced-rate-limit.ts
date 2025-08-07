@@ -443,5 +443,16 @@ export async function withRateLimit<T>(
     });
   }
   
-  return handler();
+  // Execute the handler
+  const response = await handler();
+  
+  // Add rate limit headers to successful responses
+  if (response instanceof Response) {
+    const rateLimitHeaders = getRateLimitHeaders(result);
+    Object.entries(rateLimitHeaders).forEach(([key, value]) => {
+      response.headers.set(key, value);
+    });
+  }
+  
+  return response;
 }
