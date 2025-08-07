@@ -10,7 +10,6 @@ import {
   Shield,
   Zap,
 } from "lucide-react";
-import Link from "next/link";
 import { getVisibilityInfo } from "../../../lib/paste-utils";
 import { getBaseUrl } from "@/lib/utils/url";
 import { useQrDownload } from "../../../hooks/use-qr-download";
@@ -54,12 +53,14 @@ export function PasteCardContent({
     <div className="min-w-0 overflow-hidden flex-1">
       {/* Title with action buttons */}
       <div className="flex items-center gap-1 sm:gap-2 mb-1">
-        <Link
+        <a
           href={`/p/${paste.slug}`}
+          target="_blank"
+          rel="noopener noreferrer"
           className="truncate font-semibold text-sm hover:text-primary transition-colors"
         >
           {displayTitle}
-        </Link>
+        </a>
 
         <div className="flex items-center gap-1 sm:gap-2">
           {/* Copy button */}

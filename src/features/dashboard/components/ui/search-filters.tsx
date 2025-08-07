@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useCallback, useRef, useEffect } from "react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { Input } from "@/shared/components/dupui/input";
 import { Button } from "@/shared/components/dupui/button";
@@ -42,9 +42,8 @@ export function SearchFilters({
   const [search, setSearch] = useState(defaultSearch);
   const [filter, setFilter] = useState(defaultFilter);
   const [sort, setSort] = useState(defaultSort);
-
-
-  function updateFilters(newSearch?: string, newFilter?: string, newSort?: string) {
+  
+  const updateFilters = useCallback((newSearch?: string, newFilter?: string, newSort?: string) => {
     const params = new URLSearchParams(searchParams);
     
     // Update search
@@ -83,11 +82,58 @@ export function SearchFilters({
     startTransition(() => {
       router.push(url);
     });
-  }
+  }, [searchParams, pathname, router, startTransition]);
+  
+  // Debounce search to improve performance
+  const debounceTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
+  const previousSearchRef = useRef(defaultSearch);
+  
+  // Debounced search handler
+  const debouncedSearch = useCallback((searchValue: string) => {
+    if (debounceTimeoutRef.current) {
+      clearTimeout(debounceTimeoutRef.current);
+    }
+    
+    debounceTimeoutRef.current = setTimeout(() => {
+      if (searchValue.trim() !== previousSearchRef.current) {
+        previousSearchRef.current = searchValue.trim();
+        updateFilters(searchValue.trim());
+      }
+    }, 400); // 400ms debounce delay
+  }, [updateFilters]);
+  
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (debounceTimeoutRef.current) {
+        clearTimeout(debounceTimeoutRef.current);
+      }
+    };
+  }, []);
 
   function handleSearchSubmit(e: React.FormEvent) {
     e.preventDefault();
+    // Clear any pending debounced search and execute immediately
+    if (debounceTimeoutRef.current) {
+      clearTimeout(debounceTimeoutRef.current);
+    }
     updateFilters(search.trim());
+  }
+  
+  function handleSearchChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const newValue = e.target.value;
+    setSearch(newValue);
+    
+    // Trigger debounced search for non-empty values
+    if (newValue.trim()) {
+      debouncedSearch(newValue);
+    } else {
+      // Clear search immediately when input is empty
+      if (debounceTimeoutRef.current) {
+        clearTimeout(debounceTimeoutRef.current);
+      }
+      updateFilters("");
+    }
   }
 
   function handleFilterChange(newFilter: string) {
@@ -151,7 +197,7 @@ export function SearchFilters({
             <Input
               placeholder="Search pastes..."
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              onChange={handleSearchChange}
               className="pl-10 pr-24 h-9 md:h-10"
             />
             {search && (
@@ -198,6 +244,7 @@ export function SearchFilters({
               <SelectItem value="newest">Newest</SelectItem>
               <SelectItem value="oldest">Oldest</SelectItem>
               <SelectItem value="views">Most Viewed</SelectItem>
+              <SelectItem value="relevance">Relevance</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -240,7 +287,7 @@ export function SearchFilters({
           {sort !== "newest" && (
             <Badge variant="secondary" className="gap-1">
               <ArrowUpDown className="h-2 w-2" />
-              {sort === "oldest" ? "Oldest" : "Most Viewed"}
+              {sort === "oldest" ? "Oldest" : sort === "views" ? "Most Viewed" : "Relevance"}
               <Button
                 variant="ghost"
                 size="sm"

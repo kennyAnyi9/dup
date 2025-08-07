@@ -1,7 +1,6 @@
 "use client";
 
 import { formatDistanceToNow } from "date-fns";
-import Link from "next/link";
 import { Eye, ArrowUpRight } from "lucide-react";
 
 interface PublicPaste {
@@ -31,8 +30,10 @@ export function PublicPasteFeedCard({ paste, onClick, compact = false }: PublicP
   if (compact) {
     // Compact version for mobile
     return (
-      <Link 
+      <a 
         href={`/p/${paste.slug}`}
+        target="_blank"
+        rel="noopener noreferrer"
         onClick={onClick}
         className="block p-3 hover:bg-muted/50 transition-all duration-200 border-l-2 border-transparent hover:border-primary group rounded-r-md"
       >
@@ -54,14 +55,16 @@ export function PublicPasteFeedCard({ paste, onClick, compact = false }: PublicP
             <span className="text-xs font-medium">{formatViews(paste.views)}</span>
           </div>
         </div>
-      </Link>
+      </a>
     );
   }
 
   // Full version for desktop sidebar
   return (
-    <Link 
+    <a 
       href={`/p/${paste.slug}`}
+      target="_blank"
+      rel="noopener noreferrer"
       onClick={onClick}
       className="block group"
     >
@@ -93,6 +96,6 @@ export function PublicPasteFeedCard({ paste, onClick, compact = false }: PublicP
           </div>
         </div>
       </div>
-    </Link>
+    </a>
   );
 }

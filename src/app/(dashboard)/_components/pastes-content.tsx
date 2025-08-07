@@ -7,7 +7,7 @@ interface PastesContentProps {
   page: number;
   search: string;
   filter: "all" | "public" | "private" | "unlisted";
-  sort: "newest" | "oldest" | "views";
+  sort: "newest" | "oldest" | "views" | "relevance";
 }
 
 export async function PastesContent({

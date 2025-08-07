@@ -1,6 +1,6 @@
 "use server";
 
-import { eq, and, desc, count, like, or, sql, isNull, gt, inArray } from "drizzle-orm";
+import { eq, and, desc, count, sql, isNull, gt, inArray, or } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { nanoid } from "nanoid";
@@ -46,6 +46,7 @@ import {
   type UpdatePasteInput,
 } from "@/shared/types/paste";
 import bcrypt from "bcryptjs";
+import { fuzzySearch } from "@/shared/lib/search-utils";
 
 /**
  * Atomically checks if current user can edit a paste
@@ -697,7 +698,7 @@ export async function getUserPastes(
   limit: number = 10,
   search?: string,
   filter?: "all" | "public" | "private" | "unlisted",
-  sort: "newest" | "oldest" | "views" = "newest"
+  sort: "newest" | "oldest" | "views" | "relevance" = "newest"
 ) {
   try {
     const user = await getCurrentUser();
@@ -705,25 +706,11 @@ export async function getUserPastes(
       redirect("/login");
     }
 
-    const offset = (page - 1) * limit;
-
-    // Build where conditions
+    // Build base where conditions (without search)
     let whereConditions = and(
       eq(paste.userId, user.id),
       eq(paste.isDeleted, false)
     );
-
-    // Add search condition
-    if (search) {
-      whereConditions = and(
-        whereConditions,
-        or(
-          like(paste.title, `%${search}%`),
-          like(paste.description, `%${search}%`),
-          like(paste.content, `%${search}%`)
-        )
-      );
-    }
 
     // Add filter condition
     if (filter && filter !== "all") {
@@ -733,30 +720,13 @@ export async function getUserPastes(
       );
     }
 
-    // Build order by
-    let orderBy;
-    switch (sort) {
-      case "oldest":
-        orderBy = paste.createdAt;
-        break;
-      case "views":
-        orderBy = desc(paste.views);
-        break;
-      case "newest":
-      default:
-        orderBy = desc(paste.createdAt);
-        break;
-    }
+    // If search is provided, get all matching pastes first (for fuzzy search)
+    // Otherwise use traditional pagination
+    const shouldUseFuzzySearch = search && search.trim().length > 0;
+    const searchLimit = shouldUseFuzzySearch ? 1000 : limit; // Get more for fuzzy search
+    const searchOffset = shouldUseFuzzySearch ? 0 : (page - 1) * limit;
 
-    // Get total count for pagination
-    const totalResult = await db
-      .select({ count: count() })
-      .from(paste)
-      .where(whereConditions);
-    
-    const total = totalResult[0]?.count || 0;
-
-    // Get paginated results
+    // Get pastes from database
     const userPastes = await db
       .select({
         id: paste.id,
@@ -777,33 +747,133 @@ export async function getUserPastes(
       })
       .from(paste)
       .where(whereConditions)
-      .orderBy(orderBy)
-      .limit(limit)
-      .offset(offset);
+      .orderBy(desc(paste.createdAt)) // Use default order for fuzzy search
+      .limit(searchLimit)
+      .offset(searchOffset);
 
-    // Fetch tags for each paste
-    const pastesWithTags = await Promise.all(
-      userPastes.map(async (pasteItem) => {
-        const pasteTags = await db
-          .select({
-            id: tag.id,
-            name: tag.name,
-            slug: tag.slug,
-            color: tag.color,
-          })
-          .from(pasteTag)
-          .innerJoin(tag, eq(pasteTag.tagId, tag.id))
-          .where(eq(pasteTag.pasteId, pasteItem.id));
+    // Fetch tags for each paste in batch
+    const pasteIds = userPastes.map(p => p.id);
+    const allTags: Record<string, Array<{id: string; name: string; slug: string; color: string | null}>> = {};
+    
+    if (pasteIds.length > 0) {
+      const tagsResult = await db
+        .select({
+          pasteId: pasteTag.pasteId,
+          id: tag.id,
+          name: tag.name,
+          slug: tag.slug,
+          color: tag.color,
+        })
+        .from(pasteTag)
+        .innerJoin(tag, eq(pasteTag.tagId, tag.id))
+        .where(inArray(pasteTag.pasteId, pasteIds));
 
-        return {
-          ...pasteItem,
-          tags: pasteTags,
-        };
-      })
-    );
+      // Group tags by paste ID
+      for (const tagData of tagsResult) {
+        if (!allTags[tagData.pasteId]) {
+          allTags[tagData.pasteId] = [];
+        }
+        allTags[tagData.pasteId].push({
+          id: tagData.id,
+          name: tagData.name,
+          slug: tagData.slug,
+          color: tagData.color,
+        });
+      }
+    }
+
+    // Combine pastes with their tags
+    const pastesWithTags = userPastes.map(pasteItem => ({
+      ...pasteItem,
+      tags: allTags[pasteItem.id] || [],
+    }));
+
+    // Apply fuzzy search if search query is provided
+    let finalPastes = pastesWithTags;
+    let totalCount = pastesWithTags.length;
+    
+    if (shouldUseFuzzySearch) {
+      const searchResults = fuzzySearch(pastesWithTags, search.trim(), {
+        keys: [
+          'title',
+          'description', 
+          'content',
+          'language',
+          'tags.name'
+        ],
+        weights: {
+          title: 3,           // Highest weight for title matches
+          'tags.name': 2.5,   // High weight for tag matches
+          description: 2,      // Medium-high weight for description
+          language: 1.5,       // Medium weight for language
+          content: 1           // Lower weight for content (since it can be large)
+        },
+        threshold: 0.2,       // Lower threshold for more inclusive search
+        maxResults: 1000,     // Get many results for pagination
+        fuzzyThreshold: 0.5,  // Moderate fuzzy matching
+        includeMatches: true
+      });
+
+      // Extract items and apply sorting
+      const searchedPastes = searchResults.map(result => ({
+        ...result.item,
+        _searchScore: result.score,
+        _searchMatches: result.matches
+      }));
+
+      totalCount = searchedPastes.length;
+
+      // Apply sorting (relevance is default for search results)
+      if (sort === "relevance" || !sort) {
+        // Already sorted by relevance score
+        finalPastes = searchedPastes;
+      } else {
+        // Apply other sorting methods
+        switch (sort) {
+          case "oldest":
+            searchedPastes.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+            break;
+          case "views":
+            searchedPastes.sort((a, b) => b.views - a.views);
+            break;
+          case "newest":
+          default:
+            searchedPastes.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+            break;
+        }
+        finalPastes = searchedPastes;
+      }
+
+      // Apply pagination to search results
+      const startIndex = (page - 1) * limit;
+      finalPastes = finalPastes.slice(startIndex, startIndex + limit);
+    } else {
+      // Get total count for regular pagination
+      const totalResult = await db
+        .select({ count: count() })
+        .from(paste)
+        .where(whereConditions);
+      
+      totalCount = totalResult[0]?.count || 0;
+
+      // Apply sorting for non-search results
+      switch (sort) {
+        case "oldest":
+          finalPastes.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+          break;
+        case "views":
+          finalPastes.sort((a, b) => b.views - a.views);
+          break;
+        case "newest":
+        case "relevance": // Relevance defaults to newest when not searching
+        default:
+          finalPastes.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+          break;
+      }
+    }
 
     // Add user information to each paste
-    const pastesWithUser = pastesWithTags.map(paste => ({
+    const pastesWithUser = finalPastes.map(paste => ({
       ...paste,
       user: {
         id: user.id,
@@ -817,9 +887,9 @@ export async function getUserPastes(
       pagination: {
         page,
         limit,
-        total,
-        totalPages: Math.ceil(total / limit),
-        hasNext: page < Math.ceil(total / limit),
+        total: totalCount,
+        totalPages: Math.ceil(totalCount / limit),
+        hasNext: page < Math.ceil(totalCount / limit),
         hasPrev: page > 1,
       },
     };

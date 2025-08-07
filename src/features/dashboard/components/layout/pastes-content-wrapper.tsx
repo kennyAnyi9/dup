@@ -52,6 +52,7 @@ interface PastesContentWrapperProps {
       image: string | null;
     } | null;
   }>;
+  searchTerm?: string;
 }
 
 export function PastesContentWrapper({ pastes }: PastesContentWrapperProps) {
