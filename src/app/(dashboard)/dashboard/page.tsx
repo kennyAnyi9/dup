@@ -20,7 +20,7 @@ interface SearchParams {
   page?: string;
   search?: string;
   filter?: "all" | "public" | "private" | "unlisted";
-  sort?: "newest" | "oldest" | "views";
+  sort?: "newest" | "oldest" | "views" | "relevance";
 }
 
 interface DashboardPageProps {

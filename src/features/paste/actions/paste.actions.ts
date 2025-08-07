@@ -1,6 +1,6 @@
 "use server";
 
-import { eq, and, desc, count, like, or, sql, isNull, gt, inArray } from "drizzle-orm";
+import { eq, and, desc, count, sql, isNull, gt, inArray, or } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { nanoid } from "nanoid";
@@ -697,7 +697,7 @@ export async function getUserPastes(
   limit: number = 10,
   search?: string,
   filter?: "all" | "public" | "private" | "unlisted",
-  sort: "newest" | "oldest" | "views" = "newest"
+  sort: "newest" | "oldest" | "views" | "relevance" = "newest"
 ) {
   try {
     const user = await getCurrentUser();
@@ -705,25 +705,11 @@ export async function getUserPastes(
       redirect("/login");
     }
 
-    const offset = (page - 1) * limit;
-
-    // Build where conditions
+    // Build base where conditions (without search)
     let whereConditions = and(
       eq(paste.userId, user.id),
       eq(paste.isDeleted, false)
     );
-
-    // Add search condition
-    if (search) {
-      whereConditions = and(
-        whereConditions,
-        or(
-          like(paste.title, `%${search}%`),
-          like(paste.description, `%${search}%`),
-          like(paste.content, `%${search}%`)
-        )
-      );
-    }
 
     // Add filter condition
     if (filter && filter !== "all") {
@@ -733,30 +719,27 @@ export async function getUserPastes(
       );
     }
 
-    // Build order by
-    let orderBy;
-    switch (sort) {
-      case "oldest":
-        orderBy = paste.createdAt;
-        break;
-      case "views":
-        orderBy = desc(paste.views);
-        break;
-      case "newest":
-      default:
-        orderBy = desc(paste.createdAt);
-        break;
-    }
-
-    // Get total count for pagination
-    const totalResult = await db
-      .select({ count: count() })
-      .from(paste)
-      .where(whereConditions);
+    // Implement PostgreSQL full-text search
+    const shouldUseSearch = search && search.trim().length > 0;
     
-    const total = totalResult[0]?.count || 0;
+    let searchConditions = whereConditions;
+    let orderByClause = desc(paste.createdAt); // Default order
+    
+    if (shouldUseSearch) {
+      const searchQuery = search.trim();
+      
+      // Use PostgreSQL full-text search with ranking
+      searchConditions = and(
+        whereConditions,
+        sql`${paste.searchVector} @@ plainto_tsquery('english', ${searchQuery})`
+      );
+      
+      // Order by relevance when searching, then by date
+      orderByClause = sql`ts_rank(${paste.searchVector}, plainto_tsquery('english', ${searchQuery})) DESC, ${paste.createdAt} DESC`;
+    }
+    const searchOffset = (page - 1) * limit;
 
-    // Get paginated results
+    // Get pastes from database
     const userPastes = await db
       .select({
         id: paste.id,
@@ -776,34 +759,78 @@ export async function getUserPastes(
         hasPassword: sql<boolean>`${paste.password} IS NOT NULL`,
       })
       .from(paste)
-      .where(whereConditions)
-      .orderBy(orderBy)
+      .where(searchConditions)
+      .orderBy(orderByClause)
       .limit(limit)
-      .offset(offset);
+      .offset(searchOffset);
 
-    // Fetch tags for each paste
-    const pastesWithTags = await Promise.all(
-      userPastes.map(async (pasteItem) => {
-        const pasteTags = await db
-          .select({
-            id: tag.id,
-            name: tag.name,
-            slug: tag.slug,
-            color: tag.color,
-          })
-          .from(pasteTag)
-          .innerJoin(tag, eq(pasteTag.tagId, tag.id))
-          .where(eq(pasteTag.pasteId, pasteItem.id));
+    // Fetch tags for each paste in batch
+    const pasteIds = userPastes.map(p => p.id);
+    const allTags: Record<string, Array<{id: string; name: string; slug: string; color: string | null}>> = {};
+    
+    if (pasteIds.length > 0) {
+      const tagsResult = await db
+        .select({
+          pasteId: pasteTag.pasteId,
+          id: tag.id,
+          name: tag.name,
+          slug: tag.slug,
+          color: tag.color,
+        })
+        .from(pasteTag)
+        .innerJoin(tag, eq(pasteTag.tagId, tag.id))
+        .where(inArray(pasteTag.pasteId, pasteIds));
 
-        return {
-          ...pasteItem,
-          tags: pasteTags,
-        };
-      })
-    );
+      // Group tags by paste ID
+      for (const tagData of tagsResult) {
+        if (!allTags[tagData.pasteId]) {
+          allTags[tagData.pasteId] = [];
+        }
+        allTags[tagData.pasteId].push({
+          id: tagData.id,
+          name: tagData.name,
+          slug: tagData.slug,
+          color: tagData.color,
+        });
+      }
+    }
+
+    // Combine pastes with their tags
+    const pastesWithTags = userPastes.map(pasteItem => ({
+      ...pasteItem,
+      tags: allTags[pasteItem.id] || [],
+    }));
+
+    // Get total count for pagination
+    const totalResult = await db
+      .select({ count: count() })
+      .from(paste)
+      .where(searchConditions);
+    
+    const totalCount = totalResult[0]?.count || 0;
+    
+    // Apply additional sorting only for non-search queries
+    // Search queries are already ordered by relevance + date in the database
+    let finalPastes = pastesWithTags;
+    
+    if (!shouldUseSearch) {
+      switch (sort) {
+        case "oldest":
+          finalPastes = [...pastesWithTags].sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+          break;
+        case "views":
+          finalPastes = [...pastesWithTags].sort((a, b) => b.views - a.views);
+          break;
+        case "newest":
+        case "relevance": // Relevance defaults to newest when not searching
+        default:
+          finalPastes = [...pastesWithTags].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+          break;
+      }
+    }
 
     // Add user information to each paste
-    const pastesWithUser = pastesWithTags.map(paste => ({
+    const pastesWithUser = finalPastes.map(paste => ({
       ...paste,
       user: {
         id: user.id,
@@ -817,9 +844,9 @@ export async function getUserPastes(
       pagination: {
         page,
         limit,
-        total,
-        totalPages: Math.ceil(total / limit),
-        hasNext: page < Math.ceil(total / limit),
+        total: totalCount,
+        totalPages: Math.ceil(totalCount / limit),
+        hasNext: page < Math.ceil(totalCount / limit),
         hasPrev: page > 1,
       },
     };

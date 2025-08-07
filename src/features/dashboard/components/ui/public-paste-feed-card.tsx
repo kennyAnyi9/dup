@@ -1,8 +1,8 @@
 "use client";
 
 import { formatDistanceToNow } from "date-fns";
-import Link from "next/link";
 import { Eye, ArrowUpRight } from "lucide-react";
+import Link from "next/link";
 
 interface PublicPaste {
   id: string;
@@ -33,6 +33,8 @@ export function PublicPasteFeedCard({ paste, onClick, compact = false }: PublicP
     return (
       <Link 
         href={`/p/${paste.slug}`}
+        target="_blank"
+        rel="noopener noreferrer"
         onClick={onClick}
         className="block p-3 hover:bg-muted/50 transition-all duration-200 border-l-2 border-transparent hover:border-primary group rounded-r-md"
       >
@@ -62,6 +64,8 @@ export function PublicPasteFeedCard({ paste, onClick, compact = false }: PublicP
   return (
     <Link 
       href={`/p/${paste.slug}`}
+      target="_blank"
+      rel="noopener noreferrer"
       onClick={onClick}
       className="block group"
     >

@@ -12,7 +12,6 @@ import {
   Eye,
   FileText,
 } from "lucide-react";
-import Link from "next/link";
 import { useState, useRef, useEffect } from "react";
 import { toast } from "sonner";
 import { getBaseUrl } from "@/lib/utils/url";
@@ -171,12 +170,14 @@ export function PublicPasteCards({ pastes }: PublicPasteCardsProps) {
             <div className="min-w-0 overflow-hidden flex-1">
               {/* Title with copy button */}
               <div className="flex items-center gap-1 sm:gap-2 mb-1">
-                <Link
+                <a
                   href={`/p/${paste.slug}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="truncate font-semibold text-sm hover:text-primary transition-colors"
                 >
                   {paste.title || `Paste ${paste.slug}`}
-                </Link>
+                </a>
 
                 <div className="flex items-center gap-1 sm:gap-2">
                   {/* Copy button */}
