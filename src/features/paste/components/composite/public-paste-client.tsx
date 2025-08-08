@@ -70,6 +70,13 @@ export function PublicPasteClient({ slug }: PublicPasteClientProps) {
           setShowPasswordDialog(false);
           setPasswordError(null);
 
+          // Track paste view for analytics
+          fetch("/api/analytics/view", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ pasteId: result.paste.id }),
+          }).catch(console.error);
+
           // Load comment count
           loadCommentCount(result.paste.id);
 

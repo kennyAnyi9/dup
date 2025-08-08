@@ -165,3 +165,41 @@ export const commentLike = pgTable("comment_like", {
   index("idx_comment_like_comment_id").on(table.commentId),
   index("idx_comment_like_user_id").on(table.userId),
 ]);
+
+// Analytics table for paste viewing data
+export const pasteView = pgTable("paste_view", {
+  id: text("id").primaryKey(),
+  pasteId: text("paste_id")
+    .notNull()
+    .references(() => paste.id, { onDelete: "cascade" }),
+  // Visitor information (anonymized)
+  ipHash: text("ip_hash"), // Hashed IP for privacy
+  userAgent: text("user_agent"),
+  // Geographic data
+  country: text("country"),
+  countryCode: text("country_code"), // ISO 3166-1 alpha-2 code (US, GB, etc.)
+  region: text("region"), // State/Province
+  city: text("city"),
+  continent: text("continent"), // North America, Europe, Asia, etc.
+  // Device/browser data
+  device: text("device"), // desktop, mobile, tablet
+  browser: text("browser"), // chrome, firefox, safari, etc.
+  os: text("os"), // windows, macos, linux, ios, android
+  // Referrer data
+  referrer: text("referrer"),
+  // Timing
+  viewedAt: timestamp("viewed_at").defaultNow().notNull(),
+}, (table) => [
+  // Performance indexes for analytics queries
+  index("idx_paste_view_paste_id").on(table.pasteId),
+  index("idx_paste_view_viewed_at").on(table.viewedAt.desc()),
+  index("idx_paste_view_paste_date").on(table.pasteId, table.viewedAt.desc()),
+  // Analytics-specific indexes
+  index("idx_paste_view_country").on(table.country),
+  index("idx_paste_view_region").on(table.region),
+  index("idx_paste_view_city").on(table.city),
+  index("idx_paste_view_continent").on(table.continent),
+  index("idx_paste_view_device").on(table.device),
+  index("idx_paste_view_browser").on(table.browser),
+  index("idx_paste_view_os").on(table.os),
+]);
