@@ -52,14 +52,21 @@ export function PasteCardActions({
 
   return (
     <div className="flex items-center gap-2">
-      {/* Views/Stats */}
-      <div className="flex items-center gap-1 px-2 py-1 rounded-md border border-border bg-muted transition-colors hover:bg-muted/80">
-        <Eye className="h-3.5 w-3.5 text-muted-foreground" />
-        <div className="flex items-center whitespace-nowrap text-xs text-muted-foreground">
-          {formatViews(paste.views)}
-          <span className="ml-1 hidden sm:inline-block">views</span>
-        </div>
-      </div>
+      {/* Views/Stats - Clickable to go to analytics */}
+      <Button
+        variant="ghost"
+        size="sm"
+        asChild
+        className="h-auto px-2 py-1 rounded-md border border-border bg-muted transition-colors hover:bg-muted/80 hover:text-primary"
+      >
+        <Link href={`/dashboard/analytics/${paste.id}`} className="flex items-center gap-1">
+          <Eye className="h-3.5 w-3.5 text-muted-foreground" />
+          <div className="flex items-center whitespace-nowrap text-xs text-muted-foreground">
+            {formatViews(paste.views)}
+            <span className="ml-1 hidden sm:inline-block">views</span>
+          </div>
+        </Link>
+      </Button>
 
       {/* Selection checkbox (if selectable) */}
       {onSelect && (

@@ -69,7 +69,7 @@ export function Sidebar({ user, stats, recentPublicPastes }: SidebarProps) {
       icon: Home,
     },
     {
-      href: "/dashboard",
+      href: "/dashboard/pastes",
       label: "My Pastes",
       icon: FileText,
     },

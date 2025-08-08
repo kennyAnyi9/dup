@@ -295,12 +295,23 @@ export function PasteCard({ paste }: PasteCardProps) {
           <div className="flex items-center justify-between w-full">
             {/* View count and stats */}
             <div className="flex items-center gap-3 text-xs text-muted-foreground">
-              <div className="flex items-center gap-1">
-                <Eye className="h-3.5 w-3.5" />
-                <span className="font-medium">
-                  {formatCount("view", paste.views)}
-                </span>
-              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                asChild
+                className="h-auto p-0 hover:bg-transparent hover:text-primary transition-colors relative z-10"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <Link 
+                  href={`/dashboard/analytics/${paste.id}`} 
+                  className="flex items-center gap-1"
+                >
+                  <Eye className="h-3.5 w-3.5" />
+                  <span className="font-medium">
+                    {formatCount("view", paste.views)}
+                  </span>
+                </Link>
+              </Button>
               <div className="hidden sm:block w-1 h-1 rounded-full bg-muted-foreground/40" />
               <div className="hidden sm:flex items-center gap-1">
                 <span className="text-xs">

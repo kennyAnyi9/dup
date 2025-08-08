@@ -287,6 +287,7 @@ function calculateEntropy(bytes: Uint8Array): number {
 
 /**
  * Server-side content validation for paste content
+ * Now context-aware to avoid false positives on legitimate code examples
  */
 export function validatePasteContent(content: string): { isValid: boolean; error?: string } {
   // Check for null bytes
@@ -297,16 +298,31 @@ export function validatePasteContent(content: string): { isValid: boolean; error
     };
   }
 
-  // Check for malicious script patterns (basic XSS prevention)
-  const suspiciousPatterns = [
-    /<script[\s\S]*?>[\s\S]*?<\/script>/gi,
-    /javascript:/gi,
-    /vbscript:/gi,
-    /data:.*base64/gi,
-    /on\w+\s*=/gi, // Event handlers like onclick=
+  // For a pastebin, we should be much more lenient since users often paste:
+  // - HTML/JS code examples and tutorials
+  // - Event handler examples (onclick, onload, etc.)
+  // - URL examples (javascript:, data: URLs)
+  // - Base64 encoded content for examples
+  
+  // Only block content that's very likely to be actual malicious attacks,
+  // not legitimate code examples or educational content
+  
+  // Check for extremely suspicious patterns that are almost never legitimate
+  const reallyMaliciousPatterns = [
+    // Active script execution attempts with common XSS payloads
+    /<script[^>]*>[\s\S]*?(alert|prompt|confirm|document\.cookie|window\.location)[\s\S]*?<\/script>/gi,
+    
+    // Suspicious iframe injections
+    /<iframe[^>]*src\s*=\s*["']?(javascript:|data:)/gi,
+    
+    // Form submissions to external domains (potential data theft)
+    /<form[^>]*action\s*=\s*["']?https?:\/\/(?!localhost|127\.0\.0\.1|0\.0\.0\.0)/gi,
+    
+    // Meta refresh to external domains
+    /<meta[^>]*http-equiv\s*=\s*["']?refresh["']?[^>]*url\s*=\s*["']?https?:\/\//gi,
   ];
 
-  for (const pattern of suspiciousPatterns) {
+  for (const pattern of reallyMaliciousPatterns) {
     if (pattern.test(content)) {
       return {
         isValid: false,

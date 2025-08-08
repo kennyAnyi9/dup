@@ -18,7 +18,7 @@ export function DashboardHeader({
 
   const navigationItems = [
     {
-      href: "/dashboard",
+      href: "/dashboard/pastes",
       label: "My Pastes",
       icon: FileText,
     },
