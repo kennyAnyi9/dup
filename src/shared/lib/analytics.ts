@@ -66,6 +66,11 @@ export async function trackPasteView(pasteId: string): Promise<void> {
       continent: "Unknown",
     };
     
+    // Log GeoIP failures in development
+    if (!geoResult.success && process.env.NODE_ENV === 'development') {
+      console.warn('GeoIP lookup failed:', geoResult.error);
+    }
+    
     // Log analytics tracking in development only
     if (process.env.NODE_ENV === 'development') {
       console.log(`Analytics tracking for IP: ${ip.substring(0, 3)}... - ${geoData.country}, ${geoData.city}`);

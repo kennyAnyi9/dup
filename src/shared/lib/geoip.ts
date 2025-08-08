@@ -68,8 +68,15 @@ export async function getGeoInfo(ip: string): Promise<GeoIPResult> {
 
   // Check cache first
   const cached = geoCache.get(ip);
-  if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
-    return { success: true, data: cached.data };
+  if (cached) {
+    if (Date.now() - cached.timestamp < CACHE_DURATION) {
+      // Refresh LRU timestamp on cache hit
+      cached.timestamp = Date.now();
+      return { success: true, data: cached.data };
+    } else {
+      // Remove stale entry
+      geoCache.delete(ip);
+    }
   }
 
   // Try multiple services in order of preference
@@ -99,7 +106,7 @@ export async function getGeoInfo(ip: string): Promise<GeoIPResult> {
     }
   }
 
-  // All services failed, return default
+  // All services failed, return error with fallback data
   const defaultData = {
     country: "Unknown",
     countryCode: "XX",
@@ -108,7 +115,11 @@ export async function getGeoInfo(ip: string): Promise<GeoIPResult> {
     continent: "Unknown",
   };
 
-  return { success: true, data: defaultData };
+  return { 
+    success: false, 
+    data: defaultData,
+    error: "All GeoIP providers failed" 
+  };
 }
 
 /**
@@ -134,7 +145,7 @@ async function getFromIPAPI(ip: string): Promise<GeoIPResult> {
   try {
     const response = await fetch(`https://ipapi.co/${ip}/json/`, {
       headers: {
-        'User-Agent': 'Mozilla/5.0 (compatible; Analytics Bot)',
+        'User-Agent': 'Mozilla/5.0 (compatible; Dup Analytics; +https://github.com/yourusername/dup)',
       },
       signal: AbortSignal.timeout(5000), // 5 second timeout
     });
@@ -182,7 +193,9 @@ async function getFromIPInfo(ip: string): Promise<GeoIPResult> {
 
     const data = await response.json();
 
-    const [, region] = (data.region || '').split(',').map((s: string) => s.trim());
+    // Use full region string or parse safely for multi-part regions
+    const regionParts = (data.region || '').split(',').map((s: string) => s.trim()).filter(Boolean);
+    const region = regionParts.length > 1 ? regionParts[1] : regionParts[0] || 'Unknown';
 
     return {
       success: true,
@@ -207,7 +220,8 @@ async function getFromIPInfo(ip: string): Promise<GeoIPResult> {
  */
 async function getFromIPGeolocation(ip: string): Promise<GeoIPResult> {
   try {
-    const response = await fetch(`https://api.ip-geolocation.io/ipgeo?apiKey=free&ip=${ip}`, {
+    const apiKey = process.env.IPGEO_API_KEY || 'free';
+    const response = await fetch(`https://api.ip-geolocation.io/ipgeo?apiKey=${apiKey}&ip=${ip}`, {
       signal: AbortSignal.timeout(5000),
     });
 
