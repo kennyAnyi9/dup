@@ -27,11 +27,16 @@ async function getClientIP(): Promise<string> {
          "127.0.0.1";
 }
 
+// Validate required environment variables at startup
+const HASH_SALT = process.env.HASH_SALT || (() => {
+  throw new Error('HASH_SALT environment variable is required for secure IP hashing');
+})();
+
 /**
  * Hash IP address for privacy
  */
 function hashIP(ip: string): string {
-  return crypto.createHash('sha256').update(ip + process.env.HASH_SALT || 'default-salt').digest('hex').substring(0, 32);
+  return crypto.createHash('sha256').update(ip + HASH_SALT).digest('hex').substring(0, 32);
 }
 
 // getGeoInfo is now imported from geoip.ts
@@ -61,7 +66,10 @@ export async function trackPasteView(pasteId: string): Promise<void> {
       continent: "Unknown",
     };
     
-    console.log(`Analytics tracking for IP: ${ip.substring(0, 3)}... - ${geoData.country}, ${geoData.city}`);
+    // Log analytics tracking in development only
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`Analytics tracking for IP: ${ip.substring(0, 3)}... - ${geoData.country}, ${geoData.city}`);
+    }
     
     const viewData = {
       id: crypto.randomUUID(),
@@ -248,19 +256,22 @@ export async function getPasteAnalytics(pasteId: string, userId?: string) {
       .orderBy(desc(count()))
       .limit(1);
     
-    // Note: Removed filterBreakdown function as we're not filtering data for debugging
-
+    // Helper function to filter out null values while preserving type safety
+    const filterNullValues = <T extends Record<string, unknown>>(
+      data: T[], 
+      key: keyof T
+    ) => data.filter(item => item[key] !== null && item[key] !== undefined);
 
     return {
       paste: pasteInfo[0],
       lastViewed: lastView[0]?.viewedAt || null,
-      topCountries: filteredCountries,  // Don't filter out "Unknown" for now so we can see data
-      regionBreakdown: regionBreakdown,  // Don't filter for debugging
-      cityBreakdown: cityBreakdown,    // Don't filter for debugging 
-      continentBreakdown: continentBreakdown,  // Don't filter for debugging
-      deviceBreakdown,
-      browserBreakdown,
-      osBreakdown,
+      topCountries: filteredCountries,
+      regionBreakdown: regionBreakdown,
+      cityBreakdown: cityBreakdown,
+      continentBreakdown: continentBreakdown,
+      deviceBreakdown: filterNullValues(deviceBreakdown, 'device'),
+      browserBreakdown: filterNullValues(browserBreakdown, 'browser'),
+      osBreakdown: filterNullValues(osBreakdown, 'os'),
       dailyViews,
       peakHour: hourlyViews[0]?.hour || null,
     };

@@ -20,6 +20,33 @@ interface GeoIPResult {
 // Cache for IP lookups to avoid hitting rate limits
 const geoCache = new Map<string, { data: GeoIPResponse; timestamp: number }>();
 const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours
+const MAX_CACHE_SIZE = 1000; // Prevent memory leaks
+
+// Simple LRU eviction to prevent memory leaks
+function evictOldCacheEntries() {
+  if (geoCache.size <= MAX_CACHE_SIZE) return;
+  
+  const now = Date.now();
+  const entries = Array.from(geoCache.entries());
+  
+  // Remove expired entries first
+  for (const [key, value] of entries) {
+    if (now - value.timestamp > CACHE_DURATION) {
+      geoCache.delete(key);
+    }
+  }
+  
+  // If still too large, remove oldest entries
+  if (geoCache.size > MAX_CACHE_SIZE) {
+    const sortedEntries = entries
+      .sort((a, b) => a[1].timestamp - b[1].timestamp)
+      .slice(0, geoCache.size - MAX_CACHE_SIZE);
+    
+    for (const [key] of sortedEntries) {
+      geoCache.delete(key);
+    }
+  }
+}
 
 /**
  * Get geographic information for an IP address
@@ -56,7 +83,8 @@ export async function getGeoInfo(ip: string): Promise<GeoIPResult> {
     try {
       const result = await service();
       if (result.success && result.data) {
-        // Cache the result
+        // Cache the result with memory management
+        evictOldCacheEntries();
         geoCache.set(ip, {
           data: result.data,
           timestamp: Date.now(),
@@ -64,7 +92,9 @@ export async function getGeoInfo(ip: string): Promise<GeoIPResult> {
         return result;
       }
     } catch (error) {
-      console.warn(`GeoIP service failed:`, error);
+      if (process.env.NODE_ENV === 'development') {
+        console.warn(`GeoIP service failed:`, error);
+      }
       continue;
     }
   }
@@ -104,7 +134,7 @@ async function getFromIPAPI(ip: string): Promise<GeoIPResult> {
   try {
     const response = await fetch(`https://ipapi.co/${ip}/json/`, {
       headers: {
-        'User-Agent': 'Dup Analytics Service (contact@example.com)',
+        'User-Agent': 'Mozilla/5.0 (compatible; Analytics Bot)',
       },
       signal: AbortSignal.timeout(5000), // 5 second timeout
     });
