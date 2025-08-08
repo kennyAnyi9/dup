@@ -79,16 +79,8 @@ export async function trackPasteView(pasteId: string): Promise<void> {
       referrer,
     };
     
-    console.log("Analytics Debug - Inserting view data:", viewData);
-    
     // Insert analytics record with all geographic data
-    try {
-      const insertResult = await db.insert(pasteView).values(viewData).returning();
-      console.log("Analytics Debug - Successfully inserted view record:", insertResult);
-    } catch (insertError) {
-      console.error("Analytics Debug - Failed to insert view record:", insertError);
-      throw insertError;
-    }
+    await db.insert(pasteView).values(viewData);
     
     // Update paste view count
     await db
@@ -109,7 +101,6 @@ export async function trackPasteView(pasteId: string): Promise<void> {
  */
 export async function getPasteAnalytics(pasteId: string, userId?: string) {
   try {
-    console.log("Analytics Debug - Looking for pasteId:", pasteId);
     // Verify paste ownership if userId provided
     if (userId) {
       const pasteOwnership = await db
@@ -122,9 +113,6 @@ export async function getPasteAnalytics(pasteId: string, userId?: string) {
         throw new Error("Unauthorized access to paste analytics");
       }
     }
-    
-    const now = new Date();
-    const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
     
     // Get total views and basic paste info
     const pasteInfo = await db
@@ -142,14 +130,6 @@ export async function getPasteAnalytics(pasteId: string, userId?: string) {
       throw new Error("Paste not found");
     }
     
-    // Debug: Check total views in pasteView table for this paste
-    const totalViewsInTable = await db
-      .select({ count: count() })
-      .from(pasteView)
-      .where(eq(pasteView.pasteId, pasteId));
-    
-    console.log("Analytics Debug - Total views in pasteView table:", totalViewsInTable[0]?.count || 0);
-    console.log("Analytics Debug - Paste info:", pasteInfo[0]);
     
     // Get last viewed time
     const lastView = await db
@@ -268,23 +248,8 @@ export async function getPasteAnalytics(pasteId: string, userId?: string) {
       .orderBy(desc(count()))
       .limit(1);
     
-    // Filter out null/unknown data and ensure string types
-    const filterBreakdown = <T extends { [K in keyof T]: T[K] }>(
-      data: T[], 
-      key: keyof T
-    ): Array<T & { [K in keyof T]: string }> => {
-      return data
-        .filter(item => item[key] !== null && item[key] !== "unknown" && item[key] !== "Unknown")
-        .map(item => ({ ...item, [key]: item[key] as string }));
-    };
+    // Note: Removed filterBreakdown function as we're not filtering data for debugging
 
-    console.log("Analytics Debug - Raw countries:", topCountries);
-    console.log("Analytics Debug - Filtered countries:", filteredCountries);
-    console.log("Analytics Debug - Device breakdown:", deviceBreakdown);
-    console.log("Analytics Debug - Browser breakdown:", browserBreakdown);
-    console.log("Analytics Debug - Region breakdown:", regionBreakdown);
-    console.log("Analytics Debug - City breakdown:", cityBreakdown);
-    console.log("Analytics Debug - Continent breakdown:", continentBreakdown);
 
     return {
       paste: pasteInfo[0],

@@ -22,9 +22,9 @@ interface AnalyticsData {
   };
   lastViewed: Date | null;
   topCountries: Array<{ country: string; views: number }>;
-  regionBreakdown: Array<{ region: string; views: number }>;
-  cityBreakdown: Array<{ city: string; views: number }>;
-  continentBreakdown: Array<{ continent: string; views: number }>;
+  regionBreakdown: Array<{ region: string | null; views: number }>;
+  cityBreakdown: Array<{ city: string | null; views: number }>;
+  continentBreakdown: Array<{ continent: string | null; views: number }>;
   deviceBreakdown: Array<{ device: string | null; views: number }>;
   browserBreakdown: Array<{ browser: string | null; views: number }>;
   osBreakdown: Array<{ os: string | null; views: number }>;
@@ -236,10 +236,10 @@ export function PasteAnalyticsDashboard({ analytics }: PasteAnalyticsDashboardPr
               <TabsContent value="cities" className="mt-4">
                 <div className="space-y-3">
                   {analytics.cityBreakdown && analytics.cityBreakdown.length > 0 ? (
-                    analytics.cityBreakdown.map((city) => (
-                      <div key={city.city} className="flex items-center justify-between">
+                    analytics.cityBreakdown.map((city, index) => (
+                      <div key={city.city || index} className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                          <span className="text-sm font-medium">{city.city}</span>
+                          <span className="text-sm font-medium">{city.city || "Unknown"}</span>
                         </div>
                         <div className="flex items-center gap-2">
                           <div className="w-20 bg-muted rounded-full h-2">
@@ -266,10 +266,10 @@ export function PasteAnalyticsDashboard({ analytics }: PasteAnalyticsDashboardPr
               <TabsContent value="regions" className="mt-4">
                 <div className="space-y-3">
                   {analytics.regionBreakdown && analytics.regionBreakdown.length > 0 ? (
-                    analytics.regionBreakdown.map((region) => (
-                      <div key={region.region} className="flex items-center justify-between">
+                    analytics.regionBreakdown.map((region, index) => (
+                      <div key={region.region || index} className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                          <span className="text-sm font-medium">{region.region}</span>
+                          <span className="text-sm font-medium">{region.region || "Unknown"}</span>
                         </div>
                         <div className="flex items-center gap-2">
                           <div className="w-20 bg-muted rounded-full h-2">
@@ -296,10 +296,10 @@ export function PasteAnalyticsDashboard({ analytics }: PasteAnalyticsDashboardPr
               <TabsContent value="continents" className="mt-4">
                 <div className="space-y-3">
                   {analytics.continentBreakdown && analytics.continentBreakdown.length > 0 ? (
-                    analytics.continentBreakdown.map((continent) => (
-                      <div key={continent.continent} className="flex items-center justify-between">
+                    analytics.continentBreakdown.map((continent, index) => (
+                      <div key={continent.continent || index} className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                          <span className="text-sm font-medium">{continent.continent}</span>
+                          <span className="text-sm font-medium">{continent.continent || "Unknown"}</span>
                         </div>
                         <div className="flex items-center gap-2">
                           <div className="w-20 bg-muted rounded-full h-2">
