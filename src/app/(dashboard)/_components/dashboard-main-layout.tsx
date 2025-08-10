@@ -1,7 +1,10 @@
+"use client";
+
 import { DashboardSidebar } from "@/features/dashboard/components/navigation/dashboard-sidebar";
 import { SearchFilters } from "@/features/dashboard/components/ui/search-filters";
 import { Suspense, ReactNode } from "react";
 import { User } from "better-auth";
+import { usePathname } from "next/navigation";
 
 interface DashboardMainLayoutProps {
   recentPublicPastes: Array<{
@@ -31,6 +34,9 @@ export function DashboardMainLayout({
   children,
   loadingFallback,
 }: DashboardMainLayoutProps) {
+  const pathname = usePathname();
+  const showSearchFilters = pathname?.includes('/pastes');
+
   return (
     <main className="z-10 flex w-full flex-1 flex-col items-start overflow-hidden min-w-0">
       <div className="flex w-full flex-1 flex-col lg:flex-row overflow-hidden min-w-0">
@@ -38,12 +44,14 @@ export function DashboardMainLayout({
         <div className="flex-1 lg:basis-4/5 backdrop-blur-[2px] relative overflow-hidden min-w-0">
           <div className="h-full overflow-auto px-3 py-4 md:p-6">
             <div className="flex flex-col gap-3">
-              {/* Search and Filters */}
-              <SearchFilters
-                defaultSearch={search}
-                defaultFilter={filter}
-                defaultSort={sort}
-              />
+              {/* Search and Filters - Only show for pastes page */}
+              {showSearchFilters && (
+                <SearchFilters
+                  defaultSearch={search}
+                  defaultFilter={filter}
+                  defaultSort={sort}
+                />
+              )}
 
               {/* Content */}
               <div>
