@@ -22,6 +22,20 @@ const geoCache = new Map<string, { data: GeoIPResponse; timestamp: number }>();
 const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours
 const MAX_CACHE_SIZE = 1000; // Prevent memory leaks
 
+// Helper function for cross-runtime fetch with timeout
+async function fetchWithTimeout(url: string, init: RequestInit = {}, ms = 5000): Promise<Response> {
+  if (typeof AbortSignal !== 'undefined' && 'timeout' in AbortSignal && typeof AbortSignal.timeout === 'function') {
+    return fetch(url, { ...init, signal: AbortSignal.timeout(ms) });
+  }
+  const controller = new AbortController();
+  const id = setTimeout(() => controller.abort(), ms);
+  try {
+    return await fetch(url, { ...init, signal: controller.signal });
+  } finally {
+    clearTimeout(id);
+  }
+}
+
 // Simple LRU eviction to prevent memory leaks
 function evictOldCacheEntries() {
   if (geoCache.size <= MAX_CACHE_SIZE) return;
@@ -36,9 +50,9 @@ function evictOldCacheEntries() {
     }
   }
   
-  // If still too large, remove oldest entries
+  // If still too large, remove oldest entries based on current state
   if (geoCache.size > MAX_CACHE_SIZE) {
-    const sortedEntries = entries
+    const sortedEntries = Array.from(geoCache.entries())
       .sort((a, b) => a[1].timestamp - b[1].timestamp)
       .slice(0, geoCache.size - MAX_CACHE_SIZE);
     
@@ -70,8 +84,9 @@ export async function getGeoInfo(ip: string): Promise<GeoIPResult> {
   const cached = geoCache.get(ip);
   if (cached) {
     if (Date.now() - cached.timestamp < CACHE_DURATION) {
-      // Refresh LRU timestamp on cache hit
-      cached.timestamp = Date.now();
+      // Refresh LRU timestamp and insertion order on cache hit
+      geoCache.delete(ip);
+      geoCache.set(ip, { data: cached.data, timestamp: Date.now() });
       return { success: true, data: cached.data };
     } else {
       // Remove stale entry
@@ -127,12 +142,19 @@ export async function getGeoInfo(ip: string): Promise<GeoIPResult> {
  */
 function isLocalIP(ip: string): boolean {
   const localPatterns = [
+    // IPv4 patterns
     /^127\./,           // 127.0.0.0/8 (localhost)
     /^192\.168\./,      // 192.168.0.0/16 (private)
     /^10\./,            // 10.0.0.0/8 (private)
     /^172\.(1[6-9]|2\d|3[01])\./,  // 172.16.0.0/12 (private)
+    /^169\.254\./,      // 169.254.0.0/16 (IPv4 link-local)
+    
+    // IPv6 patterns
     /^::1$/,            // IPv6 localhost
-    /^fe80:/,           // IPv6 link-local
+    /^fe80:/i,          // IPv6 link-local
+    /^fc[0-9a-f][0-9a-f]:/i,  // IPv6 Unique Local Addresses (fc00::/7)
+    /^fd[0-9a-f][0-9a-f]:/i,  // IPv6 Unique Local Addresses (fd00::/8)
+    /^::ffff:127\./i,   // IPv4-mapped localhost (::ffff:127.0.0.1)
   ];
 
   return localPatterns.some(pattern => pattern.test(ip)) || ip === "localhost";
@@ -143,12 +165,12 @@ function isLocalIP(ip: string): boolean {
  */
 async function getFromIPAPI(ip: string): Promise<GeoIPResult> {
   try {
-    const response = await fetch(`https://ipapi.co/${ip}/json/`, {
+    const response = await fetchWithTimeout(`https://ipapi.co/${ip}/json/`, {
       headers: {
-        'User-Agent': 'Mozilla/5.0 (compatible; Dup Analytics; +https://github.com/yourusername/dup)',
+        // e.g. "Dup Analytics (+https://github.com/acme/dup)" or "Dup Analytics (ops@acme.com)"
+        'User-Agent': process.env.GEOIP_USER_AGENT || 'Dup Analytics (dev)',
       },
-      signal: AbortSignal.timeout(5000), // 5 second timeout
-    });
+    }, 5000);
 
     if (!response.ok) {
       throw new Error(`HTTP ${response.status}`);
@@ -183,9 +205,7 @@ async function getFromIPAPI(ip: string): Promise<GeoIPResult> {
  */
 async function getFromIPInfo(ip: string): Promise<GeoIPResult> {
   try {
-    const response = await fetch(`https://ipinfo.io/${ip}/json`, {
-      signal: AbortSignal.timeout(5000),
-    });
+    const response = await fetchWithTimeout(`https://ipinfo.io/${ip}/json`, {}, 5000);
 
     if (!response.ok) {
       throw new Error(`HTTP ${response.status}`);
@@ -193,9 +213,9 @@ async function getFromIPInfo(ip: string): Promise<GeoIPResult> {
 
     const data = await response.json();
 
-    // Use full region string or parse safely for multi-part regions
+    // Use first component or full string for better accuracy
     const regionParts = (data.region || '').split(',').map((s: string) => s.trim()).filter(Boolean);
-    const region = regionParts.length > 1 ? regionParts[1] : regionParts[0] || 'Unknown';
+    const region = regionParts[0] || 'Unknown';
 
     return {
       success: true,
@@ -220,10 +240,12 @@ async function getFromIPInfo(ip: string): Promise<GeoIPResult> {
  */
 async function getFromIPGeolocation(ip: string): Promise<GeoIPResult> {
   try {
-    const apiKey = process.env.IPGEO_API_KEY || 'free';
-    const response = await fetch(`https://api.ip-geolocation.io/ipgeo?apiKey=${apiKey}&ip=${ip}`, {
-      signal: AbortSignal.timeout(5000),
-    });
+    const apiKey = process.env.IPGEO_API_KEY;
+    if (!apiKey) {
+      // Skip this provider if not configured
+      return { success: false, error: 'IPGEO_API_KEY not configured' };
+    }
+    const response = await fetchWithTimeout(`https://api.ip-geolocation.io/ipgeo?apiKey=${apiKey}&ip=${ip}`, {}, 5000);
 
     if (!response.ok) {
       throw new Error(`HTTP ${response.status}`);
@@ -267,34 +289,15 @@ function mapContinentCode(code: string): string {
 }
 
 /**
- * Get country name from country code
+ * Get country name from country code using Intl.DisplayNames
  */
 function getCountryName(countryCode: string): string {
-  const countries: Record<string, string> = {
-    'US': 'United States',
-    'GB': 'United Kingdom', 
-    'CA': 'Canada',
-    'DE': 'Germany',
-    'FR': 'France',
-    'JP': 'Japan',
-    'AU': 'Australia',
-    'BR': 'Brazil',
-    'IN': 'India',
-    'CN': 'China',
-    'RU': 'Russia',
-    'IT': 'Italy',
-    'ES': 'Spain',
-    'KR': 'South Korea',
-    'MX': 'Mexico',
-    'AR': 'Argentina',
-    'NL': 'Netherlands',
-    'SE': 'Sweden',
-    'NO': 'Norway',
-    'CH': 'Switzerland',
-    // Add more as needed
-  };
-
-  return countries[countryCode.toUpperCase()] || countryCode;
+  try {
+    const countryDisplay = new Intl.DisplayNames(['en'], { type: 'region' });
+    return countryDisplay.of(countryCode.toUpperCase()) || countryCode;
+  } catch {
+    return countryCode;
+  }
 }
 
 /**

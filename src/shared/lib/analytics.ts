@@ -13,30 +13,136 @@ import { parseUserAgent } from "./user-agent-parser";
 // Remove old interface and function - now imported from user-agent-parser.ts
 
 /**
- * Get client IP address from headers
+ * Sanitize IP address by removing non-IP tokens and validating format
+ */
+function sanitizeIP(ip: string): string | null {
+  if (!ip) return null;
+  
+  // Remove quotes, brackets, and other non-IP characters
+  const cleaned = ip.trim().replace(/^["']|["']$/g, '').replace(/^\[|\]$/g, '');
+  
+  // Basic IPv4/IPv6 validation
+  const ipv4Regex = /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
+  const ipv6Regex = /^(?:[0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}$|^::1$|^::$|^(?:[0-9a-fA-F]{1,4}:)*::(?:[0-9a-fA-F]{1,4}:)*[0-9a-fA-F]{1,4}$|^::ffff:[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$/;
+  
+  if (ipv4Regex.test(cleaned) || ipv6Regex.test(cleaned)) {
+    return cleaned;
+  }
+  
+  return null;
+}
+
+/**
+ * Parse RFC 7239 Forwarded header
+ */
+function parseForwardedHeader(forwarded: string): string | null {
+  // Parse "for=" directive from Forwarded header
+  const forMatch = forwarded.match(/for=([^;,]+)/i);
+  if (forMatch) {
+    let ip = forMatch[1].trim();
+    // Remove quotes and extract IP from quoted string
+    ip = ip.replace(/^["']|["']$/g, '');
+    // Handle IPv6 in brackets or port notation
+    if (ip.includes(':') && !ip.startsWith('[')) {
+      // Could be IPv6 with port, try to extract IP part
+      const parts = ip.split(':');
+      if (parts.length > 2) {
+        // Likely IPv6, reconstruct
+        ip = parts.slice(0, -1).join(':');
+      }
+    }
+    return sanitizeIP(ip);
+  }
+  return null;
+}
+
+/**
+ * Get client IP address from headers with comprehensive parsing
  */
 async function getClientIP(): Promise<string> {
   const headersList = await headers();
-  const forwarded = headersList.get("x-forwarded-for");
-  const realIP = headersList.get("x-real-ip");
-  const cfIP = headersList.get("cf-connecting-ip");
   
-  return forwarded?.split(",")[0]?.trim() || 
-         realIP || 
-         cfIP || 
-         "127.0.0.1";
+  // Check headers in order of reliability
+  const headerSources = [
+    // RFC 7239 Forwarded header (most standard)
+    () => {
+      const forwarded = headersList.get("forwarded");
+      return forwarded ? parseForwardedHeader(forwarded) : null;
+    },
+    
+    // CloudFlare connecting IP
+    () => sanitizeIP(headersList.get("cf-connecting-ip") || ""),
+    
+    // X-Real-IP (common in nginx)
+    () => sanitizeIP(headersList.get("x-real-ip") || ""),
+    
+    // X-Forwarded-For (get first IP, which should be client)
+    () => {
+      const xForwardedFor = headersList.get("x-forwarded-for");
+      if (xForwardedFor) {
+        const firstIP = xForwardedFor.split(",")[0];
+        return sanitizeIP(firstIP);
+      }
+      return null;
+    },
+    
+    // Additional common headers
+    () => sanitizeIP(headersList.get("x-client-ip") || ""),
+    () => sanitizeIP(headersList.get("x-forwarded") || ""),
+    () => sanitizeIP(headersList.get("x-cluster-client-ip") || ""),
+    () => sanitizeIP(headersList.get("forwarded-for") || ""),
+  ];
+  
+  // Try each header source until we find a valid IP
+  for (const getIP of headerSources) {
+    const ip = getIP();
+    if (ip) {
+      return ip;
+    }
+  }
+  
+  // Fallback to localhost
+  return "127.0.0.1";
 }
 
-// Validate required environment variables at startup
-const HASH_SALT = process.env.HASH_SALT || (() => {
-  throw new Error('HASH_SALT environment variable is required for secure IP hashing');
-})();
+// Lazy-loaded to avoid import-time crashes
+let HASH_SALT: string | undefined;
+function getHashSalt(): string {
+  HASH_SALT = HASH_SALT ?? process.env.HASH_SALT;
+  if (!HASH_SALT) throw new Error('HASH_SALT environment variable is required for secure IP hashing');
+  return HASH_SALT;
+}
 
 /**
- * Hash IP address for privacy
+ * Hash IP address for privacy using HMAC
  */
 function hashIP(ip: string): string {
-  return crypto.createHash('sha256').update(ip + HASH_SALT).digest('hex').substring(0, 32);
+  const h = crypto.createHmac('sha256', getHashSalt()).update(ip).digest('hex');
+  return h.substring(0, 32);
+}
+
+/**
+ * Sanitize referrer URL to extract only origin part (reduces PII exposure)
+ */
+function sanitizeReferrer(referrer: string | null): string | null {
+  if (!referrer) return null;
+  
+  try {
+    const url = new URL(referrer);
+    // Return only the origin (protocol + hostname + port)
+    return url.origin;
+  } catch {
+    // If URL parsing fails, return null to avoid storing invalid data
+    return null;
+  }
+}
+
+/**
+ * Truncate string to maximum length to fit database schema
+ */
+function truncateString(str: string | null, maxLength: number): string | null {
+  if (!str) return null;
+  return str.length > maxLength ? str.substring(0, maxLength) : str;
 }
 
 // getGeoInfo is now imported from geoip.ts
@@ -47,14 +153,18 @@ function hashIP(ip: string): string {
 export async function trackPasteView(pasteId: string): Promise<void> {
   try {
     const headersList = await headers();
-    const userAgent = headersList.get("user-agent") || "unknown";
-    const referrer = headersList.get("referer") || null;
+    const rawUserAgent = headersList.get("user-agent") || "unknown";
+    const rawReferrer = headersList.get("referer");
+    
+    // Sanitize and truncate user-agent and referrer
+    const userAgent = truncateString(rawUserAgent, 500); // Limit to 500 chars
+    const referrer = truncateString(sanitizeReferrer(rawReferrer), 255); // Limit to 255 chars
     
     const ip = await getClientIP();
     const ipHash = hashIP(ip);
     
     // Parse user agent with enhanced detection
-    const { device, browser, os } = parseUserAgent(userAgent);
+    const { device, browser, os } = parseUserAgent(rawUserAgent);
     
     // Get geographic information
     const geoResult = await getGeoInfo(ip);
@@ -114,6 +224,10 @@ export async function trackPasteView(pasteId: string): Promise<void> {
  */
 export async function getPasteAnalytics(pasteId: string, userId?: string) {
   try {
+    // Define time ranges for analytics queries
+    const now = new Date();
+    const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+    
     // Verify paste ownership if userId provided
     if (userId) {
       const pasteOwnership = await db
@@ -245,35 +359,44 @@ export async function getPasteAnalytics(pasteId: string, userId?: string) {
         views: count(),
       })
       .from(pasteView)
-      .where(eq(pasteView.pasteId, pasteId))
+      .where(and(
+        eq(pasteView.pasteId, pasteId),
+        gte(pasteView.viewedAt, thirtyDaysAgo)
+      ))
       .groupBy(sql`DATE(${pasteView.viewedAt})`)
       .orderBy(sql`DATE(${pasteView.viewedAt})`);
     
-    // Get peak viewing hours (0-23)
+    // Get peak viewing hours (0-23) scoped to last 30 days
     const hourlyViews = await db
       .select({
         hour: sql<number>`EXTRACT(HOUR FROM ${pasteView.viewedAt})`,
         views: count(),
       })
       .from(pasteView)
-      .where(eq(pasteView.pasteId, pasteId))
+      .where(and(
+        eq(pasteView.pasteId, pasteId),
+        gte(pasteView.viewedAt, thirtyDaysAgo)
+      ))
       .groupBy(sql`EXTRACT(HOUR FROM ${pasteView.viewedAt})`)
       .orderBy(desc(count()))
       .limit(1);
     
-    // Helper function to filter out null values while preserving type safety
+    // Helper function to filter out null and unknown values while preserving type safety
     const filterNullValues = <T extends Record<string, unknown>>(
       data: T[], 
       key: keyof T
-    ) => data.filter(item => item[key] !== null && item[key] !== undefined);
+    ) => data.filter(item => {
+      const v = item[key];
+      return v !== null && v !== undefined && v !== 'Unknown' && v !== 'unknown';
+    });
 
     return {
       paste: pasteInfo[0],
       lastViewed: lastView[0]?.viewedAt || null,
       topCountries: filteredCountries,
-      regionBreakdown: regionBreakdown,
-      cityBreakdown: cityBreakdown,
-      continentBreakdown: continentBreakdown,
+      regionBreakdown: filterNullValues(regionBreakdown, 'region'),
+      cityBreakdown: filterNullValues(cityBreakdown, 'city'),
+      continentBreakdown: filterNullValues(continentBreakdown, 'continent'),
       deviceBreakdown: filterNullValues(deviceBreakdown, 'device'),
       browserBreakdown: filterNullValues(browserBreakdown, 'browser'),
       osBreakdown: filterNullValues(osBreakdown, 'os'),
