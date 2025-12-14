@@ -1,6 +1,6 @@
+import { Header } from "@/app/(playground)/_components/marketing-header";
 import { AppProviders } from "@/shared/components/common/app-providers";
 import { ConditionalFooter } from "@/shared/components/common/conditional-footer";
-import { ConditionalHeader } from "@/shared/components/common/conditional-header";
 import { Toaster } from "@/shared/components/dupui/sonner";
 import { APP_NAME } from "@/shared/lib/constants";
 import { cn } from "@/shared/lib/utils";
@@ -39,7 +39,7 @@ export default function RootLayout({
         )}
       >
         <AppProviders>
-          <ConditionalHeader />
+          <Header />
           <main className="flex-1">{children}</main>
           <ConditionalFooter />
 
