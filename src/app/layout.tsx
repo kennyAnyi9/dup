@@ -5,14 +5,29 @@ import { Toaster } from "@/shared/components/dupui/sonner";
 import { APP_NAME } from "@/shared/lib/constants";
 import { cn } from "@/shared/lib/utils";
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import LocalFont from "next/font/local";
 import "./globals.css";
-
-const inter = Inter({
-  variable: "--font-inter",
-  subsets: ["latin"],
+const commitMono = LocalFont({
+  src: [
+    {
+      path: "../../public/fonts/CommitMono-400-Regular.otf",
+      weight: "400",
+      style: "normal",
+    },
+  
+    {
+      path: "../../public/fonts/CommitMono-700-Regular.otf",
+      weight: "700",
+      style: "normal",
+    },
+    {
+      path: "../../public/fonts/CommitMono-700-Italic.otf",
+      weight: "700",
+      style: "italic",
+    },
+  ],
+  variable: "--font-commit-mono",
 });
-
 export const metadata: Metadata = {
   title: {
     default: APP_NAME,
@@ -34,8 +49,8 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body
         className={cn(
-          inter.className,
-          " antialiased min-h-screen flex flex-col overflow-x-hidden"
+          commitMono.variable,
+          "font-commit-mono antialiased min-h-screen flex flex-col overflow-x-hidden"
         )}
       >
         <AppProviders>
