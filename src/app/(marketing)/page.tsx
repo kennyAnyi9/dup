@@ -1,5 +1,4 @@
 "use client"
-import { WarpBackground } from "@/shared/components/magicui/warp-background";
 import { HomeClient } from "@/features/landing/components/sections/home-client";
 import { PublicPasteCardsInfinite } from "@/features/landing/components/ui/public-paste-cards-infinite";
 import { Badge } from "@/shared/components/dupui/badge";
@@ -20,12 +19,15 @@ import {
   FileText,
   Globe,
   Lock,
+  MessageSquare,
+  QrCode,
+  Search,
   Shield,
+  Tags,
   Users,
   Zap,
 } from "lucide-react";
 import Link from "next/link";
-import { ShineBorder } from "@/shared/components/ui/shiney-border";
 
 export default function Home() {
   return (
@@ -58,14 +60,14 @@ export default function Home() {
           </span>
         </Link>
               <Ascii
-                font={fonts.deltaCorpsPriest1}
+                font={fonts.blocks}
                  as="h1"
-                 className="font-[#c56d50] text-[3px] text-left"
+                 className=" text-[5px] text-left"
                        >
-               The Last Pastebin You will Ever Need
+               Pastebin
               </Ascii>
               <p className="mt-5 w-full pr-5 text-pretty text-base sm:text-lg md:text-xl text-muted-foreground text-left animate-slide-up-fade [--offset:10px] [animation-delay:200ms] [animation-duration:1s] [animation-fill-mode:both] motion-reduce:animate-fade-in">
-              The modern pastebin for everyone. Beautiful syntax highlighting, powerful privacy controls, zero complexity.
+              Create and edit pastes in seconds, lock them with encryption, control access and views, gain clear insights, and share using custom links or QR codes. This is the last pastebin you’ll ever need.
               </p>
               <div className="relative mt-8 sm:mt-10 flex flex-col sm:flex-row gap-3 sm:gap-4 animate-slide-up-fade [--offset:5px] [animation-delay:300ms] [animation-duration:1s] [animation-fill-mode:both] motion-reduce:animate-fade-in">
                 <HomeClient />
@@ -85,7 +87,7 @@ export default function Home() {
       {/* Core Features Section */}
       <Panel className="overflow-hidden">
         <PanelHeader>
-          <PanelTitle>Core Features</PanelTitle>
+          <PanelTitle>Awesome Features</PanelTitle>
         </PanelHeader>
         <PanelContent className="p-0">
           <div className="grid grid-cols-1 gap-px bg-border text-sm sm:grid-cols-2 lg:grid-cols-3">
@@ -148,6 +150,60 @@ export default function Home() {
                   detailed analytics and insights.
                 </p>
               </div>
+            </div>
+            <div className="flex flex-col items-start gap-2 bg-background p-8 text-left lg:px-9 lg:py-10">
+                <QrCode className="size-4 shrink-0 text-primary" />
+                <h3 className="font-medium">QR Code Sharing</h3>
+                <div className="max-w-xs text-pretty text-muted-foreground sm:max-w-none">
+                    <p>
+                        Generate and customize QR codes for easy sharing of your pastes.
+                    </p>
+                </div>
+            </div>
+            <div className="flex flex-col items-start gap-2 bg-background p-8 text-left lg:px-9 lg:py-10">
+                <Tags className="size-4 shrink-0 text-primary" />
+                <h3 className="font-medium">Tagging</h3>
+                <div className="max-w-xs text-pretty text-muted-foreground sm:max-w-none">
+                    <p>
+                        Organize your pastes with tags for easy categorization and retrieval.
+                    </p>
+                </div>
+            </div>
+            <div className="flex flex-col items-start gap-2 bg-background p-8 text-left lg:px-9 lg:py-10 lg:-mr-px">
+                <MessageSquare className="size-4 shrink-0 text-primary" />
+                <h3 className="font-medium">Commenting</h3>
+                <div className="max-w-xs text-pretty text-muted-foreground sm:max-w-none">
+                    <p>
+                        Enable comments on your pastes to receive feedback and collaborate.
+                    </p>
+                </div>
+            </div>
+            <div className="flex flex-col items-start gap-2 bg-background p-8 text-left lg:px-9 lg:py-10">
+                <Search className="size-4 shrink-0 text-primary" />
+                <h3 className="font-medium">Full-Text Search</h3>
+                <div className="max-w-xs text-pretty text-muted-foreground sm:max-w-none">
+                    <p>
+                        Quickly find the pastes you need with powerful full-text search.
+                    </p>
+                </div>
+            </div>
+            <div className="flex flex-col items-start gap-2 bg-background p-8 text-left lg:px-9 lg:py-10">
+                <Users className="size-4 shrink-0 text-primary" />
+                <h3 className="font-medium">User Accounts</h3>
+                <div className="max-w-xs text-pretty text-muted-foreground sm:max-w-none">
+                    <p>
+                        Create an account to manage your pastes and unlock more features.
+                    </p>
+                </div>
+            </div>
+            <div className="flex flex-col items-start gap-2 bg-background p-8 text-left lg:px-9 lg:py-10 lg:-mr-px">
+                <Globe className="size-4 shrink-0 text-primary" />
+                <h3 className="font-medium">Paste Management</h3>
+                <div className="max-w-xs text-pretty text-muted-foreground sm:max-w-none">
+                    <p>
+                        A dedicated dashboard to view, edit, and delete your pastes.
+                    </p>
+                </div>
             </div>
           </div>
         </PanelContent>
