@@ -31,7 +31,7 @@ export function Header() {
 
   return (
     <header className="sticky top-0 z-40 w-full">
-      <div className="max-w-4xl mx-auto bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <div className="font-commit-mono max-w-4xl mx-auto bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60">
         <motion.div layout transition={{ duration: 0.3 }}>
           <Panel>
               <div className="pl-4">
@@ -45,9 +45,9 @@ export function Header() {
                 <div className="flex items-center space-x-4 border-l h-full">
                 
 
-                  {isAuthenticated ? (
-                     <div className="h-full flex place-items-center w-44 p-5">
-                      <Link href="/dashboard">Dashboard</Link>
+                  {isAuthenticated ? (  
+                     <div className="h-full flex place-items-center ">
+                      <Link href="/dashboard" className="w-44 p-5 hover:bg-accent">Dashboard</Link>
                     </div>
                   ) : (
                     <div className="flex items-center h-full">

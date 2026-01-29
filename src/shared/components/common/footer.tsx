@@ -1,8 +1,8 @@
-import { Logo } from "@/shared/components/common/logo";
 import { Panel, PanelContent, Pattern } from "@/shared/components/dupui/panel";
 import { APP_NAME } from "@/shared/lib/constants";
 import {
   Activity,
+  Asterisk,
   BarChart3,
   FileText,
   HelpCircle,
@@ -23,8 +23,8 @@ export function Footer() {
           <PanelContent className="py-8">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
               <div className="col-span-1 md:col-span-2">
-                <Link href="/" className="flex items-center">
-                  <Logo priority />
+                <Link href="/" className="flex items-center gap-2 mb-4 text-xl font-semibold">
+                  <Asterisk className="size-5" />[dup]
                 </Link>
                 <p className="text-sm text-muted-foreground max-w-md">
                   Fast, secure, and simple pastebin service for sharing code and

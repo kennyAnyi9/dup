@@ -12,16 +12,13 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/shared/components/dupui/alert-dialog";
-import { PasteTable } from "@/features/paste/components/ui/paste-table";
 import { PasteCardsGrid } from "@/features/paste/components/ui/paste-cards-grid";
 import { Button } from "@/shared/components/dupui/button";
-import { useIsMobile } from "@/shared/hooks/use-mobile";
 import { Trash2 } from "lucide-react";
-import { useEffect, useRef, useState, useTransition } from "react";
+import { useState, useTransition } from "react";
 import { toast } from "sonner";
-import { ColumnToggle } from "../ui/column-toggle";
-import { ViewToggle } from "../ui/view-toggle";
-import { useViewPreference } from "../../hooks/use-view-preference";
+import { useFilterLoading } from "../ui/search-filters";
+import { PasteCardSkeleton } from "@/app/(dashboard)/_components/dashboard-loading";
 
 interface PastesContentWrapperProps {
   pastes: Array<{
@@ -58,67 +55,7 @@ interface PastesContentWrapperProps {
 export function PastesContentWrapper({ pastes }: PastesContentWrapperProps) {
   const [isPending, startTransition] = useTransition();
   const [selectedPastes, setSelectedPastes] = useState(() => new Set<string>());
-  const { view: currentView, setView: setCurrentView } = useViewPreference();
-  const isMobile = useIsMobile();
-  
-  // Force table view on mobile devices
-  const effectiveView = isMobile ? "table" : currentView;
-
-  const [visibleColumns, setVisibleColumns] = useState({
-    avatar: true,
-    language: true,
-    status: true,
-    views: true,
-    created: true,
-  });
-
-  // Track user's manual column toggles to preserve them across viewport changes
-  const userToggledColumns = useRef(new Set<string>());
-
-  // Update column visibility based on screen size, preserving user choices
-  useEffect(() => {
-    setVisibleColumns((prev) => {
-      const newColumns = { ...prev };
-      
-      if (isMobile) {
-        // Hide columns on mobile, but preserve user's explicit choices
-        Object.keys(newColumns).forEach((key) => {
-          if (!userToggledColumns.current.has(key)) {
-            newColumns[key as keyof typeof newColumns] = false;
-          }
-        });
-      } else {
-        // Show columns on desktop, but preserve user's explicit choices
-        Object.keys(newColumns).forEach((key) => {
-          if (!userToggledColumns.current.has(key)) {
-            newColumns[key as keyof typeof newColumns] = true;
-          }
-        });
-      }
-      
-      return newColumns;
-    });
-  }, [isMobile]);
-
-
-  const handleColumnToggle = (key: string) => {
-    // Track user toggles but remove if returning to default state
-    const currentValue = visibleColumns[key as keyof typeof visibleColumns];
-    const defaultValue = !isMobile; // Default is visible on desktop, hidden on mobile
-    
-    if (!currentValue === defaultValue) {
-      // User is returning to default state, remove from tracked toggles
-      userToggledColumns.current.delete(key);
-    } else {
-      // User is changing from default, track this toggle
-      userToggledColumns.current.add(key);
-    }
-    
-    setVisibleColumns((prev) => ({
-      ...prev,
-      [key]: !prev[key as keyof typeof prev],
-    }));
-  };
+  const isFilterLoading = useFilterLoading();
 
   const handleSelectPaste = (pasteId: string, selected: boolean) => {
     setSelectedPastes((prev) => {
@@ -130,14 +67,6 @@ export function PastesContentWrapper({ pastes }: PastesContentWrapperProps) {
       }
       return newSet;
     });
-  };
-
-  const handleSelectAll = (selected: boolean) => {
-    if (selected) {
-      setSelectedPastes(new Set(pastes.map((p) => p.id)));
-    } else {
-      setSelectedPastes(new Set());
-    }
   };
 
   const handleBulkDelete = async () => {
@@ -167,17 +96,20 @@ export function PastesContentWrapper({ pastes }: PastesContentWrapperProps) {
     });
   };
 
-  const columns = [
-    { key: "avatar", label: "Avatar", visible: visibleColumns.avatar },
-    { key: "language", label: "Language", visible: visibleColumns.language },
-    { key: "status", label: "Status", visible: visibleColumns.status },
-    { key: "views", label: "Views", visible: visibleColumns.views },
-    { key: "created", label: "Created", visible: visibleColumns.created },
-  ];
-
-  const allSelected =
-    selectedPastes.size === pastes.length && pastes.length > 0;
   const someSelected = selectedPastes.size > 0;
+
+  // Show skeleton when filter is loading
+  if (isFilterLoading) {
+    return (
+      <div className="h-full flex flex-col space-y-2">
+        <div className="space-y-3">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <PasteCardSkeleton key={i} />
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="h-full flex flex-col">
@@ -225,33 +157,15 @@ export function PastesContentWrapper({ pastes }: PastesContentWrapperProps) {
           </div>
         )}
 
-        {/* View Toggle and Column Toggle */}
-        <div className="flex items-center gap-2 ml-auto">
-          <ViewToggle view={effectiveView} onViewChange={setCurrentView} />
-          {effectiveView === "table" && (
-            <ColumnToggle columns={columns} onToggle={handleColumnToggle} />
-          )}
-        </div>
       </div>
 
-      {/* Content Area - Table or Cards */}
+      {/* Content Area - Cards Only */}
       <div>
-        {effectiveView === "table" ? (
-          <PasteTable
-            pastes={pastes}
-            visibleColumns={visibleColumns}
-            selectedPastes={selectedPastes}
-            onSelectPaste={handleSelectPaste}
-            onSelectAll={handleSelectAll}
-            allSelected={allSelected}
-          />
-        ) : (
-          <PasteCardsGrid
-            pastes={pastes}
-            selectedPastes={selectedPastes}
-            onSelectPaste={handleSelectPaste}
-          />
-        )}
+        <PasteCardsGrid
+          pastes={pastes}
+          selectedPastes={selectedPastes}
+          onSelectPaste={handleSelectPaste}
+        />
       </div>
     </div>
   );

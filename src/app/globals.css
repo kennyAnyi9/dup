@@ -144,7 +144,10 @@
 }
 
 @theme inline {
-  --font-commit-mono: var(--font-commit-mono);
+  --font-commit-mono: var(--font-commit-mono), ui-monospace, 'Cascadia Code', 'Source Code Pro', Menlo, Consolas, 'DejaVu Sans Mono', monospace;
+  --font-calsans: var(--font-calsans), ui-sans-serif, system-ui, sans-serif;
+  --font-inter: var(--font-inter), ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+  --font-roboto-mono: var(--font-roboto-mono), ui-monospace, 'Cascadia Code', 'Source Code Pro', Menlo, Consolas, 'DejaVu Sans Mono', monospace;
   --color-background: var(--d-background);
   --color-foreground: var(--d-foreground);
   --color-primary: var(--d-primary);
@@ -170,10 +173,10 @@
   --color-code: var(--d-code);
   --color-code-foreground: var(--d-code-foreground);
   --color-code-number: var(--d-code-number);
-
-  --font-sans: var(--d-font-sans);
-  --font-mono: var(--d-font-mono);
-  --font-heading: var(--d-font-sans);
+  --font-sans:
+    var(--font-sans), ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji',
+    'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+  --font-cal: var(--font-calsans);
 }
 
 @layer base {

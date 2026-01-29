@@ -1,7 +1,6 @@
 "use client";
 
 import { getPaste } from "@/features/paste/actions/paste.actions";
-import { Logo } from "@/shared/components/common/logo";
 import { Badge } from "@/shared/components/dupui/badge";
 import { Button } from "@/shared/components/dupui/button";
 import { Card, CardContent } from "@/shared/components/dupui/card";
@@ -13,6 +12,7 @@ import type { PasteResult } from "@/shared/types/paste";
 import { format, formatDistanceToNow } from "date-fns";
 import {
   AlertTriangle,
+  Asterisk,
   Calendar,
   Clock,
   Eye,
@@ -196,7 +196,7 @@ export function PublicPasteClient({ slug }: PublicPasteClientProps) {
             href="/"
             className="flex items-center gap-2 hover:opacity-80 transition-opacity"
           >
-            <Logo />
+            <Asterisk className="size-4" />[dup]
           </Link>
           <div className="flex items-center gap-2">
             <ThemeSwitch />

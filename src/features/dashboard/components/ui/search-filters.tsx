@@ -1,10 +1,9 @@
 "use client";
 
-import { useState, useTransition, useCallback, useRef, useEffect } from "react";
+import { useTransition, createContext, useContext, useState, useRef, useEffect, useCallback } from "react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
-import { Input } from "@/shared/components/dupui/input";
 import { Button } from "@/shared/components/dupui/button";
-import { Badge } from "@/shared/components/dupui/badge";
+import { Input } from "@/shared/components/dupui/input";
 import {
   Select,
   SelectContent,
@@ -12,96 +11,40 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/shared/components/dupui/select";
-import { 
-  Search, 
-  Layers, 
-  X, 
-  ArrowUpDown, 
-  Earth, 
-  Shield, 
-  EyeOff,
-  Loader
-} from "lucide-react";
+import { cn } from "@/shared/lib/utils";
+import { Globe, Lock, EyeOff, Layers, Search, X, ArrowUpDown, CalendarDays, Clock, Calendar, Eye, Sparkles } from "lucide-react";
+
+// Create a context to share loading state
+export const FilterLoadingContext = createContext<boolean>(false);
+
+export function useFilterLoading() {
+  return useContext(FilterLoadingContext);
+}
 
 interface SearchFiltersProps {
   defaultSearch?: string;
   defaultFilter?: string;
   defaultSort?: string;
+  children?: React.ReactNode;
 }
 
-export function SearchFilters({ 
-  defaultSearch = "", 
-  defaultFilter = "all", 
-  defaultSort = "newest" 
+export function SearchFilters({
+  defaultSearch = "",
+  defaultFilter = "all",
+  defaultSort = "newest",
+  children,
 }: SearchFiltersProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [isPending, startTransition] = useTransition();
-  
+
   const [search, setSearch] = useState(defaultSearch);
-  const [filter, setFilter] = useState(defaultFilter);
   const [sort, setSort] = useState(defaultSort);
-  
-  const updateFilters = useCallback((newSearch?: string, newFilter?: string, newSort?: string) => {
-    const params = new URLSearchParams(searchParams);
-    
-    // Update search
-    if (newSearch !== undefined) {
-      if (newSearch) {
-        params.set("search", newSearch);
-      } else {
-        params.delete("search");
-      }
-    }
-    
-    // Update filter
-    if (newFilter !== undefined) {
-      if (newFilter && newFilter !== "all") {
-        params.set("filter", newFilter);
-      } else {
-        params.delete("filter");
-      }
-    }
-    
-    // Update sort
-    if (newSort !== undefined) {
-      if (newSort && newSort !== "newest") {
-        params.set("sort", newSort);
-      } else {
-        params.delete("sort");
-      }
-    }
-    
-    // Reset to page 1 when filters change
-    params.delete("page");
-    
-    const queryString = params.toString();
-    const url = queryString ? `${pathname}?${queryString}` : pathname;
-    
-    startTransition(() => {
-      router.push(url);
-    });
-  }, [searchParams, pathname, router, startTransition]);
-  
-  // Debounce search to improve performance
+
   const debounceTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
   const previousSearchRef = useRef(defaultSearch);
-  
-  // Debounced search handler
-  const debouncedSearch = useCallback((searchValue: string) => {
-    if (debounceTimeoutRef.current) {
-      clearTimeout(debounceTimeoutRef.current);
-    }
-    
-    debounceTimeoutRef.current = setTimeout(() => {
-      if (searchValue.trim() !== previousSearchRef.current) {
-        previousSearchRef.current = searchValue.trim();
-        updateFilters(searchValue.trim());
-      }
-    }, 400); // 400ms debounce delay
-  }, [updateFilters]);
-  
+
   // Cleanup timeout on unmount
   useEffect(() => {
     return () => {
@@ -111,213 +54,181 @@ export function SearchFilters({
     };
   }, []);
 
-  function handleSearchSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    // Clear any pending debounced search and execute immediately
+  const updateParams = useCallback((newSearch?: string, newFilter?: string, newSort?: string) => {
+    const params = new URLSearchParams(searchParams);
+
+    // Update search
+    if (newSearch !== undefined) {
+      if (newSearch) {
+        params.set("search", newSearch);
+      } else {
+        params.delete("search");
+      }
+    }
+
+    // Update filter
+    if (newFilter !== undefined) {
+      if (newFilter && newFilter !== "all") {
+        params.set("filter", newFilter);
+      } else {
+        params.delete("filter");
+      }
+    }
+
+    // Update sort
+    if (newSort !== undefined) {
+      if (newSort && newSort !== "newest") {
+        params.set("sort", newSort);
+      } else {
+        params.delete("sort");
+      }
+    }
+
+    // Reset to page 1 when params change
+    params.delete("page");
+
+    const queryString = params.toString();
+    const url = queryString ? `${pathname}?${queryString}` : pathname;
+
+    startTransition(() => {
+      router.push(url);
+    });
+  }, [searchParams, pathname, router]);
+
+  const handleFilterChange = (newFilter: string) => {
+    updateParams(undefined, newFilter);
+  };
+
+  const handleSortChange = (newSort: string) => {
+    setSort(newSort);
+    updateParams(undefined, undefined, newSort);
+  };
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newValue = e.target.value;
+    setSearch(newValue);
+
     if (debounceTimeoutRef.current) {
       clearTimeout(debounceTimeoutRef.current);
     }
-    updateFilters(search.trim());
-  }
-  
-  function handleSearchChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const newValue = e.target.value;
-    setSearch(newValue);
-    
-    // Trigger debounced search for non-empty values
-    if (newValue.trim()) {
-      debouncedSearch(newValue);
-    } else {
-      // Clear search immediately when input is empty
-      if (debounceTimeoutRef.current) {
-        clearTimeout(debounceTimeoutRef.current);
+
+    debounceTimeoutRef.current = setTimeout(() => {
+      if (newValue.trim() !== previousSearchRef.current) {
+        previousSearchRef.current = newValue.trim();
+        updateParams(newValue.trim());
       }
-      updateFilters("");
+    }, 400);
+  };
+
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (debounceTimeoutRef.current) {
+      clearTimeout(debounceTimeoutRef.current);
     }
-  }
+    updateParams(search.trim());
+  };
 
-  function handleFilterChange(newFilter: string) {
-    setFilter(newFilter);
-    updateFilters(undefined, newFilter);
-  }
-
-  function handleSortChange(newSort: string) {
-    setSort(newSort);
-    updateFilters(undefined, undefined, newSort);
-  }
-
-  function clearSearch() {
+  const clearSearch = () => {
     setSearch("");
-    updateFilters("");
-  }
+    updateParams("");
+  };
 
-  function clearAllFilters() {
-    setSearch("");
-    setFilter("all");
-    setSort("newest");
-    updateFilters("", "all", "newest");
-  }
+  const filters = [
+    { value: "public", label: "Public", icon: Globe, iconColor: "text-blue-300" },
+    { value: "private", label: "Private", icon: Lock, iconColor: "text-red-300" },
+    { value: "unlisted", label: "Unlisted", icon: EyeOff, iconColor: "text-amber-300" },
+    { value: "all", label: "All", icon: null, iconColor: null },
+  ];
 
-  const hasActiveFilters = search || filter !== "all" || sort !== "newest";
+  const sortOptions = [
+    { value: "newest", label: "Newest", icon: Clock },
+    { value: "oldest", label: "Oldest", icon: Calendar },
+    { value: "views", label: "Most Viewed", icon: Eye },
+    { value: "relevance", label: "Relevance", icon: Sparkles },
+  ];
 
-  function getFilterIcon(filterValue: string) {
-    switch (filterValue) {
-      case "public":
-        return <Earth className="h-3 w-3" />;
-      case "private":
-        return <Shield className="h-3 w-3" />;
-      case "unlisted":
-        return <EyeOff className="h-3 w-3" />;
-      default:
-        return <Layers className="h-3 w-3" />;
-    }
-  }
-
-  function getFilterLabel(filterValue: string) {
-    switch (filterValue) {
-      case "public":
-        return "Public";
-      case "private":
-        return "Private";
-      case "unlisted":
-        return "Unlisted";
-      default:
-        return "All Pastes";
-    }
-  }
+  const currentSortOption = sortOptions.find(option => option.value === sort) || sortOptions[0];
+  const SortIcon = currentSortOption.icon;
 
   return (
-    <div className="space-y-3 md:space-y-4">
-      {/* Search and Filters - Responsive Layout */}
-      <div className="flex flex-col sm:flex-row gap-3">
-        {/* Search Form */}
-        <form onSubmit={handleSearchSubmit} className="flex-1">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              placeholder="Search pastes..."
-              value={search}
-              onChange={handleSearchChange}
-              className="pl-10 pr-24 h-9 md:h-10"
-            />
-            {search && (
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                onClick={clearSearch}
-                className="absolute right-1 top-1/2 h-7 w-7 -translate-y-1/2 p-0"
-              >
-                <X className="h-3 w-3" />
-              </Button>
-            )}
+    <FilterLoadingContext.Provider value={isPending}>
+      <div className="flex flex-col gap-3">
+        {/* Top row: Filter tabs, Sort dropdown, and Search */}
+        <div className="flex items-center gap-3 flex-wrap">
+          {/* Filter tabs */}
+          <div className="flex items-center gap-1 border border-border rounded-2xl p-1 w-fit font-inter bg-accent">
+            {filters.map((filter) => {
+              const Icon = filter.icon;
+              return (
+                <Button
+                  key={filter.value}
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => handleFilterChange(filter.value)}
+                  className={cn(
+                    "h-8 px-4 rounded-[0.7rem] text-sm font-inter",
+                    Icon && "gap-1.5",
+                    defaultFilter === filter.value && "bg-background"
+                  )}
+                  disabled={isPending}
+                >
+                  {Icon && <Icon className={cn("h-3.5 w-3.5", filter.iconColor)} />}
+                  {filter.label}
+                </Button>
+              );
+            })}
           </div>
-        </form>
-
-        {/* Filter and Sort Controls */}
-        <div className="flex gap-3 sm:contents">
-          {/* Filter Dropdown */}
-          <Select value={filter} onValueChange={handleFilterChange}>
-            <SelectTrigger className="w-[130px] sm:w-[130px] h-9 md:h-10 [&>svg]:hidden">
-              <div className="flex items-center gap-2">
-                {getFilterIcon(filter)}
-                <SelectValue />
-              </div>
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Pastes</SelectItem>
-              <SelectItem value="public">Public</SelectItem>
-              <SelectItem value="unlisted">Unlisted</SelectItem>
-              <SelectItem value="private">Private</SelectItem>
-            </SelectContent>
-          </Select>
 
           {/* Sort Dropdown */}
           <Select value={sort} onValueChange={handleSortChange}>
-            <SelectTrigger className="w-[110px] sm:w-[110px] h-9 md:h-10 [&>svg]:hidden">
+            <SelectTrigger className="w-[200px] h-[42px] py-5 font-commit-mono font-medium rounded-2xl">
               <div className="flex items-center gap-2">
-                <ArrowUpDown className="h-3 w-3" />
-                <SelectValue />
+                <SortIcon className="h-3.5 w-3.5" />
+                <span>{currentSortOption.label}</span>
               </div>
             </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="newest">Newest</SelectItem>
-              <SelectItem value="oldest">Oldest</SelectItem>
-              <SelectItem value="views">Most Viewed</SelectItem>
-              <SelectItem value="relevance">Relevance</SelectItem>
+            <SelectContent className="rounded-2xl w-[200px]">
+              {sortOptions.map((option) => {
+                const OptionIcon = option.icon;
+                return (
+                  <SelectItem key={option.value} value={option.value} className="rounded-xl font-commit-mono font-medium text-sm">
+                    <div className="flex items-center gap-2">
+                      <OptionIcon className="h-3.5 w-3.5" />
+                      {option.label}
+                    </div>
+                  </SelectItem>
+                );
+              })}
             </SelectContent>
           </Select>
+
+          {/* Search Bar */}
+          <form onSubmit={handleSearchSubmit} className="flex-1">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                placeholder="Search pastes..."
+                value={search}
+                onChange={handleSearchChange}
+                className="pl-9 pr-8 h-[42px] font-inter text-sm rounded-2xl"
+              />
+              {search && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={clearSearch}
+                  className="absolute right-1 top-1/2 h-6 w-6 -translate-y-1/2 p-0"
+                >
+                  <X className="h-3 w-3" />
+                </Button>
+              )}
+            </div>
+          </form>
         </div>
+
+        {children}
       </div>
-
-      {/* Active Filters */}
-      {hasActiveFilters && (
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="text-xs md:text-sm text-muted-foreground">Active filters:</span>
-          
-          {search && (
-            <Badge variant="secondary" className="gap-1">
-              Search: &quot;{search}&quot;
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={clearSearch}
-                className="h-auto p-0.5 hover:bg-transparent"
-              >
-                <X className="h-2 w-2" />
-              </Button>
-            </Badge>
-          )}
-          
-          {filter !== "all" && (
-            <Badge variant="secondary" className="gap-1">
-              {getFilterIcon(filter)}
-              {getFilterLabel(filter)}
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => handleFilterChange("all")}
-                className="h-auto p-0.5 hover:bg-transparent"
-              >
-                <X className="h-2 w-2" />
-              </Button>
-            </Badge>
-          )}
-          
-          {sort !== "newest" && (
-            <Badge variant="secondary" className="gap-1">
-              <ArrowUpDown className="h-2 w-2" />
-              {sort === "oldest" ? "Oldest" : sort === "views" ? "Most Viewed" : "Relevance"}
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => handleSortChange("newest")}
-                className="h-auto p-0.5 hover:bg-transparent"
-              >
-                <X className="h-2 w-2" />
-              </Button>
-            </Badge>
-          )}
-          
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={clearAllFilters}
-            className="h-6 px-2 text-xs"
-          >
-            <span className="hidden sm:inline">Clear all</span>
-            <span className="sm:hidden">Clear</span>
-          </Button>
-        </div>
-      )}
-
-      {/* Loading indicator */}
-      {isPending && (
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <Loader className="h-3 w-3 animate-spin" />
-          Updating results...
-        </div>
-      )}
-    </div>
+    </FilterLoadingContext.Provider>
   );
 }
