@@ -3,12 +3,9 @@
 import { DashboardSidebar } from "@/features/dashboard/components/navigation/dashboard-sidebar";
 import { SearchFilters } from "@/features/dashboard/components/ui/search-filters";
 import { NewPasteButton } from "@/features/dashboard/components/ui/new-paste-button";
-import { Avatar, AvatarFallback, AvatarImage } from "@/shared/components/dupui/avatar";
-import { Button } from "@/shared/components/dupui/button";
 import { Suspense, ReactNode } from "react";
 import { User } from "better-auth";
 import { usePathname } from "next/navigation";
-import { FolderPlus } from "lucide-react";
 
 interface DashboardMainLayoutProps {
   recentPublicPastes: Array<{

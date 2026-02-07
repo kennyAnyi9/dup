@@ -1,10 +1,7 @@
 "use client";
 
 import { formatDistanceToNow } from "date-fns";
-import { CornerDownRight, Eye } from "lucide-react";
-import { Badge } from "@/shared/components/dupui/badge";
-import { getLanguageColors } from "@/shared/lib/language-colors";
-import { cn } from "@/shared/lib/utils";
+import { CornerDownRight } from "lucide-react";
 
 interface PublicPaste {
   id: string;
@@ -21,7 +18,7 @@ interface PublicPasteFeedCardProps {
   compact?: boolean;
 }
 
-export function PublicPasteFeedCard({ paste, onClick, compact = false }: PublicPasteFeedCardProps) {
+export function PublicPasteFeedCard({ paste, onClick }: PublicPasteFeedCardProps) {
   return (
     <div className="group py-1 hover:bg-muted/40 transition-all duration-200 ease-in-out rounded px-1.5 hover:scale-[1.01] hover:shadow-sm font-mono w-full">
       {/* Link with arrow icon and timestamp */}

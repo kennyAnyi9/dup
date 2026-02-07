@@ -9,10 +9,9 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
 } from "@/shared/components/dupui/select";
 import { cn } from "@/shared/lib/utils";
-import { Globe, Lock, EyeOff, Layers, Search, X, ArrowUpDown, CalendarDays, Clock, Calendar, Eye, Sparkles } from "lucide-react";
+import { Globe, Lock, EyeOff, Search, X, Clock, Calendar, Eye, Sparkles } from "lucide-react";
 
 // Create a context to share loading state
 export const FilterLoadingContext = createContext<boolean>(false);

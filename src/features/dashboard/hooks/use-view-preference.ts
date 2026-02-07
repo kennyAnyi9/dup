@@ -7,7 +7,6 @@ const VIEW_PREFERENCE_KEY = "pastes-view-preference";
 
 export function useViewPreference() {
   const [view, setView] = useState<ViewType>("table");
-  const [isInitialized, setIsInitialized] = useState(false);
 
   // Load preference from localStorage after mount (client-side only)
   useEffect(() => {
@@ -19,7 +18,6 @@ export function useViewPreference() {
     } catch (error) {
       console.warn("Failed to load view preference:", error);
     }
-    setIsInitialized(true);
   }, []);
 
   const setViewPreference = (newView: ViewType) => {

@@ -1,33 +1,13 @@
 "use client";
 
-import { ThemeSwitch } from "@/shared/components/theme/theme-switch";
-import { Button } from "@/shared/components/dupui/button";
 import { Panel } from "@/shared/components/dupui/panel";
 import { useAuth } from "@/shared/hooks/use-auth";
 import { motion } from "motion/react";
 import Link from "next/link";
-import { useEffect, useState } from "react";
-import { Logo } from "./logo";
 import { Asterisk } from "lucide-react";
 
 export function Header() {
   const { isAuthenticated } = useAuth();
-  const [isScrolled, setIsScrolled] = useState(false);
-
-  useEffect(() => {
-    const handleScroll = () => {
-      if (window.scrollY > 10) {
-        setIsScrolled(true);
-      } else {
-        setIsScrolled(false);
-      }
-    };
-
-    window.addEventListener("scroll", handleScroll);
-    return () => {
-      window.removeEventListener("scroll", handleScroll);
-    };
-  }, []);
 
   return (
     <header className="sticky top-0 z-40 w-full">

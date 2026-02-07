@@ -11,7 +11,7 @@ function getAuthClient() {
       signIn: async () => ({ data: null, error: null }),
       signOut: async () => ({ data: null, error: null }),
       signUp: async () => ({ data: null, error: null }),
-    } as any;
+    } as unknown as ReturnType<typeof createAuthClient>;
   }
 
   if (!_authClient) {
