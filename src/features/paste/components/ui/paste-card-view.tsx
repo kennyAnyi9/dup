@@ -48,7 +48,7 @@ interface PasteCardViewProps {
   isAuthenticated?: boolean;
 }
 
-export function PasteCardView({
+export function   PasteCardView({
   paste,
   isSelected,
   onSelect,

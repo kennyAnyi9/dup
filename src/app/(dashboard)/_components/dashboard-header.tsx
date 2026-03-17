@@ -1,12 +1,11 @@
 "use client";
 
-import { Logo } from "@/shared/components/common/logo";
-import { DashboardHeaderButton } from "@/features/dashboard/components/ui/dashboard-header-button";
+import { NewPasteButton } from "@/features/dashboard/components/ui/new-paste-button";
 import { DashboardMobileSidebar } from "@/features/dashboard/components/navigation/dashboard-mobile-sidebar";
 import { DashboardHeaderProps } from "@/features/dashboard/types";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BarChart3, FileText, Settings } from "lucide-react";
+import { Asterisk, BarChart3, FileText, Settings } from "lucide-react";
 import { cn } from "@/shared/lib/utils";
 
 export function DashboardHeader({
@@ -44,13 +43,13 @@ export function DashboardHeader({
               totalPublicPastes={totalPublicPastes}
               user={user}
             />
-            <Link className="shrink-0" href="/">
-              <Logo priority />
+            <Link className="shrink-0 flex items-center gap-1" href="/">
+              <Asterisk className="size-4" />[dup]
             </Link>
             
             {/* Navigation tabs - hidden on mobile */}
             <div className="hidden lg:flex items-center ml-6">
-              <nav className="flex items-center space-x-1 bg-muted/50 rounded-lg p-1">
+              <nav className="flex items-center space-x-1 border ">
                 {navigationItems.map((item) => {
                   const Icon = item.icon;
                   const isActive = pathname === item.href;
@@ -60,9 +59,9 @@ export function DashboardHeader({
                       key={item.href}
                       href={item.href}
                       className={cn(
-                        "flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-all duration-200",
+                        "flex items-center gap-2 px-3 py-1.5 text-sm  transition-all duration-200",
                         isActive
-                          ? "bg-background text-foreground shadow-sm border border-border/50"
+                          ?"bg-muted"
                           : "text-muted-foreground hover:text-foreground hover:bg-background/50"
                       )}
                     >
@@ -76,7 +75,7 @@ export function DashboardHeader({
           </div>
           
           <div className="flex items-center gap-2 sm:gap-4">
-            <DashboardHeaderButton />
+            <NewPasteButton />
           </div>
         </div>
       </div>

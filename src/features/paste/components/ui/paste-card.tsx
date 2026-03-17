@@ -224,14 +224,14 @@ export function PasteCard({ paste }: PasteCardProps) {
           <div className="flex flex-wrap items-center gap-1.5 mb-3">
             <Badge
               variant="outline"
-              className="h-5 px-2 text-xs font-medium bg-slate-50 text-slate-700 border-slate-200 dark:bg-slate-800/50 dark:text-slate-300 dark:border-slate-600/50"
+              className="h-6 px-3 text-xs font-medium rounded-[0.6rem] bg-slate-50 text-slate-700 border-slate-200 dark:bg-slate-800/50 dark:text-slate-300 dark:border-slate-600/50"
             >
               {paste.language}
             </Badge>
 
             <Badge
               variant="outline"
-              className={`h-5 px-2 text-xs font-medium ${visibilityInfo.className}`}
+              className={`h-6 px-3 text-xs font-medium rounded-[0.6rem] ${visibilityInfo.className}`}
             >
               <span className="flex items-center gap-1">
                 {(() => {
@@ -245,7 +245,7 @@ export function PasteCard({ paste }: PasteCardProps) {
             {paste.hasPassword && (
               <Badge
                 variant="outline"
-                className="h-5 px-2 text-xs font-medium bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/30 dark:text-blue-400 dark:border-blue-700/50"
+                className="h-6 px-3 text-xs font-medium rounded-[0.6rem] bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/30 dark:text-blue-400 dark:border-blue-700/50"
               >
                 <Shield className="h-2.5 w-2.5 mr-1" />
                 Protected
@@ -255,7 +255,7 @@ export function PasteCard({ paste }: PasteCardProps) {
             {paste.burnAfterRead && (
               <Badge
                 variant="outline"
-                className="h-5 px-2 text-xs font-medium bg-orange-50 text-orange-700 border-orange-200 dark:bg-orange-900/30 dark:text-orange-400 dark:border-orange-700/50"
+                className="h-6 px-3 text-xs font-medium rounded-[0.6rem] bg-orange-50 text-orange-700 border-orange-200 dark:bg-orange-900/30 dark:text-orange-400 dark:border-orange-700/50"
               >
                 <Zap className="h-2.5 w-2.5 mr-1" />
                 Burn after {paste.burnAfterReadViews || 1} view{(paste.burnAfterReadViews || 1) !== 1 ? 's' : ''}
@@ -265,7 +265,7 @@ export function PasteCard({ paste }: PasteCardProps) {
             {isExpired && (
               <Badge
                 variant="outline"
-                className="h-5 px-2 text-xs font-medium bg-red-50 text-red-700 border-red-200 dark:bg-red-900/30 dark:text-red-400 dark:border-red-700/50"
+                className="h-6 px-3 text-xs font-medium rounded-[0.6rem] bg-red-50 text-red-700 border-red-200 dark:bg-red-900/30 dark:text-red-400 dark:border-red-700/50"
               >
                 <Clock className="h-2.5 w-2.5 mr-1" />
                 Expired
@@ -280,7 +280,7 @@ export function PasteCard({ paste }: PasteCardProps) {
                 <Badge
                   key={tag.id}
                   variant="outline"
-                  className="h-5 px-2 text-xs font-medium bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-900/30 dark:text-purple-400 dark:border-purple-700/50"
+                  className="h-6 px-3 text-xs font-medium rounded-[0.6rem] bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-900/30 dark:text-purple-400 dark:border-purple-700/50"
                 >
                   <Tag className="h-2.5 w-2.5 mr-1" />
                   {tag.name}

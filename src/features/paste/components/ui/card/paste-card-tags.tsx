@@ -22,16 +22,16 @@ export function PasteCardTags({ tags }: PasteCardTagsProps) {
           <Badge
             key={tag.id}
             variant="outline"
-            className="h-4 px-1.5 text-xs font-medium bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-900/30 dark:text-purple-400 dark:border-purple-700/50"
+            className="h-6 px-3 text-xs rounded-[0.6rem] bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-900/30 dark:text-purple-400 dark:border-purple-700/50"
           >
-            <Tag className="h-2 w-2 mr-1" />
+            <Tag className="h-2.5 w-2.5 mr-1" />
             {tag.name}
           </Badge>
         ))}
         {tags.length > 3 && (
           <Badge
             variant="outline"
-            className="h-4 px-1.5 text-xs font-medium bg-gray-50 text-gray-700 border-gray-200 dark:bg-gray-800/50 dark:text-gray-300 dark:border-gray-600/50"
+            className="h-6 px-3 text-xs font-medium rounded-[0.6rem] bg-gray-50 text-gray-700 border-gray-200 dark:bg-gray-800/50 dark:text-gray-300 dark:border-gray-600/50"
           >
             +{tags.length - 3}
           </Badge>

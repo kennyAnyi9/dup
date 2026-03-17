@@ -23,7 +23,7 @@ interface DashboardSidebarProps {
 
 export function DashboardSidebar({ recentPublicPastes = [], totalPublicPastes = 0, user, isLoading = false }: DashboardSidebarProps) {
   return (
-    <div className="basis-1/5 border-l border-border py-4 backdrop-blur-[2px] hidden max-h-full shrink-0 lg:block overflow-hidden">
+    <div className="basis-[30%] border-l border-border py-4 backdrop-blur-[2px] hidden max-h-full shrink-0 lg:block overflow-hidden">
       <div className="flex flex-col h-full">
         {/* Public Pastes Feed - Now takes full height */}
         <div className="flex-1 min-h-0 px-3 md:px-4">
@@ -42,7 +42,7 @@ export function DashboardSidebar({ recentPublicPastes = [], totalPublicPastes = 
               {isLoading ? (
                 <PublicPasteFeedSkeleton count={5} compact={false} />
               ) : (
-                <div className="space-y-3">
+                <div className="space-y-0.5">
                 {recentPublicPastes.length > 0 ? (
                   recentPublicPastes.map((paste) => (
                     <PublicPasteFeedCard

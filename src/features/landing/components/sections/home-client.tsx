@@ -1,21 +1,22 @@
 "use client";
 
 import { Button } from "@/shared/components/dupui/button";
+import { MousePointerClick } from "lucide-react";
 import Link from "next/link";
 
 export function HomeClient() {
   return (
-    <div className="flex flex-row gap-3 sm:gap-4 justify-center items-center w-full sm:w-auto">
+    <div className="font-commit-mono flex flex-row gap-3 sm:gap-4 justify-center items-center w-full sm:w-auto">
       <Button
-        variant="secondary"
+        variant="outline"
         asChild
-        className="w-fit sm:w-auto cursor-pointer px-7 py-5"
+        className="rounded-none w-fit sm:w-auto cursor-pointer px-7 py-5 transition-colors hover:bg-accent"
       >
-        <Link href="/new">Try it out</Link>
+        <Link href="/new" className="flex items-center justify-center">Try it out</Link>
       </Button>
 
-      <Button asChild className="w-fit sm:w-auto ">
-        <Link href="/register">Get Started</Link>
+      <Button asChild variant={"ghost"} className="w-fit sm:w-auto rounded-none px-7 py-5 transition-colors hover:bg-accent">
+        <Link href="/register" className="flex items-center justify-center gap-2">Get Started<MousePointerClick className="size-5 stroke-1 mt-1"/></Link>
       </Button>
     </div>
   );

@@ -24,25 +24,18 @@ export async function PastesContent({
   }
 
   return (
-    <div className="flex flex-col h-full space-y-2">
-      {/* Results Summary */}
-      <div className="flex items-center justify-between text-sm text-muted-foreground shrink-0">
-        <div>
-          Showing {pastes.length} of {pagination.total} pastes
-          {search && ` for "${search}"`}
-          {filter !== "all" && ` (${filter})`}
-        </div>
-      </div>
-
-      {/* Pastes Table */}
+    <div className="flex flex-col h-full">
+      {/* Pastes Cards */}
       <div className="flex-1 min-h-0">
         <PastesContentWrapper pastes={pastes} />
       </div>
 
-      {/* Pagination */}
+      {/* Pagination - Compact badge-like style, sticky at bottom */}
       {pagination.totalPages > 1 && (
-        <div className="shrink-0 pt-2 border-t border-border">
-          <DashboardPagination pagination={pagination} />
+        <div className="sticky bottom-2 left-0 right-0 flex justify-center z-10 pointer-events-none">
+          <div className="pointer-events-auto bg-background/80 backdrop-blur-md border border-border rounded-xl px-4 py-2 shadow-lg">
+            <DashboardPagination pagination={pagination} />
+          </div>
         </div>
       )}
     </div>

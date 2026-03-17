@@ -3,7 +3,6 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Logo } from "@/shared/components/common/logo";
 import { getUserInitials, User } from "@/shared/types/auth";
 import { formatDistanceToNow } from "date-fns";
 import { Avatar, AvatarFallback, AvatarImage } from "@/shared/components/dupui/avatar";
@@ -11,10 +10,11 @@ import { Button } from "@/shared/components/dupui/button";
 import { Badge } from "@/shared/components/dupui/badge";
 import { Separator } from "@/shared/components/dupui/separator";
 import { ScrollArea } from "@/shared/components/dupui/scroll-area";
-import { SidebarNewPasteButton } from "./sidebar-new-paste-button";
+import { NewPasteButton } from "../ui/new-paste-button";
 import { signOut } from "@/shared/hooks/use-auth";
 import { toast } from "sonner";
 import {
+  Asterisk,
   BarChart3,
   FileText,
   Home,
@@ -91,12 +91,8 @@ export function Sidebar({ user, stats, recentPublicPastes }: SidebarProps) {
       <div className="flex h-full flex-col">
         {/* Logo */}
         <div className="p-6 pb-0">
-          <Link href="/" className="flex justify-center mb-6">
-            <Logo 
-              width={200}
-              height={56}
-              className="h-14 w-auto"
-            />
+          <Link href="/" className="flex justify-center items-center gap-2 mb-6 text-2xl font-semibold">
+            <Asterisk className="size-6" />[dup]
           </Link>
         </div>
 
@@ -132,7 +128,7 @@ export function Sidebar({ user, stats, recentPublicPastes }: SidebarProps) {
           </div>
 
           {/* Create Paste Button */}
-          <SidebarNewPasteButton />
+          <NewPasteButton fullWidth />
         </div>
 
         <Separator />

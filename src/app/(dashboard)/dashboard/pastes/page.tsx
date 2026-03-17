@@ -43,11 +43,11 @@ export default async function PastesPage({
   const sort = params.sort || "newest";
 
   // Fetch recent public pastes for sidebar
-  const recentPublicPastesData = await getRecentPublicPastes(5);
+  const recentPublicPastesData = await getRecentPublicPastes(100);
 
   return (
     <PasteModalProvider>
-      <div className="container relative mx-auto flex h-screen w-full flex-col items-center overflow-hidden border border-border rounded-lg m-4 max-w-[calc(100vw-2rem)] max-h-[calc(100vh-2rem)]">
+      <div className="container relative mx-auto flex h-screen w-full flex-col items-center overflow-hidden border border-border m-4 max-w-[calc(100vw-2rem)] max-h-[calc(100vh-2rem)]">
         {/* Header */}
         <DashboardHeader
           recentPublicPastes={recentPublicPastesData.pastes}

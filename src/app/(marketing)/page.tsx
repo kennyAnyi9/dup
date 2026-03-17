@@ -1,7 +1,8 @@
-import { WarpBackground } from "@/shared/components/magicui/warp-background";
+"use client"
 import { HomeClient } from "@/features/landing/components/sections/home-client";
 import { PublicPasteCardsInfinite } from "@/features/landing/components/ui/public-paste-cards-infinite";
 import { Badge } from "@/shared/components/dupui/badge";
+import Image from 'next/image'
 import {
   Panel,
   PanelContent,
@@ -17,7 +18,11 @@ import {
   FileText,
   Globe,
   Lock,
+  MessageSquare,
+  QrCode,
+  Search,
   Shield,
+  Tags,
   Users,
   Zap,
 } from "lucide-react";
@@ -25,49 +30,57 @@ import Link from "next/link";
 
 export default function Home() {
   return (
-    <div className="max-w-4xl mx-auto px-4">
-      {/* Hero Section */}
+      <div className="max-w-4xl mx-auto px-4 lg:px-0">
+        {/* Hero Section */}
       <Panel className="grid-section relative overflow-hidden border-none [.grid-section_~_&]:border-t-0">
-        <WarpBackground
-          perspective={300}
-          beamSize={10}
-          beamsPerSide={3}
-          gridColor="rgba(128, 128, 128, 0.15)"
-          className="min-h-[400px] sm:min-h-[500px] overflow-hidden border-t-0"
-        >
+       
           <div className="sm:py-20">
-            <div className="relative mx-auto flex w-full max-w-4xl flex-col items-center sm:px-8 lg:px-12 text-center">
-              <Badge
-                variant="secondary"
-                className="mb-4 animate-slide-up-fade [--offset:30px] [animation-duration:1s] [animation-fill-mode:both] motion-reduce:animate-fade-in [animation-delay:50ms]"
-              >
-                <Zap className="h-3 w-3 mr-1" />
-                Beta
-              </Badge>
-              <h1 className="text-center text-3xl font-medium leading-tight max-w-lg sm:text-4xl md:text-5xl sm:leading-[1.15] animate-slide-up-fade [--offset:20px] [animation-duration:1s] [animation-fill-mode:both] motion-reduce:animate-fade-in [animation-delay:100ms]">
-                The Pastebin Reimagined
-              </h1>
-              <p className="mt-5 w-full max-w-lg text-pretty text-base sm:text-lg md:text-xl text-muted-foreground text-center animate-slide-up-fade [--offset:10px] [animation-delay:200ms] [animation-duration:1s] [animation-fill-mode:both] motion-reduce:animate-fade-in">
-                The modern pastebin for everyone. Beautiful syntax highlighting,
-                powerful privacy controls, zero complexity.
+            <div className="relative mx-auto flex w-full max-w-4xl flex-col">
+          <Link
+          className="w-fit mb-5 relative inline-flex items-center justify-center gap-2 whitespace-nowrap text-xs sm:text-sm font-medium tracking-tigh"
+          data-umami-event="View GitHub Repository"
+          href="https://github.com/kennyAnyi9/dup"
+          rel="noreferrer"
+          target="_blank"
+        >
+       
+          <svg
+            aria-hidden="true"
+            className="size-3 sm:size-3.5"
+            fill="currentColor"
+            role="img"
+            viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"></path>
+          </svg>
+          <span className="font-commit-mono hidden sm:inline">
+            kennyAnyi9/dup
+          </span>
+        </Link>
+              <h1 className="text-3xl tracking-tight font-roboto-mono">The last pastebin you’ll ever need.</h1>
+              <p className="font-roboto-mono mt-5 w-full pr-5 text-pretty tracking-tight text-base sm:text-lg md:text-xl text-muted-foreground text-left animate-slide-up-fade [--offset:10px] [animation-delay:200ms] [animation-duration:1s] [animation-fill-mode:both] motion-reduce:animate-fade-in">
+              Create and edit pastes in seconds, lock them with encryption, control access and views, gain clear insights, and share using custom links or QR codes. 
               </p>
-              <div className="relative mx-auto mt-8 sm:mt-10 flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 animate-slide-up-fade [--offset:5px] [animation-delay:300ms] [animation-duration:1s] [animation-fill-mode:both] motion-reduce:animate-fade-in">
+              <div className="relative mt-8 sm:mt-10 flex flex-col sm:flex-row gap-3 sm:gap-4 animate-slide-up-fade [--offset:5px] [animation-delay:300ms] [animation-duration:1s] [animation-fill-mode:both] motion-reduce:animate-fade-in">
                 <HomeClient />
               </div>
             </div>
           </div>
-        </WarpBackground>
-        <div className="pointer-events-none absolute inset-0 dark:hidden">
-          <div className="absolute inset-0 opacity-10">
-            <div className="size-full bg-[linear-gradient(90deg,#F4950C,#EB5C0C)] [mask-image:linear-gradient(transparent_25%,black)]"></div>
-          </div>
-        </div>
+        
+       
       </Panel>
+
+      {/* Dashboard image showcase */}
+
+     <Panel className="relative aspect-[16/9] w-full">
+      <Image src={"/dashboard.webp"} fill alt="dashboard image" className="object-cover" />
+     </Panel>
 
       {/* Core Features Section */}
       <Panel className="overflow-hidden">
         <PanelHeader>
-          <PanelTitle>Core Features</PanelTitle>
+          <PanelTitle>Awesome Features</PanelTitle>
         </PanelHeader>
         <PanelContent className="p-0">
           <div className="grid grid-cols-1 gap-px bg-border text-sm sm:grid-cols-2 lg:grid-cols-3">
@@ -130,6 +143,60 @@ export default function Home() {
                   detailed analytics and insights.
                 </p>
               </div>
+            </div>
+            <div className="flex flex-col items-start gap-2 bg-background p-8 text-left lg:px-9 lg:py-10">
+                <QrCode className="size-4 shrink-0 text-primary" />
+                <h3 className="font-medium">QR Code Sharing</h3>
+                <div className="max-w-xs text-pretty text-muted-foreground sm:max-w-none">
+                    <p>
+                        Generate and customize QR codes for easy sharing of your pastes.
+                    </p>
+                </div>
+            </div>
+            <div className="flex flex-col items-start gap-2 bg-background p-8 text-left lg:px-9 lg:py-10">
+                <Tags className="size-4 shrink-0 text-primary" />
+                <h3 className="font-medium">Tagging</h3>
+                <div className="max-w-xs text-pretty text-muted-foreground sm:max-w-none">
+                    <p>
+                        Organize your pastes with tags for easy categorization and retrieval.
+                    </p>
+                </div>
+            </div>
+            <div className="flex flex-col items-start gap-2 bg-background p-8 text-left lg:px-9 lg:py-10 lg:-mr-px">
+                <MessageSquare className="size-4 shrink-0 text-primary" />
+                <h3 className="font-medium">Commenting</h3>
+                <div className="max-w-xs text-pretty text-muted-foreground sm:max-w-none">
+                    <p>
+                        Enable comments on your pastes to receive feedback and collaborate.
+                    </p>
+                </div>
+            </div>
+            <div className="flex flex-col items-start gap-2 bg-background p-8 text-left lg:px-9 lg:py-10">
+                <Search className="size-4 shrink-0 text-primary" />
+                <h3 className="font-medium">Full-Text Search</h3>
+                <div className="max-w-xs text-pretty text-muted-foreground sm:max-w-none">
+                    <p>
+                        Quickly find the pastes you need with powerful full-text search.
+                    </p>
+                </div>
+            </div>
+            <div className="flex flex-col items-start gap-2 bg-background p-8 text-left lg:px-9 lg:py-10">
+                <Users className="size-4 shrink-0 text-primary" />
+                <h3 className="font-medium">User Accounts</h3>
+                <div className="max-w-xs text-pretty text-muted-foreground sm:max-w-none">
+                    <p>
+                        Create an account to manage your pastes and unlock more features.
+                    </p>
+                </div>
+            </div>
+            <div className="flex flex-col items-start gap-2 bg-background p-8 text-left lg:px-9 lg:py-10 lg:-mr-px">
+                <Globe className="size-4 shrink-0 text-primary" />
+                <h3 className="font-medium">Paste Management</h3>
+                <div className="max-w-xs text-pretty text-muted-foreground sm:max-w-none">
+                    <p>
+                        A dedicated dashboard to view, edit, and delete your pastes.
+                    </p>
+                </div>
             </div>
           </div>
         </PanelContent>

@@ -2,9 +2,9 @@
 export const dynamic = 'force-dynamic';
 
 import { GridPattern } from "@/shared/components/magicui/grid-pattern";
-import { Logo } from "@/shared/components/common/logo";
 import { Card, CardContent } from "@/shared/components/dupui/card";
 import { cn } from "@/shared/lib/utils";
+import { Asterisk } from "lucide-react";
 import Link from "next/link";
 import { ReactNode } from "react";
 
@@ -28,8 +28,8 @@ export default function AuthLayout({ children }: AuthLayoutProps) {
 
       {/* Logo at top center */}
       <div className="mb-8 relative z-10">
-        <Link href="/" className="flex justify-center">
-          <Logo />
+        <Link href="/" className="flex justify-center items-center gap-2 text-xl font-semibold">
+          <Asterisk className="size-5" />[dup]
         </Link>
       </div>
 

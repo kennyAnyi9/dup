@@ -65,7 +65,7 @@ export async function getPublicPastesPaginatedClient(
     });
     
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 10_000);
+    const timeout = setTimeout(() => controller.abort(), 30_000); // 30 second timeout
 
     let response: Response;
     try {

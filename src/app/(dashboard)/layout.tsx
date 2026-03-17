@@ -6,7 +6,7 @@ interface DashboardLayoutProps {
 
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
   return (
-    <div className="h-screen overflow-hidden">
+    <div className="h-screen overflow-hidden font-inter">
       {children}
     </div>
   );
