@@ -1,7 +1,6 @@
 "use client";
 import { AuthStatus } from "@/app/(marketing)/_components/auth-status";
 import { Vertex } from "@/app/(marketing)/_components/vertex";
-import { Asterisk } from "lucide-react";
 import Link from "next/link";
 
 export function MarketingHeader() {
@@ -9,7 +8,7 @@ export function MarketingHeader() {
     <div className="w-full flex flex-row justify-between h-12 sm:h-18 border-b">
       <Vertex>
         <Link href="/" className="size-full flex justify-center items-center gap-1">
-          <Asterisk className="size-4" />[dup]
+          [dup]
         </Link>
       </Vertex>
       <header className="max-w-7xl"></header>

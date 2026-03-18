@@ -1,44 +1,47 @@
-// Force dynamic rendering for auth layout
-export const dynamic = 'force-dynamic';
+"use client";
 
-import { GridPattern } from "@/shared/components/magicui/grid-pattern";
 import { Card, CardContent } from "@/shared/components/dupui/card";
-import { cn } from "@/shared/lib/utils";
-import { Asterisk } from "lucide-react";
 import Link from "next/link";
-import { ReactNode } from "react";
+import { ReactNode, Suspense, useEffect, useRef } from "react";
+import { useTheme } from "next-themes";
+import { Glow } from "@/app/(marketing)/_components/glow";
 
 interface AuthLayoutProps {
   children: ReactNode;
 }
 
 export default function AuthLayout({ children }: AuthLayoutProps) {
-  // Let client-side logic handle redirects to preserve URL parameters
+  const { setTheme, theme } = useTheme();
+  const previousTheme = useRef<string | undefined>(undefined);
+
+  useEffect(() => {
+    previousTheme.current = theme;
+    setTheme("dark");
+
+    return () => {
+      if (previousTheme.current) {
+        setTheme(previousTheme.current);
+      }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center px-4 relative">
-      <GridPattern
-        width={40}
-        height={40}
-        x={-1}
-        y={-1}
-        className={cn(
-          "[mask-image:linear-gradient(to_bottom_right,white,transparent,transparent)] opacity-50 dark:opacity-25"
-        )}
-      />
-
-      {/* Logo at top center */}
-      <div className="mb-8 relative z-10">
-        <Link href="/" className="flex justify-center items-center gap-2 text-xl font-semibold">
-          <Asterisk className="size-5" />[dup]
-        </Link>
-      </div>
-
+    <Glow className="min-h-screen flex flex-col items-center justify-center px-4">
       {/* Auth content */}
       <div className="w-full max-w-md relative z-10">
-        <Card className="border-border/60 backdrop-blur-sm bg-background/95">
-          <CardContent className="p-6">{children}</CardContent>
+        <Card className="border-border/60 backdrop-blur-sm bg-background/95 rounded-2xl">
+          <CardContent className="p-6">
+            <Link
+              href="/"
+              className="flex justify-center items-center gap-2 text-xl font-semibold mb-6"
+            >
+              [dup]
+            </Link>
+            <Suspense>{children}</Suspense>
+          </CardContent>
         </Card>
       </div>
-    </div>
+    </Glow>
   );
 }

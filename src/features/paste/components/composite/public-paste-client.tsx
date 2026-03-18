@@ -12,7 +12,6 @@ import type { PasteResult } from "@/shared/types/paste";
 import { format, formatDistanceToNow } from "date-fns";
 import {
   AlertTriangle,
-  Asterisk,
   Calendar,
   Clock,
   Eye,
@@ -196,7 +195,7 @@ export function PublicPasteClient({ slug }: PublicPasteClientProps) {
             href="/"
             className="flex items-center gap-2 hover:opacity-80 transition-opacity"
           >
-            <Asterisk className="size-4" />[dup]
+            [dup]
           </Link>
           <div className="flex items-center gap-2">
             <ThemeSwitch />
