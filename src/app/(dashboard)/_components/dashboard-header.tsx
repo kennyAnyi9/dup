@@ -5,7 +5,7 @@ import { DashboardMobileSidebar } from "@/features/dashboard/components/navigati
 import { DashboardHeaderProps } from "@/features/dashboard/types";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Asterisk, BarChart3, FileText, Settings } from "lucide-react";
+import { BarChart3, FileText, Settings } from "lucide-react";
 import { cn } from "@/shared/lib/utils";
 
 export function DashboardHeader({
@@ -44,7 +44,7 @@ export function DashboardHeader({
               user={user}
             />
             <Link className="shrink-0 flex items-center gap-1" href="/">
-              <Asterisk className="size-4" />[dup]
+              [dup]
             </Link>
             
             {/* Navigation tabs - hidden on mobile */}

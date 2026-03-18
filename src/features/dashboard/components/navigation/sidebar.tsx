@@ -14,7 +14,6 @@ import { NewPasteButton } from "../ui/new-paste-button";
 import { signOut } from "@/shared/hooks/use-auth";
 import { toast } from "sonner";
 import {
-  Asterisk,
   BarChart3,
   FileText,
   Home,
@@ -92,7 +91,7 @@ export function Sidebar({ user, stats, recentPublicPastes }: SidebarProps) {
         {/* Logo */}
         <div className="p-6 pb-0">
           <Link href="/" className="flex justify-center items-center gap-2 mb-6 text-2xl font-semibold">
-            <Asterisk className="size-6" />[dup]
+            [dup]
           </Link>
         </div>
 
