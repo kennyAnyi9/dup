@@ -225,7 +225,7 @@ export function TryItOutSection() {
           html: "html", css: "css", scss: "scss", json: "json",
           xml: "xml", yml: "yaml", yaml: "yaml", md: "markdown",
           sql: "sql", sh: "bash", ps1: "powershell", dockerfile: "dockerfile",
-          conf: "nginx", txt: "plain",
+          conf: "plain", txt: "plain",
         };
         if (extMap[ext]) {
           setLanguage(extMap[ext]);
