@@ -1,7 +1,12 @@
 "use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/dupui/card";
-import { Separator } from "@/shared/components/dupui/separator";
+import {
+  Panel,
+  PanelContent,
+  PanelHeader,
+  PanelTitle,
+} from "@/shared/components/dupui/panel";
+import { cn } from "@/shared/lib/utils";
 import { getComments, getCommentCount } from "@/features/paste/actions/comment.actions";
 import { useState, useEffect, useRef, useImperativeHandle, forwardRef, useCallback } from "react";
 import { CommentForm, CommentFormRef } from "./comment-form";
@@ -21,9 +26,9 @@ function isValidNewComment(value: unknown): value is {
   if (typeof value !== 'object' || value === null) {
     return false;
   }
-  
+
   const obj = value as Record<string, unknown>;
-  
+
   return (
     typeof obj.id === 'string' &&
     typeof obj.userId === 'string' &&
@@ -36,6 +41,7 @@ function isValidNewComment(value: unknown): value is {
 interface CommentsSectionProps {
   pasteId: string;
   onCommentCountChange?: (count: number) => void;
+  className?: string;
 }
 
 export interface CommentsSectionRef {
@@ -45,7 +51,7 @@ export interface CommentsSectionRef {
 }
 
 export const CommentsSection = forwardRef<CommentsSectionRef, CommentsSectionProps>(
-  ({ pasteId, onCommentCountChange }, ref) => {
+  ({ pasteId, onCommentCountChange, className }, ref) => {
     const [comments, setComments] = useState<Comment[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -69,7 +75,7 @@ export const CommentsSection = forwardRef<CommentsSectionRef, CommentsSectionPro
         setLoading(true);
         setError(null);
         const result = await getComments(pasteId);
-        
+
         if (result.success && result.comments) {
           setComments(result.comments as Comment[]);
         } else {
@@ -89,41 +95,36 @@ export const CommentsSection = forwardRef<CommentsSectionRef, CommentsSectionPro
 
     const handleCommentUpdate = () => {
       loadComments();
-      // Update comment count from database when comments are updated/deleted
       updateCommentCountFromServer();
     };
 
     const handleCommentLikeToggle = (commentId: string, liked: boolean, newLikeCount: number) => {
-      setComments(prevComments => 
+      setComments(prevComments =>
         updateCommentInTree(prevComments, commentId, { isLikedByUser: liked, likeCount: newLikeCount })
       );
     };
 
     const handleCommentContentUpdate = (commentId: string, newContent: string) => {
-      setComments(prevComments => 
+      setComments(prevComments =>
         updateCommentInTree(prevComments, commentId, { content: newContent })
       );
     };
 
     const handleCommentAdded = (newComment: unknown) => {
       if (!isValidNewComment(newComment)) {
-        // Fallback to reload if comment data is invalid
         loadComments();
         updateCommentCountFromServer();
         return;
       }
-      
+
       if (newComment.parentId) {
-        // For replies, we still need to reload to get the proper tree structure
         loadComments();
-        // Update comment count from database
         updateCommentCountFromServer();
       } else {
-        // For top-level comments, add optimistically
         const optimisticComment: Comment = {
           ...newComment,
           parentId: newComment.parentId || null,
-          author: { id: newComment.userId, name: "You", image: null }, // We'll get real data on next reload
+          author: { id: newComment.userId, name: "You", image: null },
           replies: [],
           isLikedByUser: false,
           likeCount: 0,
@@ -132,11 +133,7 @@ export const CommentsSection = forwardRef<CommentsSectionRef, CommentsSectionPro
           updatedAt: new Date()
         };
         setComments(prev => [optimisticComment, ...prev]);
-        
-        // Update comment count from database
         updateCommentCountFromServer();
-        
-        // Refresh after a short delay to get accurate data
         setTimeout(() => loadComments(), 1000);
       }
     };
@@ -154,7 +151,6 @@ export const CommentsSection = forwardRef<CommentsSectionRef, CommentsSectionPro
       }
     };
 
-    // Helper function to update a comment in the tree structure
     const updateCommentInTree = (comments: Comment[], commentId: string, updates: Partial<Comment>): Comment[] => {
       return comments.map(comment => {
         if (comment.id === commentId) {
@@ -170,19 +166,16 @@ export const CommentsSection = forwardRef<CommentsSectionRef, CommentsSectionPro
       });
     };
 
-    // Update comment count in parent component when comments are added/removed
-    // We'll rely on the database count from the server instead of client-side calculation
-
     return (
-      <div ref={sectionRef} id="comments-section" className="w-full overflow-hidden">
-        <Card className="w-full">
-          <CardHeader className="pb-4">
-            <CardTitle className="flex items-center gap-2 text-lg">
+      <div ref={sectionRef} id="comments-section" className={cn("w-full overflow-hidden", className)}>
+        <Panel className="border-t-0">
+          <PanelHeader className="text-left">
+            <PanelTitle className="flex items-center gap-2 text-lg mb-0">
               <MessageCircle className="h-5 w-5" />
               Comments
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4 sm:space-y-6 px-3 sm:px-6">
+            </PanelTitle>
+          </PanelHeader>
+          <PanelContent className="space-y-4 sm:space-y-6 px-3 sm:px-6">
             {/* Comment Form */}
             <CommentForm
               ref={commentFormRef}
@@ -190,7 +183,7 @@ export const CommentsSection = forwardRef<CommentsSectionRef, CommentsSectionPro
               onCommentAdded={handleCommentAdded}
             />
 
-            <Separator />
+            <div className="border-t border-border" />
 
             {/* Comments List */}
             {loading ? (
@@ -237,8 +230,8 @@ export const CommentsSection = forwardRef<CommentsSectionRef, CommentsSectionPro
                 ))}
               </div>
             )}
-          </CardContent>
-        </Card>
+          </PanelContent>
+        </Panel>
       </div>
     );
   }

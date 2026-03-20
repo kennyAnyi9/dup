@@ -3,10 +3,14 @@
 import { getPaste } from "@/features/paste/actions/paste.actions";
 import { Badge } from "@/shared/components/dupui/badge";
 import { Button } from "@/shared/components/dupui/button";
-import { Card, CardContent } from "@/shared/components/dupui/card";
-import { Separator } from "@/shared/components/dupui/separator";
+import {
+  Panel,
+  PanelContent,
+  Pattern,
+} from "@/shared/components/dupui/panel";
 import { Skeleton } from "@/shared/components/dupui/skeleton";
 import { ThemeSwitch } from "@/shared/components/theme/theme-switch";
+import { Footer } from "@/shared/components/common/footer";
 import { useAuth } from "@/shared/hooks/use-auth";
 import type { PasteResult } from "@/shared/types/paste";
 import { format, formatDistanceToNow } from "date-fns";
@@ -20,9 +24,8 @@ import {
   Globe,
   Lock,
   MessageCircle,
-  Plus,
+
   Shield,
-  Tag,
   Zap,
 } from "lucide-react";
 import Link from "next/link";
@@ -36,7 +39,7 @@ import {
   CommentsSection,
   CommentsSectionRef,
 } from "../ui/comments/comments-section";
-import { PasteViewer } from "../ui/paste-viewer";
+import { PasteViewerActions, PasteViewerCode } from "../ui/paste-viewer";
 
 interface PublicPasteClientProps {
   slug: string;
@@ -54,6 +57,8 @@ export function PublicPasteClient({ slug }: PublicPasteClientProps) {
   const [passwordError, setPasswordError] = useState<string | null>(null);
   const [passwordLoading, setPasswordLoading] = useState(false);
   const [commentCount, setCommentCount] = useState(0);
+  const [showLineNumbers, setShowLineNumbers] = useState(true);
+  const [wrapText, setWrapText] = useState(false);
   const commentsSectionRef = useRef<CommentsSectionRef>(null);
 
   const loadPaste = useCallback(
@@ -69,17 +74,14 @@ export function PublicPasteClient({ slug }: PublicPasteClientProps) {
           setShowPasswordDialog(false);
           setPasswordError(null);
 
-          // Track paste view for analytics
           fetch("/api/analytics/view", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ pasteId: result.paste.id }),
           }).catch(console.error);
 
-          // Load comment count
           loadCommentCount(result.paste.id);
 
-          // Show burn after read notification
           if (result.burnedAfterRead) {
             toast.warning("This paste has been deleted after being viewed!", {
               duration: 5000,
@@ -104,7 +106,6 @@ export function PublicPasteClient({ slug }: PublicPasteClientProps) {
   const loadCommentCount = async (pasteId: string) => {
     try {
       const result = await getCommentCount(pasteId);
-
       if (result.success && result.count !== undefined) {
         const count =
           typeof result.count === "string"
@@ -112,19 +113,16 @@ export function PublicPasteClient({ slug }: PublicPasteClientProps) {
             : result.count;
         setCommentCount(count);
       } else {
-        // Fallback to 0 if result is not successful
         setCommentCount(0);
       }
     } catch (error) {
       console.error("Failed to load comment count:", error);
-      // Set to 0 on error to show something
       setCommentCount(0);
     }
   };
 
   const handleCommentIconClick = () => {
     commentsSectionRef.current?.scrollToComments();
-    // Small delay to ensure scroll completes before focusing
     setTimeout(() => {
       commentsSectionRef.current?.focusCommentForm();
     }, 300);
@@ -144,7 +142,6 @@ export function PublicPasteClient({ slug }: PublicPasteClientProps) {
 
     try {
       const result = await getPaste({ slug, password });
-
       if (result.success && result.paste) {
         setPaste(result.paste);
         setShowPasswordDialog(false);
@@ -186,30 +183,34 @@ export function PublicPasteClient({ slug }: PublicPasteClientProps) {
     }
   }
 
-  // Header component
-  const Header = () => (
-    <header className="max-w-5xl mx-auto pr-3 sticky top-0 z-50 w-full border rounded-2xl bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="px-4">
-        <div className="flex items-center justify-between h-16">
-          <Link
-            href="/"
-            className="flex items-center gap-2 hover:opacity-80 transition-opacity"
-          >
-            [dup]
-          </Link>
-          <div className="flex items-center gap-2">
-            <ThemeSwitch />
-            <Button
-              onClick={() => openModal()}
-              className="flex items-center gap-2"
-              aria-label="Create new paste"
-            >
-              <Plus className="h-4 w-4" />
-              <span className="hidden sm:inline">Create Paste</span>
-              <span className="sm:hidden">New</span>
-            </Button>
+  // Sticky header — same styling as landing page navbar
+  const StickyHeader = () => (
+    <header className="sticky top-0 z-40 w-full">
+      <div className="font-commit-mono max-w-4xl mx-auto px-4 lg:px-0 bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60">
+        <Panel className="border-b-0">
+          <div className="pl-4">
+            <div className="flex h-14 items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Link href="/" className="flex items-center">
+                  [dup]
+                </Link>
+              </div>
+
+              <div className="flex items-center border-l h-full">
+                <div className="h-full flex place-items-center px-2">
+                  <ThemeSwitch />
+                </div>
+                <button
+                  onClick={() => openModal()}
+                  className="h-full flex place-items-center border-l hover:bg-accent w-44 p-5 cursor-pointer transition-colors"
+                  aria-label="Create new paste"
+                >
+                  New Paste
+                </button>
+              </div>
+            </div>
           </div>
-        </div>
+        </Panel>
       </div>
     </header>
   );
@@ -217,189 +218,132 @@ export function PublicPasteClient({ slug }: PublicPasteClientProps) {
   // Loading state
   if (loading) {
     return (
-      <>
-        <Header />
-        <div className="container mx-auto px-4 py-8">
-          <div className="max-w-5xl mx-auto space-y-6">
-            {/* Header section skeleton */}
-            <div className="space-y-4">
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                <div className="space-y-1">
-                  {/* Title */}
-                  <Skeleton className="h-8 w-64" />
-                  {/* Created time */}
-                  <Skeleton className="h-4 w-32" />
-                </div>
-
-                {/* Tags skeleton */}
-                <div className="flex items-center gap-2 flex-wrap">
-                  <Skeleton className="h-4 w-4" />
-                  <div className="flex gap-1 flex-wrap">
-                    <Skeleton className="h-6 w-16 rounded-full" />
-                    <Skeleton className="h-6 w-20 rounded-full" />
-                    <Skeleton className="h-6 w-12 rounded-full" />
-                  </div>
-                </div>
-              </div>
-
-              {/* Metadata skeleton */}
-              <div className="flex flex-wrap items-center gap-4 text-sm">
-                {/* Calendar */}
-                <div className="flex items-center gap-1">
-                  <Skeleton className="h-4 w-4" />
-                  <Skeleton className="h-4 w-32" />
-                </div>
-
-                {/* Views */}
-                <div className="flex items-center gap-1">
-                  <Skeleton className="h-4 w-4" />
-                  <Skeleton className="h-4 w-16" />
-                </div>
-
-                {/* Visibility */}
-                <div className="flex items-center gap-1">
-                  <Skeleton className="h-4 w-4" />
-                  <Skeleton className="h-4 w-12" />
-                </div>
-
-                {/* Expiry */}
-                <div className="flex items-center gap-1">
-                  <Skeleton className="h-4 w-4" />
-                  <Skeleton className="h-4 w-20" />
-                </div>
-
-                {/* Burn after read */}
-                <div className="flex items-center gap-1">
-                  <Skeleton className="h-4 w-4" />
-                  <Skeleton className="h-4 w-24" />
-                </div>
+      <div className="min-h-screen flex flex-col">
+        <StickyHeader />
+        <div className="max-w-4xl mx-auto px-4 lg:px-0 flex-1 w-full">
+          <Panel>
+            <PanelContent className="p-0">
+              {/* Title skeleton */}
+              <div className="p-5 space-y-2">
+              <Skeleton className="h-8 w-64" />
+              <Skeleton className="h-4 w-32" />
+              <div className="flex items-center gap-2 mt-1">
+                <Skeleton className="h-5 w-12" />
+                <Skeleton className="h-4 w-40" />
               </div>
             </div>
 
-            {/* Separator */}
-            <Skeleton className="h-px w-full" />
-
-            {/* Code viewer skeleton */}
-            <Card className="overflow-hidden">
-              <CardContent className="p-0">
-                {/* Code header - matches PasteViewer header exactly */}
-                <div className="flex items-center justify-between p-4 border-b bg-muted/20">
-                  <div className="flex items-center gap-2">
-                    <Skeleton className="h-4 w-4" />
-                    <Skeleton className="h-4 w-24" />
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Skeleton className="h-8 w-8 rounded" />
-                    <Skeleton className="h-8 w-8 rounded" />
-                    <Skeleton className="h-8 w-8 rounded" />
-                  </div>
+            {/* Metadata grid skeleton */}
+            <div className="grid grid-cols-2 sm:grid-cols-5 gap-px bg-border border-t">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <div key={i} className="bg-background p-3 flex items-center gap-2">
+                  <Skeleton className="h-4 w-4" />
+                  <Skeleton className="h-4 w-20" />
                 </div>
+              ))}
+            </div>
 
-                {/* Code content area */}
-                <div className="relative">
-                  {/* Line numbers and code */}
-                  <div className="p-4 space-y-3 bg-muted/5 font-mono text-sm">
-                    {Array.from({ length: 15 }).map((_, i) => {
-                      // Deterministic width based on line index for consistent SSR/client rendering
-                      const widths = [
-                        85, 60, 40, 75, 45, 90, 35, 80, 55, 70, 25, 95, 50, 65,
-                        30,
-                      ];
-                      const width = widths[i % widths.length];
+            {/* Actions skeleton */}
+            <div className="border-t p-3 flex items-center justify-center gap-2">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <Skeleton key={i} className="h-8 w-20" />
+              ))}
+            </div>
+          </PanelContent>
+        </Panel>
 
-                      return (
-                        <div key={i} className="flex items-center gap-4">
-                          {/* Line number */}
-                          <Skeleton className="h-4 w-6 flex-shrink-0" />
-                          {/* Code line with realistic varying widths */}
-                          <Skeleton
-                            className="h-4"
-                            style={{
-                              width: `${width}%`,
-                              maxWidth: "95%",
-                            }}
-                          />
-                        </div>
-                      );
-                    })}
-                  </div>
+        <Pattern />
+
+        {/* Code viewer skeleton */}
+        <Panel>
+          <PanelContent className="p-4 space-y-3 font-mono text-sm">
+            {Array.from({ length: 15 }).map((_, i) => {
+              const widths = [85, 60, 40, 75, 45, 90, 35, 80, 55, 70, 25, 95, 50, 65, 30];
+              const width = widths[i % widths.length];
+              return (
+                <div key={i} className="flex items-center gap-4">
+                  <Skeleton className="h-4 w-6 flex-shrink-0" />
+                  <Skeleton className="h-4" style={{ width: `${width}%`, maxWidth: "95%" }} />
                 </div>
-              </CardContent>
-            </Card>
-          </div>
+              );
+            })}
+          </PanelContent>
+        </Panel>
+
+          <Pattern />
+          <Footer />
         </div>
-      </>
+      </div>
     );
   }
 
   // Error state
   if (error) {
     return (
-      <>
-        <Header />
-        <div className="container mx-auto px-4 py-8">
-          <div className="max-w-2xl mx-auto text-center space-y-6">
-            <div className="space-y-2">
-              {error.includes("not found") ? (
-                <FileX className="h-16 w-16 text-muted-foreground mx-auto" />
-              ) : error.includes("expired") ? (
-                <Clock className="h-16 w-16 text-muted-foreground mx-auto" />
-              ) : (
-                <AlertTriangle className="h-16 w-16 text-muted-foreground mx-auto" />
-              )}
-              <h1 className="text-2xl font-bold">
-                {error.includes("not found") && "Paste Not Found"}
-                {error.includes("expired") && "Paste Expired"}
-                {!error.includes("not found") &&
-                  !error.includes("expired") &&
-                  "Error"}
-              </h1>
-              <p className="text-muted-foreground">{error}</p>
-            </div>
+      <div className="min-h-screen flex flex-col">
+        <StickyHeader />
+        <div className="max-w-4xl mx-auto px-4 lg:px-0 flex-1 w-full">
+          <Panel>
+          <PanelContent className="text-center py-16 space-y-6">
+            {error.includes("not found") ? (
+              <FileX className="h-16 w-16 text-muted-foreground mx-auto" />
+            ) : error.includes("expired") ? (
+              <Clock className="h-16 w-16 text-muted-foreground mx-auto" />
+            ) : (
+              <AlertTriangle className="h-16 w-16 text-muted-foreground mx-auto" />
+            )}
+            <h1 className="text-2xl font-bold">
+              {error.includes("not found") && "Paste Not Found"}
+              {error.includes("expired") && "Paste Expired"}
+              {!error.includes("not found") && !error.includes("expired") && "Error"}
+            </h1>
+            <p className="text-muted-foreground">{error}</p>
 
-            <div className="space-y-4">
-              {error.includes("not found") && (
-                <p className="text-sm text-muted-foreground">
-                  This paste may have been deleted, expired, or the URL might be
-                  incorrect.
-                </p>
-              )}
-              {error.includes("expired") && (
-                <p className="text-sm text-muted-foreground">
-                  This paste has reached its expiry time and is no longer
-                  available.
-                </p>
-              )}
+            {error.includes("not found") && (
+              <p className="text-sm text-muted-foreground">
+                This paste may have been deleted, expired, or the URL might be incorrect.
+              </p>
+            )}
+            {error.includes("expired") && (
+              <p className="text-sm text-muted-foreground">
+                This paste has reached its expiry time and is no longer available.
+              </p>
+            )}
 
-              <div className="flex flex-col sm:flex-row gap-2 justify-center">
-                <Button onClick={() => openModal()}>Create New Paste</Button>
-                <Button variant="outline" onClick={() => router.back()}>
-                  Go Back
-                </Button>
-              </div>
+            <div className="flex flex-col sm:flex-row gap-2 justify-center">
+              <Button onClick={() => openModal()} className="rounded-none">Create New Paste</Button>
+              <Button variant="outline" onClick={() => router.back()} className="rounded-none">
+                Go Back
+              </Button>
             </div>
-          </div>
+          </PanelContent>
+        </Panel>
+
+          <Pattern />
+          <Footer />
         </div>
-      </>
+      </div>
     );
   }
 
   // Password dialog
   if (showPasswordDialog) {
     return (
-      <>
-        <Header />
-        <div className="container mx-auto px-4 py-8">
-          <div className="max-w-2xl mx-auto text-center space-y-6">
-            <div className="space-y-2">
-              <Shield className="h-16 w-16 text-primary mx-auto" />
-              <h1 className="text-2xl font-bold">Password Protected</h1>
-              <p className="text-muted-foreground">
-                This paste is protected with a password. Enter the correct
-                password to view its contents.
-              </p>
-            </div>
-          </div>
+      <div className="min-h-screen flex flex-col">
+        <StickyHeader />
+        <div className="max-w-4xl mx-auto px-4 lg:px-0 flex-1 w-full">
+          <Panel>
+          <PanelContent className="text-center py-16 space-y-6">
+            <Shield className="h-16 w-16 text-primary mx-auto" />
+            <h1 className="text-2xl font-bold">Password Protected</h1>
+            <p className="text-muted-foreground">
+              This paste is protected with a password. Enter the correct password to view its contents.
+            </p>
+          </PanelContent>
+        </Panel>
+
+          <Pattern />
+          <Footer />
         </div>
 
         <PasswordDialog
@@ -409,7 +353,7 @@ export function PublicPasteClient({ slug }: PublicPasteClientProps) {
           error={passwordError || undefined}
           isLoading={passwordLoading}
         />
-      </>
+      </div>
     );
   }
 
@@ -421,159 +365,144 @@ export function PublicPasteClient({ slug }: PublicPasteClientProps) {
   const isOwner = user && paste.userId === user.id;
   const createdDate = new Date(paste.createdAt);
   const expiryDate = paste.expiresAt ? new Date(paste.expiresAt) : null;
+  const lineCount = paste.content.split("\n").length;
+  const charCount = paste.content.length;
+  const wordCount = paste.content.trim().split(/\s+/).filter(w => w.length > 0).length;
 
   return (
-    <>
-      <Header />
-      <div className="container mx-auto px-4 py-8">
-        <div className="max-w-5xl mx-auto space-y-6">
-          {/* Header */}
-          <div className="space-y-4">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div className="min-h-screen flex flex-col">
+      <StickyHeader />
+      <div className="max-w-4xl mx-auto px-4 lg:px-0 flex-1 w-full">
+        {/* Title + Metadata + Actions — one continuous Panel */}
+        <Panel>
+          <PanelContent className="p-0">
+            {/* Title section */}
+            <div className="p-5">
+            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
               <div className="space-y-1">
                 <h1 className="text-2xl font-bold">
                   {paste.title || `Paste ${paste.slug}`}
                 </h1>
                 <p className="text-sm text-muted-foreground">
-                  Created{" "}
-                  {formatDistanceToNow(createdDate, { addSuffix: true })}
+                  Created {formatDistanceToNow(createdDate, { addSuffix: true })}
                 </p>
+                <div className="flex items-center gap-2 mt-1">
+                  <Badge variant="outline" className="text-xs rounded-none">
+                    {paste.language}
+                  </Badge>
+                  <span className="text-xs text-muted-foreground">
+                    {lineCount} lines &middot; {charCount} chars &middot; {wordCount} words
+                  </span>
+                </div>
               </div>
 
               {/* Tags */}
               {paste.tags && paste.tags.length > 0 && (
-                <div className="flex items-center gap-2 flex-wrap">
-                  <Tag className="h-4 w-4 text-muted-foreground" />
-                  <div className="flex gap-1 flex-wrap">
-                    {paste.tags.slice(0, 3).map((tag) => (
-                      <Badge
-                        key={tag.id}
-                        variant="secondary"
-                        className="text-xs px-2 py-1 h-6"
-                        style={{
-                          backgroundColor: tag.color
-                            ? `${tag.color}20`
-                            : undefined,
-                          borderColor: tag.color || undefined,
-                          color: tag.color || undefined,
-                        }}
-                      >
-                        {tag.name}
-                      </Badge>
-                    ))}
-                    {paste.tags.length > 3 && (
-                      <Badge
-                        variant="secondary"
-                        className="text-xs px-2 py-1 h-6"
-                      >
-                        +{paste.tags.length - 3} more
-                      </Badge>
-                    )}
-                  </div>
+                <div className="flex items-center gap-1 flex-wrap">
+                  {paste.tags.map((tag) => (
+                    <Badge
+                      key={tag.id}
+                      variant="outline"
+                      className="text-xs px-2 py-1 rounded-none"
+                      style={{
+                        backgroundColor: tag.color ? `${tag.color}20` : undefined,
+                        borderColor: tag.color || undefined,
+                        color: tag.color || undefined,
+                      }}
+                    >
+                      {tag.name}
+                    </Badge>
+                  ))}
                 </div>
               )}
             </div>
-
-            {/* Metadata */}
-            <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
-              <div className="flex items-center gap-1">
-                <Calendar className="h-4 w-4" />
-                <span>{format(createdDate, "PPP 'at' p")}</span>
-              </div>
-
-              <div className="flex items-center gap-1">
-                <Eye className="h-4 w-4" />
-                <span>{paste.views} views</span>
-              </div>
-
-              <button
-                onClick={handleCommentIconClick}
-                className="flex items-center gap-1 hover:text-foreground transition-colors cursor-pointer"
-              >
-                <MessageCircle className="h-4 w-4" />
-                <span>{commentCount} comments</span>
-              </button>
-
-              <div className="flex items-center gap-1">
-                {getVisibilityIcon(paste.visibility)}
-                <span>{getVisibilityLabel(paste.visibility)}</span>
-              </div>
-
-              {expiryDate && (
-                <div className="flex items-center gap-1">
-                  <Clock className="h-4 w-4" />
-                  <span>
-                    Expires{" "}
-                    {formatDistanceToNow(expiryDate, { addSuffix: true })}
-                  </span>
-                </div>
-              )}
-
-              {paste.burnAfterRead && (
-                <div className="flex items-center gap-1">
-                  <Zap className="h-4 w-4 text-orange-500" />
-                  <span className="text-orange-600 dark:text-orange-400">
-                    Burn after read
-                    {paste.burnAfterReadViews && (
-                      <span className="ml-1 font-mono text-xs">
-                        ({Math.max(0, paste.burnAfterReadViews - paste.views)}{" "}
-                        views left)
-                      </span>
-                    )}
-                  </span>
-                </div>
-              )}
-            </div>
-
-            {paste.burnAfterRead && !isOwner && (
-              <Card className="border-orange-200 bg-orange-50 dark:border-orange-800 dark:bg-orange-950/30">
-                <CardContent className="p-4">
-                  <div className="flex items-center gap-2 text-orange-800 dark:text-orange-200">
-                    <Zap className="h-4 w-4" />
-                    <div className="space-y-1">
-                      <p className="text-sm font-medium">
-                        This paste will be permanently deleted after viewing it.
-                      </p>
-                      {paste.burnAfterReadViews && (
-                        <p className="text-xs text-orange-700 dark:text-orange-300">
-                          {Math.max(0, paste.burnAfterReadViews - paste.views)}{" "}
-                          view
-                          {Math.max(
-                            0,
-                            paste.burnAfterReadViews - paste.views
-                          ) !== 1
-                            ? "s"
-                            : ""}{" "}
-                          remaining before deletion
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
           </div>
 
-          <Separator />
+          {/* Metadata grid row */}
+          <div className="grid grid-cols-2 sm:grid-cols-5 gap-px bg-border border-t">
+            <div className="bg-background p-3 flex items-center gap-2 text-sm text-muted-foreground">
+              <Calendar className="h-4 w-4 flex-shrink-0" />
+              <span className="truncate">{format(createdDate, "MMMM do, yyyy")}</span>
+            </div>
 
-          {/* Paste Content */}
-          <PasteViewer
+            <div className="bg-background p-3 flex items-center gap-2 text-sm text-muted-foreground">
+              <Eye className="h-4 w-4 flex-shrink-0" />
+              <span>{paste.views} views</span>
+            </div>
+
+            <button
+              onClick={handleCommentIconClick}
+              className="bg-background p-3 flex items-center gap-2 text-sm text-muted-foreground hover:bg-accent transition-colors cursor-pointer"
+            >
+              <MessageCircle className="h-4 w-4 flex-shrink-0" />
+              <span>{commentCount} Comments</span>
+            </button>
+
+            <div className="bg-background p-3 flex items-center gap-2 text-sm text-muted-foreground">
+              {getVisibilityIcon(paste.visibility)}
+              <span>{getVisibilityLabel(paste.visibility)}</span>
+            </div>
+
+            <div className="bg-background p-3 flex items-center gap-2 text-sm text-muted-foreground">
+              <Clock className="h-4 w-4 flex-shrink-0" />
+              <span className="truncate">
+                {expiryDate
+                  ? `Expires ${formatDistanceToNow(expiryDate, { addSuffix: true })}`
+                  : "No expiry"}
+              </span>
+            </div>
+          </div>
+
+          {/* Burn after read warning */}
+          {paste.burnAfterRead && (
+            <div className="border-t bg-orange-50 dark:bg-orange-950/30 p-3 flex items-center gap-2 text-orange-800 dark:text-orange-200 text-sm">
+              <Zap className="h-4 w-4 flex-shrink-0" />
+              <span className="font-medium">Burn after read</span>
+              {paste.burnAfterReadViews && !isOwner && (
+                <span className="font-mono text-xs">
+                  ({Math.max(0, paste.burnAfterReadViews - paste.views)} view{Math.max(0, paste.burnAfterReadViews - paste.views) !== 1 ? "s" : ""} remaining)
+                </span>
+              )}
+            </div>
+          )}
+
+          {/* Actions row */}
+          <PasteViewerActions
             content={paste.content}
-            language={paste.language}
             title={paste.title}
             slug={paste.slug}
             qrCodeColor={paste.qrCodeColor}
             qrCodeBackground={paste.qrCodeBackground}
+            showLineNumbers={showLineNumbers}
+            onShowLineNumbersChange={setShowLineNumbers}
+            wrapText={wrapText}
+            onWrapTextChange={setWrapText}
           />
+          </PanelContent>
+        </Panel>
 
-          {/* Comments Section */}
-          <CommentsSection
-            ref={commentsSectionRef}
-            pasteId={paste.id}
-            onCommentCountChange={handleCommentCountUpdate}
-          />
-        </div>
+        <Pattern />
+
+        {/* Code content */}
+        <PasteViewerCode
+          content={paste.content}
+          language={paste.language}
+          showLineNumbers={showLineNumbers}
+          wrapText={wrapText}
+        />
+
+        {/* Comments Section */}
+        <CommentsSection
+          ref={commentsSectionRef}
+          pasteId={paste.id}
+          onCommentCountChange={handleCommentCountUpdate}
+        />
+
+        <Pattern />
+
+        {/* Footer */}
+        <Footer />
       </div>
-    </>
+    </div>
   );
 }

@@ -1,5 +1,5 @@
-"use client";
 import { HomeClient } from "@/features/landing/components/sections/home-client";
+import { TryItOutSection } from "@/features/landing/components/sections/try-it-out-section";
 import { PublicPasteCardsInfinite } from "@/features/landing/components/ui/public-paste-cards-infinite";
 import { Button } from "@/shared/components/dupui/button";
 import Image from "next/image";
@@ -258,6 +258,10 @@ export default function Home() {
           <PublicPasteCardsInfinite />
         </PanelContent>
       </Panel>
+      <Pattern />
+
+      {/* Try It Out */}
+      <TryItOutSection />
       <Pattern />
 
       {/* Pricing/Features Comparison */}
