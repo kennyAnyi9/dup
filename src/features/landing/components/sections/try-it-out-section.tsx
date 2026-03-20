@@ -89,7 +89,8 @@ export function TryItOutSection() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [customUrl, setCustomUrl] = useState("");
-  const [tags, setTags] = useState("");
+  const [tags, setTags] = useState<string[]>([]);
+  const [tagInput, setTagInput] = useState("");
   const [burnAfterRead, setBurnAfterRead] = useState(false);
   const [burnViews, setBurnViews] = useState(1);
   const [qrColor, setQrColor] = useState("#000000");
@@ -103,6 +104,7 @@ export function TryItOutSection() {
   const [copied, setCopied] = useState(false);
 
   const qrContainerRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const visibilityOptions = [
     {
@@ -197,6 +199,61 @@ export function TryItOutSection() {
     };
   }, [qrColor, qrBackground, customUrl]);
 
+  function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const text = event.target?.result;
+      if (typeof text === "string") {
+        setContent(text);
+
+        // Auto-fill title from filename
+        const nameParts = file.name.split(".");
+        if (nameParts.length > 1) {
+          nameParts.pop();
+        }
+        setTitle(nameParts.join("."));
+
+        // Auto-detect language from extension
+        const ext = file.name.split(".").pop()?.toLowerCase() || "";
+        const extMap: Record<string, SupportedLanguage> = {
+          js: "javascript", ts: "typescript", py: "python", java: "java",
+          cpp: "cpp", c: "c", cs: "csharp", php: "php", rb: "ruby",
+          go: "go", rs: "rust", swift: "swift", kt: "kotlin",
+          html: "html", css: "css", scss: "scss", json: "json",
+          xml: "xml", yml: "yaml", yaml: "yaml", md: "markdown",
+          sql: "sql", sh: "bash", ps1: "powershell", dockerfile: "dockerfile",
+          conf: "nginx", txt: "plain",
+        };
+        if (extMap[ext]) {
+          setLanguage(extMap[ext]);
+        }
+      }
+    };
+    reader.readAsText(file);
+    // Reset so the same file can be selected again
+    e.target.value = "";
+  }
+
+  function handleTagKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
+    if ((e.key === "Enter" || e.key === ",") && tagInput.trim()) {
+      e.preventDefault();
+      const tag = tagInput.trim().toLowerCase();
+      if (tag.length <= 20 && /^[a-zA-Z0-9\-_\s]+$/.test(tag) && !tags.includes(tag) && tags.length < 5) {
+        setTags([...tags, tag]);
+      }
+      setTagInput("");
+    } else if (e.key === "Backspace" && !tagInput && tags.length > 0) {
+      setTags(tags.slice(0, -1));
+    }
+  }
+
+  function removeTag(tagToRemove: string) {
+    setTags(tags.filter((t) => t !== tagToRemove));
+  }
+
   async function handleCreate() {
     if (!content.trim() || isSubmitting) return;
 
@@ -204,11 +261,7 @@ export function TryItOutSection() {
     setError(null);
     setResult(null);
 
-    const parsedTags = tags
-      .split(",")
-      .map((t) => t.trim())
-      .filter(Boolean)
-      .slice(0, 5);
+    const parsedTags = tags.slice(0, 5);
 
     try {
       const res = await createPaste({
@@ -240,7 +293,8 @@ export function TryItOutSection() {
         setDescription("");
         setPassword("");
         setCustomUrl("");
-        setTags("");
+        setTags([]);
+        setTagInput("");
         setBurnAfterRead(false);
       } else {
         setError(res.error || "Failed to create paste");
@@ -293,17 +347,27 @@ export function TryItOutSection() {
           </div>
 
           {/* Row 2: Upload | Password | Language | Visibility | Expiry (5 cells, each 2 cols) */}
-          <div
+          <button
+            type="button"
+            onClick={() => !guestLocked && fileInputRef.current?.click()}
             className={`col-span-2 bg-background px-4 py-3 flex items-center gap-2 hover:bg-accent transition-colors whitespace-nowrap ${
               guestLocked
                 ? "text-muted-foreground/50 cursor-not-allowed"
-                : "text-muted-foreground cursor-default"
+                : "text-muted-foreground cursor-pointer"
             }`}
+            disabled={guestLocked}
           >
             <Upload className="size-4 shrink-0" strokeWidth={1.5} />
             <span className="font-commit-mono text-sm">Upload</span>
             {guestLocked && <GuestBadge />}
-          </div>
+          </button>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="text/*,.js,.ts,.py,.java,.cpp,.c,.cs,.php,.rb,.go,.rs,.swift,.kt,.html,.css,.scss,.json,.xml,.yml,.yaml,.md,.sql,.sh,.ps1,.dockerfile,.conf,.txt"
+            onChange={handleFileUpload}
+            className="hidden"
+          />
 
           <div
             className={`col-span-2 bg-background px-4 py-3 flex items-center gap-2 hover:bg-accent transition-colors whitespace-nowrap ${
@@ -386,7 +450,7 @@ export function TryItOutSection() {
 
           {/* Row 4: Tags (5 cols) | Custom URL (5 cols) */}
           <div
-            className={`col-span-5 bg-background px-4 py-3 flex items-center gap-2 hover:bg-accent transition-colors whitespace-nowrap ${
+            className={`col-span-5 bg-background px-4 py-3 flex items-center gap-2 transition-colors flex-wrap ${
               guestLocked
                 ? "text-muted-foreground/50 cursor-not-allowed"
                 : "text-foreground"
@@ -395,16 +459,37 @@ export function TryItOutSection() {
             <Tags className="size-4 shrink-0" strokeWidth={1.5} />
             {guestLocked ? (
               <>
-                <span className="font-commit-mono text-sm">Tags</span>
+                <span className="font-commit-mono text-sm whitespace-nowrap">Tags</span>
                 <GuestBadge />
               </>
             ) : (
-              <input
-                value={tags}
-                onChange={(e) => setTags(e.target.value)}
-                placeholder="Tags"
-                className="flex-1 min-w-0 bg-transparent font-commit-mono text-sm focus:outline-none placeholder:text-muted-foreground"
-              />
+              <>
+                {tags.map((tag) => (
+                  <Badge
+                    key={tag}
+                    variant="outline"
+                    className="rounded-none font-commit-mono text-xs px-1.5 py-0 gap-1 shrink-0"
+                  >
+                    {tag}
+                    <button
+                      type="button"
+                      onClick={() => removeTag(tag)}
+                      className="hover:text-destructive ml-0.5"
+                    >
+                      &times;
+                    </button>
+                  </Badge>
+                ))}
+                {tags.length < 5 && (
+                  <input
+                    value={tagInput}
+                    onChange={(e) => setTagInput(e.target.value)}
+                    onKeyDown={handleTagKeyDown}
+                    placeholder={tags.length === 0 ? "Tags" : ""}
+                    className="flex-1 min-w-[60px] bg-transparent font-commit-mono text-sm focus:outline-none placeholder:text-muted-foreground"
+                  />
+                )}
+              </>
             )}
           </div>
 
@@ -424,7 +509,7 @@ export function TryItOutSection() {
             ) : (
               <div className="flex-1 flex items-center gap-1 min-w-0">
                 <span className="text-muted-foreground font-commit-mono text-sm shrink-0">
-                  {APP_URL}/
+                  {APP_URL.replace(/\/+$/, "")}/
                 </span>
                 <input
                   value={customUrl}

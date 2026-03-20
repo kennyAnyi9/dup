@@ -187,7 +187,7 @@ export function PublicPasteClient({ slug }: PublicPasteClientProps) {
   const StickyHeader = () => (
     <header className="sticky top-0 z-40 w-full">
       <div className="font-commit-mono max-w-4xl mx-auto px-4 lg:px-0 bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60">
-        <Panel className="border-b-0">
+        <Panel>
           <div className="pl-4">
             <div className="flex h-14 items-center justify-between">
               <div className="flex items-center gap-2">
@@ -221,7 +221,7 @@ export function PublicPasteClient({ slug }: PublicPasteClientProps) {
       <div className="min-h-screen flex flex-col">
         <StickyHeader />
         <div className="max-w-4xl mx-auto px-4 lg:px-0 flex-1 w-full">
-          <Panel>
+          <Panel className="border-t-0">
             <PanelContent className="p-0">
               {/* Title skeleton */}
               <div className="p-5 space-y-2">
@@ -283,7 +283,7 @@ export function PublicPasteClient({ slug }: PublicPasteClientProps) {
       <div className="min-h-screen flex flex-col">
         <StickyHeader />
         <div className="max-w-4xl mx-auto px-4 lg:px-0 flex-1 w-full">
-          <Panel>
+          <Panel className="border-t-0">
           <PanelContent className="text-center py-16 space-y-6">
             {error.includes("not found") ? (
               <FileX className="h-16 w-16 text-muted-foreground mx-auto" />
@@ -332,7 +332,7 @@ export function PublicPasteClient({ slug }: PublicPasteClientProps) {
       <div className="min-h-screen flex flex-col">
         <StickyHeader />
         <div className="max-w-4xl mx-auto px-4 lg:px-0 flex-1 w-full">
-          <Panel>
+          <Panel className="border-t-0">
           <PanelContent className="text-center py-16 space-y-6">
             <Shield className="h-16 w-16 text-primary mx-auto" />
             <h1 className="text-2xl font-bold">Password Protected</h1>
@@ -374,7 +374,7 @@ export function PublicPasteClient({ slug }: PublicPasteClientProps) {
       <StickyHeader />
       <div className="max-w-4xl mx-auto px-4 lg:px-0 flex-1 w-full">
         {/* Title + Metadata + Actions — one continuous Panel */}
-        <Panel>
+        <Panel className="border-t-0">
           <PanelContent className="p-0">
             {/* Title section */}
             <div className="p-5">
