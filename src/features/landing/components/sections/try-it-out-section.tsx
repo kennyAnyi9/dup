@@ -261,23 +261,32 @@ export function TryItOutSection() {
     setError(null);
     setResult(null);
 
-    const parsedTags = tags.slice(0, 5);
+    // Sanitize guest-only values before submitting
+    const isGuest = !isAuthenticated;
+    const sanitizedContent = isGuest
+      ? content.slice(0, CHAR_LIMIT_ANONYMOUS)
+      : content;
+    const sanitizedVisibility = isGuest && visibility === "private"
+      ? "public"
+      : visibility;
+    const sanitizedExpiry = isGuest ? "30m" : expiresIn;
+    const parsedTags = isGuest ? [] : tags.slice(0, 5);
 
     try {
       const res = await createPaste({
         title: title || undefined,
         description: description || undefined,
-        content,
+        content: sanitizedContent,
         language,
-        visibility,
-        password: password || undefined,
-        customUrl: customUrl || undefined,
+        visibility: sanitizedVisibility,
+        password: isGuest ? undefined : password || undefined,
+        customUrl: isGuest ? undefined : customUrl || undefined,
         tags: parsedTags.length > 0 ? parsedTags : undefined,
-        burnAfterRead,
-        burnAfterReadViews: burnAfterRead ? burnViews : undefined,
+        burnAfterRead: isGuest ? false : burnAfterRead,
+        burnAfterReadViews: !isGuest && burnAfterRead ? burnViews : undefined,
         qrCodeColor: qrColor,
         qrCodeBackground: qrBackground,
-        expiresIn: expiresIn as
+        expiresIn: sanitizedExpiry as
           | "30m"
           | "1h"
           | "1d"
@@ -308,7 +317,7 @@ export function TryItOutSection() {
 
   async function handleCopy() {
     if (!result) return;
-    await navigator.clipboard.writeText(`${APP_URL}/${result.slug}`);
+    await navigator.clipboard.writeText(result.url);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   }
@@ -331,6 +340,7 @@ export function TryItOutSection() {
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="Title"
+              aria-label="Paste title"
               maxLength={100}
               className="w-full h-full bg-transparent px-4 py-3 font-commit-mono text-sm focus:outline-none placeholder:text-muted-foreground"
             />
@@ -340,6 +350,7 @@ export function TryItOutSection() {
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Comment"
+              aria-label="Paste description"
               maxLength={500}
               rows={1}
               className="w-full h-full bg-transparent px-4 py-3 font-commit-mono text-sm resize-none focus:outline-none placeholder:text-muted-foreground"
@@ -364,6 +375,7 @@ export function TryItOutSection() {
           <input
             ref={fileInputRef}
             type="file"
+            aria-label="Upload file"
             accept="text/*,.js,.ts,.py,.java,.cpp,.c,.cs,.php,.rb,.go,.rs,.swift,.kt,.html,.css,.scss,.json,.xml,.yml,.yaml,.md,.sql,.sh,.ps1,.dockerfile,.conf,.txt"
             onChange={handleFileUpload}
             className="hidden"
@@ -389,12 +401,15 @@ export function TryItOutSection() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="****"
+                  aria-label="Password"
                   className="flex-1 min-w-0 bg-transparent font-commit-mono text-sm focus:outline-none placeholder:text-muted-foreground"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
                   className="shrink-0 text-muted-foreground hover:text-foreground"
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                  aria-pressed={showPassword}
                 >
                   {showPassword ? (
                     <EyeOff className="size-3.5" />
@@ -486,6 +501,7 @@ export function TryItOutSection() {
                     onChange={(e) => setTagInput(e.target.value)}
                     onKeyDown={handleTagKeyDown}
                     placeholder={tags.length === 0 ? "Tags" : ""}
+                    aria-label="Add tag"
                     className="flex-1 min-w-[60px] bg-transparent font-commit-mono text-sm focus:outline-none placeholder:text-muted-foreground"
                   />
                 )}
@@ -515,6 +531,7 @@ export function TryItOutSection() {
                   value={customUrl}
                   onChange={(e) => setCustomUrl(e.target.value)}
                   placeholder="customize"
+                  aria-label="Custom URL slug"
                   maxLength={50}
                   className="flex-1 min-w-0 bg-transparent font-commit-mono text-sm focus:outline-none placeholder:text-muted-foreground"
                 />
@@ -528,6 +545,7 @@ export function TryItOutSection() {
               value={content}
               onChange={(e) => setContent(e.target.value)}
               placeholder="Content"
+              aria-label="Paste content"
               maxLength={charLimit ?? undefined}
               className="w-full min-h-[240px] bg-transparent p-4 font-commit-mono text-sm resize-y focus:outline-none placeholder:text-muted-foreground"
             />
@@ -566,6 +584,7 @@ export function TryItOutSection() {
                   } ${guestLocked ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
                   style={{ backgroundColor: preset.foreground }}
                   title={preset.name}
+                  aria-label={`QR color: ${preset.name}`}
                 />
               ))}
             </div>
@@ -575,12 +594,14 @@ export function TryItOutSection() {
                   type="color"
                   value={qrColor}
                   onChange={(e) => setQrColor(e.target.value)}
+                  aria-label="QR code foreground color"
                   className="size-7 cursor-pointer border border-border"
                 />
                 <input
                   type="color"
                   value={qrBackground}
                   onChange={(e) => setQrBackground(e.target.value)}
+                  aria-label="QR code background color"
                   className="size-7 cursor-pointer border border-border"
                 />
                 <span className="font-commit-mono text-xs text-muted-foreground">Custom</span>
@@ -659,13 +680,14 @@ export function TryItOutSection() {
         {result && (
           <div className="flex items-center gap-2 border-t border-border bg-background p-3">
             <span className="font-commit-mono text-sm text-teal-400 truncate flex-1">
-              {APP_URL}/{result.slug}
+              {result.url}
             </span>
             <Button
               variant="ghost"
               size="sm"
               onClick={handleCopy}
               className="rounded-none shrink-0"
+              aria-label={copied ? "Copied" : "Copy URL"}
             >
               {copied ? (
                 <Check className="size-3.5" />
@@ -679,7 +701,7 @@ export function TryItOutSection() {
               asChild
               className="rounded-none shrink-0"
             >
-              <a href={`/${result.slug}`} target="_blank" rel="noreferrer">
+              <a href={result.url} target="_blank" rel="noreferrer" aria-label="Open paste in new tab">
                 <ExternalLink className="size-3.5" />
               </a>
             </Button>
