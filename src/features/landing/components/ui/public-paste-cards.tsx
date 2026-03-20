@@ -176,7 +176,7 @@ export function PublicPasteCards({ pastes }: PublicPasteCardsProps) {
                   rel="noopener noreferrer"
                   className="truncate font-semibold text-sm hover:text-primary transition-colors"
                 >
-                  {paste.title || `Paste ${paste.slug}`}
+                  {paste.title || paste.slug}
                 </a>
 
                 <div className="flex items-center gap-1 sm:gap-2">
