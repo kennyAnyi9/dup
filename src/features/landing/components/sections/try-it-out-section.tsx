@@ -101,7 +101,6 @@ export function TryItOutSection() {
     slug: string;
     url: string;
   } | null>(null);
-  const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const { downloadQrCode } = useQrDownload();
 
@@ -285,7 +284,6 @@ export function TryItOutSection() {
     }
 
     setIsSubmitting(true);
-    setError(null);
     setResult(null);
 
     // Sanitize guest-only values before submitting
@@ -334,9 +332,7 @@ export function TryItOutSection() {
         setTagInput("");
         setBurnAfterRead(false);
       } else {
-        const msg = res.error || "Failed to create paste";
-        toast.error(msg);
-        setError(msg);
+        toast.error(res.error || "Failed to create paste");
       }
     } catch {
       toast.error("Something went wrong. Please try again.");
@@ -736,14 +732,6 @@ export function TryItOutSection() {
           </div>
         )}
 
-        {/* Error bar */}
-        {error && (
-          <div className="border-t border-border bg-background p-3">
-            <span className="font-commit-mono text-sm text-destructive">
-              {error}
-            </span>
-          </div>
-        )}
       </PanelContent>
     </Panel>
   );

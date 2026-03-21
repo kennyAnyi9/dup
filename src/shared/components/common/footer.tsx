@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { Panel, PanelContent } from "@/shared/components/dupui/panel";
 import { Activity, Coffee } from "lucide-react";
 import Link from "next/link";
@@ -7,6 +8,11 @@ import { useTheme } from "next-themes";
 
 export function Footer() {
   const { theme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   return (
     <footer>
@@ -59,8 +65,9 @@ export function Footer() {
             <div className="grid grid-cols-3 gap-px bg-border text-sm border-t border-border">
               <button
                 onClick={() => setTheme("dark")}
+                aria-pressed={mounted && theme === "dark"}
                 className={`flex items-center justify-center p-3 font-commit-mono transition-colors ${
-                  theme === "dark"
+                  mounted && theme === "dark"
                     ? "bg-foreground text-background"
                     : "bg-background text-muted-foreground hover:bg-accent hover:text-foreground"
                 }`}
@@ -69,8 +76,9 @@ export function Footer() {
               </button>
               <button
                 onClick={() => setTheme("light")}
+                aria-pressed={mounted && theme === "light"}
                 className={`flex items-center justify-center p-3 font-commit-mono transition-colors ${
-                  theme === "light"
+                  mounted && theme === "light"
                     ? "bg-foreground text-background"
                     : "bg-background text-muted-foreground hover:bg-accent hover:text-foreground"
                 }`}
@@ -79,8 +87,9 @@ export function Footer() {
               </button>
               <button
                 onClick={() => setTheme("system")}
+                aria-pressed={mounted && theme === "system"}
                 className={`flex items-center justify-center p-3 font-commit-mono transition-colors ${
-                  theme === "system"
+                  mounted && theme === "system"
                     ? "bg-foreground text-background"
                     : "bg-background text-muted-foreground hover:bg-accent hover:text-foreground"
                 }`}

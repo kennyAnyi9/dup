@@ -285,12 +285,24 @@ export function PasteViewer({ content, language, title, slug, qrCodeColor, qrCod
     }
   }
 
+  function getFileExtension(): string {
+    const extMap: Record<string, string> = {
+      javascript: "js", typescript: "ts", python: "py", java: "java",
+      cpp: "cpp", c: "c", csharp: "cs", php: "php", ruby: "rb",
+      go: "go", rust: "rs", swift: "swift", kotlin: "kt",
+      html: "html", css: "css", scss: "scss", json: "json",
+      xml: "xml", yaml: "yml", markdown: "md", sql: "sql",
+      bash: "sh", powershell: "ps1", dockerfile: "dockerfile",
+    };
+    return extMap[language] || "txt";
+  }
+
   function downloadPaste() {
     const blob = new Blob([content], { type: "text/plain" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `${title || slug}.txt`;
+    a.download = `${title || slug}.${getFileExtension()}`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
