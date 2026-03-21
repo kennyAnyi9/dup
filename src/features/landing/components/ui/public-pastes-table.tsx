@@ -116,9 +116,9 @@ export function PublicPastesTable({ pastes }: PublicPastesTableProps) {
                   <Link
                     href={`/p/${paste.slug}`}
                     className="font-medium text-sm hover:text-primary transition-colors block truncate"
-                    title={paste.title || `Paste ${paste.slug}`}
+                    title={paste.title || paste.slug}
                   >
-                    {paste.title || `Paste ${paste.slug}`}
+                    {paste.title || paste.slug}
                   </Link>
                   {paste.user && (
                     <p className="text-xs text-muted-foreground truncate" title={paste.user.name}>

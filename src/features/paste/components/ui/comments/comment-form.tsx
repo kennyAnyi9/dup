@@ -9,7 +9,7 @@ import { toast } from "sonner";
 import { Loader2, Send } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Card, CardContent } from "@/shared/components/dupui/card";
+import { Panel, PanelContent } from "@/shared/components/dupui/panel";
 
 interface CommentFormProps {
   pasteId: string;
@@ -86,27 +86,27 @@ export const CommentForm = forwardRef<CommentFormRef, CommentFormProps>(
 
     if (!user) {
       return (
-        <Card className="border-dashed">
-          <CardContent className="p-4">
+        <Panel className="border-dashed">
+          <PanelContent className="p-4">
             <div className="text-center space-y-3">
               <p className="text-sm text-muted-foreground">
                 Sign in to join the conversation
               </p>
               <div className="flex gap-2 justify-center">
-                <Button asChild size="sm">
+                <Button asChild size="sm" className="rounded-none">
                   <Link href={`/login?redirect=${encodeURIComponent(pathname)}`}>
                     Sign In
                   </Link>
                 </Button>
-                <Button asChild variant="outline" size="sm">
+                <Button asChild variant="outline" size="sm" className="rounded-none">
                   <Link href={`/register?redirect=${encodeURIComponent(pathname)}`}>
                     Sign Up
                   </Link>
                 </Button>
               </div>
             </div>
-          </CardContent>
-        </Card>
+          </PanelContent>
+        </Panel>
       );
     }
 

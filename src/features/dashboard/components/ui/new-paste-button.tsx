@@ -19,7 +19,7 @@ export function NewPasteButton({
   fullWidth = false
 }: NewPasteButtonProps) {
   return (
-    <Link href="/create">
+    <Link href="/new">
       <Button
         variant={variant}
         size={size}

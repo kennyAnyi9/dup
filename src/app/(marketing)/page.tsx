@@ -1,7 +1,7 @@
-"use client";
 import { HomeClient } from "@/features/landing/components/sections/home-client";
+import { TryItOutSection } from "@/features/landing/components/sections/try-it-out-section";
 import { PublicPasteCardsInfinite } from "@/features/landing/components/ui/public-paste-cards-infinite";
-import { Badge } from "@/shared/components/dupui/badge";
+import { Button } from "@/shared/components/dupui/button";
 import Image from "next/image";
 import {
   Panel,
@@ -21,7 +21,6 @@ import {
   MessageSquare,
   QrCode,
   Search,
-  Shield,
   Tags,
   Users,
   Zap,
@@ -250,9 +249,8 @@ export default function Home() {
 
       {/* Recent Public Pastes */}
       <Panel>
-        <PanelHeader>
-          <PanelTitle className="text-xl flex items-center gap-2">
-            <Globe className="h-5 w-5" />
+        <PanelHeader className="text-left">
+          <PanelTitle>
             Recent Public Pastes
           </PanelTitle>
         </PanelHeader>
@@ -262,93 +260,91 @@ export default function Home() {
       </Panel>
       <Pattern />
 
+      {/* Try It Out */}
+      <TryItOutSection />
+      <Pattern />
+
       {/* Pricing/Features Comparison */}
       <Panel>
-        <PanelHeader>
-          <div className="text-center">
-            <PanelTitle className="">Why Sign Up?</PanelTitle>
-            <p className="text-muted-foreground">
-              Unlock powerful features with a free account
-            </p>
+        <PanelHeader className="text-left">
+          <div className="flex items-center justify-between">
+            <PanelTitle>Unlock powerful features now</PanelTitle>
+            <Link href="/register">
+              <Button className="gap-2">
+                Get Started
+              </Button>
+            </Link>
           </div>
         </PanelHeader>
-          <PanelContent className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="p-6 rounded-lg border border-border">
-                <div className="flex items-center gap-2 mb-4">
-                  <Users className="h-5 w-5" />
-                  <h3 className="font-semibold">Anonymous User</h3>
-                  <Badge variant="secondary">Free</Badge>
-                </div>
-                <div className="space-y-3">
-                  <div className="flex items-center gap-2 text-sm">
-                    <FileText className="h-4 w-4 text-muted-foreground" />
-                    <span>{PASTE_LIMITS.ANONYMOUS.CHARACTER_LIMIT}</span>
+          <PanelContent className="p-0">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-px bg-border text-sm">
+              <div className="bg-background p-8 lg:px-9 lg:py-10">
+                <h3 className="font-medium text-base mb-1">Anonymous User</h3>
+                <p className="text-muted-foreground text-xs mb-5">No account required</p>
+                <div className="space-y-4">
+                  <div className="flex items-center gap-3">
+                    <div className="flex items-center justify-center size-8 rounded-xl border border-muted-foreground/20 bg-muted-foreground/5">
+                      <FileText className="size-3.5 text-muted-foreground" strokeWidth={1.5} />
+                    </div>
+                    <span className="text-muted-foreground">{PASTE_LIMITS.ANONYMOUS.CHARACTER_LIMIT}</span>
                   </div>
-                  <div className="flex items-center gap-2 text-sm">
-                    <Clock className="h-4 w-4 text-muted-foreground" />
-                    <span>{PASTE_LIMITS.ANONYMOUS.EXPIRY_TIME}</span>
+                  <div className="flex items-center gap-3">
+                    <div className="flex items-center justify-center size-8 rounded-xl border border-muted-foreground/20 bg-muted-foreground/5">
+                      <Clock className="size-3.5 text-muted-foreground" strokeWidth={1.5} />
+                    </div>
+                    <span className="text-muted-foreground">{PASTE_LIMITS.ANONYMOUS.EXPIRY_TIME}</span>
                   </div>
-                  <div className="flex items-center gap-2 text-sm">
-                    <Globe className="h-4 w-4 text-muted-foreground" />
-                    <span>Public & unlisted pastes only</span>
+                  <div className="flex items-center gap-3">
+                    <div className="flex items-center justify-center size-8 rounded-xl border border-muted-foreground/20 bg-muted-foreground/5">
+                      <Globe className="size-3.5 text-muted-foreground" strokeWidth={1.5} />
+                    </div>
+                    <span className="text-muted-foreground">Public & unlisted pastes only</span>
                   </div>
-                  <div className="flex items-center gap-2 text-sm">
-                    <Zap className="h-4 w-4 text-muted-foreground" />
-                    <span>{PASTE_LIMITS.ANONYMOUS.RATE_LIMIT}</span>
+                  <div className="flex items-center gap-3">
+                    <div className="flex items-center justify-center size-8 rounded-xl border border-muted-foreground/20 bg-muted-foreground/5">
+                      <Zap className="size-3.5 text-muted-foreground" strokeWidth={1.5} />
+                    </div>
+                    <span className="text-muted-foreground">{PASTE_LIMITS.ANONYMOUS.RATE_LIMIT}</span>
                   </div>
                 </div>
               </div>
 
-              <div className="p-6 rounded-lg border border-primary/50 bg-primary/5">
-                <div className="flex items-center gap-2 mb-4">
-                  <Shield className="h-5 w-5 text-primary" />
-                  <h3 className="font-semibold">Registered User</h3>
-                  <Badge>Free</Badge>
-                </div>
-                <div className="space-y-3">
-                  <div className="flex items-center gap-2 text-sm">
-                    <FileText className="h-4 w-4 text-primary" />
-                    <span className="font-medium">
-                      {PASTE_LIMITS.AUTHENTICATED.CHARACTER_LIMIT}
-                    </span>
+              <div className="bg-background p-8 lg:px-9 lg:py-10">
+                <h3 className="font-medium text-base mb-1">Registered User</h3>
+                <p className="text-teal-400 text-xs mb-5">Free forever</p>
+                <div className="space-y-4">
+                  <div className="flex items-center gap-3">
+                    <div className="flex items-center justify-center size-8 rounded-xl border border-teal-400/30 bg-teal-400/10">
+                      <FileText className="size-3.5 text-teal-400" strokeWidth={1.5} />
+                    </div>
+                    <span>{PASTE_LIMITS.AUTHENTICATED.CHARACTER_LIMIT}</span>
                   </div>
-                  <div className="flex items-center gap-2 text-sm">
-                    <Clock className="h-4 w-4 text-primary" />
-                    <span className="font-medium">
-                      {PASTE_LIMITS.AUTHENTICATED.EXPIRY_TIME}
-                    </span>
+                  <div className="flex items-center gap-3">
+                    <div className="flex items-center justify-center size-8 rounded-xl border border-teal-400/30 bg-teal-400/10">
+                      <Clock className="size-3.5 text-teal-400" strokeWidth={1.5} />
+                    </div>
+                    <span>{PASTE_LIMITS.AUTHENTICATED.EXPIRY_TIME}</span>
                   </div>
-                  <div className="flex items-center gap-2 text-sm">
-                    <Lock className="h-4 w-4 text-primary" />
-                    <span className="font-medium">
-                      Private pastes & password protection
-                    </span>
+                  <div className="flex items-center gap-3">
+                    <div className="flex items-center justify-center size-8 rounded-xl border border-teal-400/30 bg-teal-400/10">
+                      <Lock className="size-3.5 text-teal-400" strokeWidth={1.5} />
+                    </div>
+                    <span>Private pastes & password protection</span>
                   </div>
-                  <div className="flex items-center gap-2 text-sm">
-                    <Zap className="h-4 w-4 text-primary" />
-                    <span className="font-medium">
-                      {PASTE_LIMITS.AUTHENTICATED.RATE_LIMIT}
-                    </span>
+                  <div className="flex items-center gap-3">
+                    <div className="flex items-center justify-center size-8 rounded-xl border border-teal-400/30 bg-teal-400/10">
+                      <Zap className="size-3.5 text-teal-400" strokeWidth={1.5} />
+                    </div>
+                    <span>{PASTE_LIMITS.AUTHENTICATED.RATE_LIMIT}</span>
                   </div>
-                  <div className="flex items-center gap-2 text-sm">
-                    <FileText className="h-4 w-4 text-primary" />
-                    <span className="font-medium">
-                      Paste management dashboard
-                    </span>
+                  <div className="flex items-center gap-3">
+                    <div className="flex items-center justify-center size-8 rounded-xl border border-teal-400/30 bg-teal-400/10">
+                      <FileText className="size-3.5 text-teal-400" strokeWidth={1.5} />
+                    </div>
+                    <span>Paste management dashboard</span>
                   </div>
                 </div>
               </div>
-            </div>
-
-            <div className="text-center">
-              <Link
-                href="/register"
-                className="inline-flex items-center gap-2 bg-primary text-primary-foreground hover:bg-primary/90 px-6 py-3 rounded-lg font-medium transition-colors"
-              >
-                <Shield className="h-4 w-4" />
-                Create Free Account
-              </Link>
             </div>
           </PanelContent>
       </Panel>

@@ -1,135 +1,55 @@
-import { Panel, PanelContent, Pattern } from "@/shared/components/dupui/panel";
-import { APP_NAME } from "@/shared/lib/constants";
-import {
-  Activity,
-  BarChart3,
-  FileText,
-  HelpCircle,
-  Home,
-  Settings,
-  Shield,
-} from "lucide-react";
+import { Panel, PanelContent } from "@/shared/components/dupui/panel";
+import { Activity, Coffee } from "lucide-react";
 import Link from "next/link";
 
 export function Footer() {
-  const currentYear = new Date().getFullYear();
-
   return (
     <footer>
-      <div className="max-w-4xl mx-auto px-4">
-        <Pattern />
+      <div className="max-w-4xl mx-auto">
         <Panel>
-          <PanelContent className="py-8">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-              <div className="col-span-1 md:col-span-2">
-                <Link href="/" className="flex items-center gap-2 mb-4 text-xl font-semibold">
-                  [dup]
-                </Link>
-                <p className="text-sm text-muted-foreground max-w-md">
-                  Fast, secure, and simple pastebin service for sharing code and
-                  text snippets. Share your code with the world or keep it
-                  private.
-                </p>
-              </div>
-
-              <div>
-                <h3 className="font-semibold mb-4">Product</h3>
-                <ul className="space-y-2 text-sm text-muted-foreground">
-                  <li>
-                    <Link
-                      href="/"
-                      className="flex items-center gap-2 hover:text-foreground transition-colors"
-                    >
-                      <Home className="h-4 w-4" />
-                      Home
-                    </Link>
-                  </li>
-                  <li>
-                    <Link
-                      href="/features"
-                      className="flex items-center gap-2 hover:text-foreground transition-colors"
-                    >
-                      <FileText className="h-4 w-4" />
-                      Features
-                    </Link>
-                  </li>
-                  <li>
-                    <Link
-                      href="/pricing"
-                      className="flex items-center gap-2 hover:text-foreground transition-colors"
-                    >
-                      <BarChart3 className="h-4 w-4" />
-                      Pricing
-                    </Link>
-                  </li>
-                </ul>
-              </div>
-
-              <div>
-                <h3 className="font-semibold mb-4">Legal</h3>
-                <ul className="space-y-2 text-sm text-muted-foreground">
-                  <li>
-                    <Link
-                      href="/privacy"
-                      className="flex items-center gap-2 hover:text-foreground transition-colors"
-                    >
-                      <Shield className="h-4 w-4" />
-                      Privacy Policy
-                    </Link>
-                  </li>
-                  <li>
-                    <Link
-                      href="/terms"
-                      className="flex items-center gap-2 hover:text-foreground transition-colors"
-                    >
-                      <FileText className="h-4 w-4" />
-                      Terms of Service
-                    </Link>
-                  </li>
-                  <li>
-                    <Link
-                      href="/contact"
-                      className="flex items-center gap-2 hover:text-foreground transition-colors"
-                    >
-                      <HelpCircle className="h-4 w-4" />
-                      Contact
-                    </Link>
-                  </li>
-                </ul>
-              </div>
-            </div>
-
-            <div className="border-t pt-8 mt-8">
-              <div className="flex flex-col sm:flex-row justify-between items-center">
-                <p className="text-sm text-muted-foreground">
-                  © {currentYear} {APP_NAME}. All rights reserved.
-                </p>
-                <div className="flex items-center space-x-4 mt-4 sm:mt-0">
-                  <Link
-                    href="/api-docs"
-                    className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
-                  >
-                    <Settings className="h-3.5 w-3.5" />
-                    API
-                  </Link>
-                  <Link
-                    href="https://dup.openstatus.dev/"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
-                  >
-                    <Activity className="h-3.5 w-3.5" />
-                    Status
-                  </Link>
-                  <Link
-                    href="/help"
-                    className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
-                  >
-                    <HelpCircle className="h-3.5 w-3.5" />
-                    Help
-                  </Link>
-                </div>
-              </div>
+          <PanelContent className="p-0">
+            <div className="grid grid-cols-4 gap-px bg-border text-sm">
+              <Link
+                href="/"
+                className="flex items-center bg-background p-4 hover:bg-accent transition-colors"
+              >
+                [dup]
+              </Link>
+              <Link
+                href="https://github.com/kennyAnyi9/dup"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-1.5 bg-background p-4 text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+              >
+                <svg
+                  aria-hidden="true"
+                  className="size-4"
+                  fill="currentColor"
+                  viewBox="0 0 24 24"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12" />
+                </svg>
+                GitHub
+              </Link>
+              <Link
+                href="https://dup.openstatus.dev/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-1.5 bg-background p-4 text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+              >
+                <Activity className="size-4 text-teal-400" />
+                Operational
+              </Link>
+              <Link
+                href="https://buymeacoffee.com/kennyanyi9"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-1.5 bg-background p-4 text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+              >
+                <Coffee className="size-4" />
+                Buy me a coffee
+              </Link>
             </div>
           </PanelContent>
         </Panel>
