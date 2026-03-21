@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -35,6 +35,7 @@ type LoginForm = z.infer<typeof loginSchema>;
 export function LoginForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const isRedirecting = useRef(false);
   const router = useRouter();
   const searchParams = useSearchParams();
   const { isAuthenticated, isLoading: authLoading } = useAuth();
@@ -50,7 +51,8 @@ export function LoginForm() {
   });
 
   useEffect(() => {
-    if (isAuthenticated && !authLoading) {
+    if (isAuthenticated && !authLoading && !isRedirecting.current) {
+      isRedirecting.current = true;
       router.push(redirectUrl);
     }
   }, [isAuthenticated, authLoading, router, redirectUrl]);
@@ -70,7 +72,7 @@ export function LoginForm() {
       }
 
       toast.success("Welcome back!");
-      // Redirect to the specified URL after successful login
+      isRedirecting.current = true;
       window.location.href = redirectUrl;
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : "Invalid email or password";

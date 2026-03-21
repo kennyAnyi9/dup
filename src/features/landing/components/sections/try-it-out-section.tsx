@@ -30,7 +30,6 @@ import {
   Lock,
   LockKeyhole,
   Link2,
-  Flame,
   ClockFading,
   Tags,
   QrCode,
@@ -38,6 +37,8 @@ import {
   Eye,
 } from "lucide-react";
 import QRCodeStyling from "qr-code-styling";
+import { useQrDownload } from "@/features/paste/hooks/use-qr-download";
+import { toast } from "sonner";
 
 const languageOptions = SUPPORTED_LANGUAGES.map((lang) => ({
   value: lang,
@@ -102,6 +103,7 @@ export function TryItOutSection() {
   } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const { downloadQrCode } = useQrDownload();
 
   const qrContainerRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -173,8 +175,8 @@ export function TryItOutSection() {
     if (!container) return;
 
     const qr = new QRCodeStyling({
-      width: 140,
-      height: 140,
+      width: 200,
+      height: 200,
       type: "svg",
       data: customUrl
         ? `${APP_URL}/p/${customUrl}`
@@ -255,7 +257,32 @@ export function TryItOutSection() {
   }
 
   async function handleCreate() {
-    if (!content.trim() || isSubmitting) return;
+    if (isSubmitting) return;
+
+    if (!content.trim()) {
+      toast.error("Please add some content to your paste.");
+      return;
+    }
+
+    if (!expiresIn) {
+      toast.error("Please select an expiration time.");
+      return;
+    }
+
+    if (!language) {
+      toast.error("Please select a language.");
+      return;
+    }
+
+    if (!visibility) {
+      toast.error("Please select a visibility option.");
+      return;
+    }
+
+    if (customUrl && !/^[a-zA-Z0-9\-_]+$/.test(customUrl)) {
+      toast.error("Custom URL can only contain letters, numbers, hyphens and underscores.");
+      return;
+    }
 
     setIsSubmitting(true);
     setError(null);
@@ -297,6 +324,7 @@ export function TryItOutSection() {
 
       if (res.success && res.paste) {
         setResult({ slug: res.paste.slug, url: res.paste.url });
+        toast.success("Paste created successfully!");
         setContent("");
         setTitle("");
         setDescription("");
@@ -306,10 +334,12 @@ export function TryItOutSection() {
         setTagInput("");
         setBurnAfterRead(false);
       } else {
-        setError(res.error || "Failed to create paste");
+        const msg = res.error || "Failed to create paste";
+        toast.error(msg);
+        setError(msg);
       }
     } catch {
-      setError("Something went wrong. Please try again.");
+      toast.error("Something went wrong. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
@@ -544,10 +574,10 @@ export function TryItOutSection() {
             <textarea
               value={content}
               onChange={(e) => setContent(e.target.value)}
-              placeholder="Content"
+              placeholder="Paste your code, text, or snippet here..."
               aria-label="Paste content"
               maxLength={charLimit ?? undefined}
-              className="w-full min-h-[240px] bg-transparent p-4 font-commit-mono text-sm resize-y focus:outline-none placeholder:text-muted-foreground"
+              className="w-full min-h-[240px] max-h-[400px] bg-transparent p-4 font-commit-mono text-sm resize-y focus:outline-none placeholder:text-muted-foreground/60"
             />
             <span className="absolute bottom-2 right-3 text-xs text-muted-foreground font-commit-mono">
               {charLimit
@@ -556,17 +586,22 @@ export function TryItOutSection() {
             </span>
           </div>
 
-          {/* QR preview (3 cols, 2 rows) | QR options (3 cols, 2 rows) | Burn (4 cols) + Create (4 cols) */}
-          <div className="col-span-3 row-span-2 bg-background p-4 flex items-center justify-center">
-            <div ref={qrContainerRef} className="flex items-center justify-center" />
+          {/* Row 1: Headers — QR (5 cols) | Burn (5 cols) — same height */}
+          <div className="col-span-5 bg-background px-4 py-3 flex items-center justify-center gap-2">
+            <span className="font-commit-mono text-sm">Customize QR Code</span>
+            {guestLocked && <GuestBadge />}
+          </div>
+          <div className="col-span-5 bg-background px-4 py-3 flex items-center justify-center gap-2">
+            <span className="font-commit-mono text-sm">Burn After Read</span>
+            {guestLocked && <GuestBadge />}
           </div>
 
-          <div className="col-span-3 row-span-2 bg-background p-4 flex flex-col gap-3">
-            <div className="flex items-center gap-2">
-              <QrCode className="size-4 shrink-0 text-muted-foreground" strokeWidth={1.5} />
-              <span className="font-commit-mono text-xs text-muted-foreground">QR Colors</span>
-            </div>
-            <div className="flex flex-wrap gap-1.5">
+          {/* Row 2: QR preview (2 cols, row-span-2) | Color circles (3 cols) | Burn options (5 cols) */}
+          <div className="col-span-2 row-span-2 bg-background p-2">
+            <div ref={qrContainerRef} className="w-full h-full [&>svg]:w-full [&>svg]:h-full [&>canvas]:w-full [&>canvas]:h-full" />
+          </div>
+          <div className="col-span-3 bg-background flex items-center justify-center p-3">
+            <div className="grid grid-cols-3 gap-3">
               {QR_COLOR_PRESETS.map((preset) => (
                 <button
                   key={preset.name}
@@ -577,10 +612,10 @@ export function TryItOutSection() {
                     setQrBackground(preset.background);
                   }}
                   disabled={guestLocked}
-                  className={`size-7 border transition-all ${
+                  className={`size-10 rounded-full border-2 transition-all ${
                     qrColor === preset.foreground && qrBackground === preset.background
-                      ? "border-foreground ring-1 ring-foreground"
-                      : "border-border hover:border-foreground/50"
+                      ? "border-foreground ring-2 ring-foreground/30"
+                      : "border-border hover:scale-110"
                   } ${guestLocked ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
                   style={{ backgroundColor: preset.foreground }}
                   title={preset.name}
@@ -588,55 +623,21 @@ export function TryItOutSection() {
                 />
               ))}
             </div>
-            {!guestLocked && (
-              <div className="flex items-center gap-2">
-                <input
-                  type="color"
-                  value={qrColor}
-                  onChange={(e) => setQrColor(e.target.value)}
-                  aria-label="QR code foreground color"
-                  className="size-7 cursor-pointer border border-border"
-                />
-                <input
-                  type="color"
-                  value={qrBackground}
-                  onChange={(e) => setQrBackground(e.target.value)}
-                  aria-label="QR code background color"
-                  className="size-7 cursor-pointer border border-border"
-                />
-                <span className="font-commit-mono text-xs text-muted-foreground">Custom</span>
-              </div>
-            )}
-            {guestLocked && (
-              <span className="font-commit-mono text-xs text-muted-foreground/50">
-                Sign in to customize
-              </span>
-            )}
           </div>
-
-          {/* Burn after read options */}
           <div
-            className={`col-span-4 bg-background p-4 flex flex-col gap-3 ${
+            className={`col-span-5 bg-background flex items-center justify-center ${
               guestLocked ? "text-muted-foreground/50" : ""
             }`}
           >
-            <div className="flex items-center gap-2">
-              <Flame
-                className={`size-4 shrink-0 ${burnAfterRead ? "text-destructive" : ""}`}
-                strokeWidth={1.5}
-              />
-              <span className="font-commit-mono text-sm">Burn after read</span>
-              {guestLocked && <GuestBadge />}
-            </div>
-            {!guestLocked && (
-              <div className="flex flex-wrap gap-1.5">
+            {!guestLocked ? (
+              <div className="flex gap-px bg-border">
                 <button
                   type="button"
                   onClick={() => setBurnAfterRead(false)}
-                  className={`px-2.5 py-1 border font-commit-mono text-xs transition-all ${
+                  className={`px-4 py-2 font-commit-mono text-sm transition-all ${
                     !burnAfterRead
-                      ? "border-foreground bg-foreground text-background"
-                      : "border-border hover:border-foreground/50"
+                      ? "bg-foreground text-background"
+                      : "bg-background hover:bg-accent"
                   }`}
                 >
                   Off
@@ -649,24 +650,42 @@ export function TryItOutSection() {
                       setBurnAfterRead(true);
                       setBurnViews(preset.value);
                     }}
-                    className={`px-2.5 py-1 border font-commit-mono text-xs transition-all ${
+                    className={`px-4 py-2 font-commit-mono text-sm transition-all ${
                       burnAfterRead && burnViews === preset.value
-                        ? "border-destructive bg-destructive/10 text-destructive"
-                        : "border-border hover:border-foreground/50"
+                        ? "bg-destructive/10 text-destructive"
+                        : "bg-background hover:bg-accent"
                     }`}
                   >
                     {preset.label}
                   </button>
                 ))}
               </div>
+            ) : (
+              <span className="font-commit-mono text-sm py-2">Sign in to enable</span>
             )}
           </div>
 
-          {/* Create Paste button */}
+          {/* Row 3: Custom Color (3 cols) | Create Paste (5 cols) */}
+          <div
+            className={`col-span-3 bg-background relative flex items-center justify-center px-4 py-2 transition-colors ${
+              guestLocked ? "text-muted-foreground/50 cursor-not-allowed" : "hover:bg-accent cursor-pointer"
+            }`}
+          >
+            <span className="font-commit-mono text-sm">Custom Color</span>
+            {!guestLocked && (
+              <input
+                type="color"
+                value={qrColor}
+                onChange={(e) => setQrColor(e.target.value)}
+                aria-label="QR code custom color"
+                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+              />
+            )}
+          </div>
           <button
             onClick={handleCreate}
             disabled={!content.trim() || isSubmitting}
-            className="col-span-4 bg-white text-black px-4 py-3 font-commit-mono text-sm text-center hover:bg-white/90 transition-colors disabled:opacity-50 disabled:pointer-events-none cursor-pointer"
+            className="col-span-5 bg-foreground text-background dark:bg-white dark:text-black px-4 py-2 font-commit-mono text-sm text-center hover:opacity-90 transition-colors disabled:opacity-50 disabled:pointer-events-none cursor-pointer"
           >
             {isSubmitting ? (
               <Loader2 className="size-4 animate-spin mx-auto" />
@@ -694,6 +713,15 @@ export function TryItOutSection() {
               ) : (
                 <Copy className="size-3.5" />
               )}
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => downloadQrCode(result.slug, null, qrColor, qrBackground)}
+              className="rounded-none shrink-0"
+              aria-label="Download QR code"
+            >
+              <QrCode className="size-3.5" />
             </Button>
             <Button
               variant="ghost"
