@@ -262,7 +262,7 @@ export function TryItOutSection() {
     setResult(null);
 
     // Sanitize guest-only values before submitting
-    const isGuest = !isAuthenticated;
+    const isGuest = !isAuthenticated && !isLoading;
     const sanitizedContent = isGuest
       ? content.slice(0, CHAR_LIMIT_ANONYMOUS)
       : content;
@@ -525,7 +525,7 @@ export function TryItOutSection() {
             ) : (
               <div className="flex-1 flex items-center gap-1 min-w-0">
                 <span className="text-muted-foreground font-commit-mono text-sm shrink-0">
-                  {APP_URL.replace(/\/+$/, "")}/
+                  {APP_URL.replace(/\/+$/, "")}/p/
                 </span>
                 <input
                   value={customUrl}

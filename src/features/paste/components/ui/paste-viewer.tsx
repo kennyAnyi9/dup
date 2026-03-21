@@ -34,6 +34,7 @@ interface PasteViewerProps {
 
 export function PasteViewerActions({
   content,
+  language,
   title,
   slug,
   qrCodeColor,
@@ -44,6 +45,7 @@ export function PasteViewerActions({
   onWrapTextChange,
 }: {
   content: string;
+  language: string;
   title?: string;
   slug: string;
   qrCodeColor?: string | null;
@@ -82,7 +84,15 @@ export function PasteViewerActions({
   }
 
   function getFileExtension(): string {
-    return "txt";
+    const extMap: Record<string, string> = {
+      javascript: "js", typescript: "ts", python: "py", java: "java",
+      cpp: "cpp", c: "c", csharp: "cs", php: "php", ruby: "rb",
+      go: "go", rust: "rs", swift: "swift", kotlin: "kt",
+      html: "html", css: "css", scss: "scss", json: "json",
+      xml: "xml", yaml: "yml", markdown: "md", sql: "sql",
+      bash: "sh", powershell: "ps1", dockerfile: "dockerfile",
+    };
+    return extMap[language] || "txt";
   }
 
   function openRawView() {

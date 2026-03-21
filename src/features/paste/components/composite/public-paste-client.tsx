@@ -469,6 +469,7 @@ export function PublicPasteClient({ slug }: PublicPasteClientProps) {
           {/* Actions row */}
           <PasteViewerActions
             content={paste.content}
+            language={paste.language}
             title={paste.title}
             slug={paste.slug}
             qrCodeColor={paste.qrCodeColor}

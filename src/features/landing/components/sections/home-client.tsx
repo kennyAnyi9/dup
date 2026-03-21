@@ -9,7 +9,10 @@ export function HomeClient() {
     <div className="font-commit-mono flex flex-row gap-3 sm:gap-4 justify-center items-center w-full sm:w-auto">
       <Button
         variant="outline"
-        onClick={() => document.getElementById('try-it-out')?.scrollIntoView({ behavior: 'smooth' })}
+        onClick={() => {
+          const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+          document.getElementById('try-it-out')?.scrollIntoView({ behavior: reducedMotion ? 'auto' : 'smooth' });
+        }}
         className="rounded-none w-fit sm:w-auto cursor-pointer px-7 py-5 transition-colors hover:bg-accent"
       >
         Try it out
