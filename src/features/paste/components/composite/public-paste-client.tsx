@@ -9,7 +9,6 @@ import {
   Pattern,
 } from "@/shared/components/dupui/panel";
 import { Skeleton } from "@/shared/components/dupui/skeleton";
-import { ThemeSwitch } from "@/shared/components/theme/theme-switch";
 import { Footer } from "@/shared/components/common/footer";
 import { useAuth } from "@/shared/hooks/use-auth";
 import type { PasteResult } from "@/shared/types/paste";
@@ -58,7 +57,7 @@ export function PublicPasteClient({ slug }: PublicPasteClientProps) {
   const [passwordLoading, setPasswordLoading] = useState(false);
   const [commentCount, setCommentCount] = useState(0);
   const [showLineNumbers, setShowLineNumbers] = useState(true);
-  const [wrapText, setWrapText] = useState(false);
+  const [wrapText, setWrapText] = useState(true);
   const commentsSectionRef = useRef<CommentsSectionRef>(null);
 
   const loadPaste = useCallback(
@@ -196,10 +195,7 @@ export function PublicPasteClient({ slug }: PublicPasteClientProps) {
                 </Link>
               </div>
 
-              <div className="flex items-center border-l h-full">
-                <div className="h-full flex place-items-center px-2">
-                  <ThemeSwitch />
-                </div>
+              <div className="flex items-center h-full">
                 <button
                   onClick={() => openModal()}
                   className="h-full flex place-items-center border-l hover:bg-accent w-44 p-5 cursor-pointer transition-colors"

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -42,6 +42,7 @@ export function RegisterForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const isRedirecting = useRef(false);
   const router = useRouter();
   const searchParams = useSearchParams();
   const { isAuthenticated, isLoading: authLoading } = useAuth();
@@ -58,7 +59,8 @@ export function RegisterForm() {
   });
 
   useEffect(() => {
-    if (isAuthenticated && !authLoading) {
+    if (isAuthenticated && !authLoading && !isRedirecting.current) {
+      isRedirecting.current = true;
       router.push(redirectUrl);
     }
   }, [isAuthenticated, authLoading, router, redirectUrl]);
@@ -78,7 +80,7 @@ export function RegisterForm() {
       }
 
       toast.success("Account created successfully! Welcome aboard!");
-      // Redirect to the specified URL after successful registration
+      isRedirecting.current = true;
       window.location.href = redirectUrl;
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : "Failed to create account. Please try again.";

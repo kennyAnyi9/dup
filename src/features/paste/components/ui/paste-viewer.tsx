@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useId } from "react";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { oneDark, oneLight } from "react-syntax-highlighter/dist/esm/styles/prism";
 import { useTheme } from "next-themes";
@@ -55,6 +55,7 @@ export function PasteViewerActions({
   wrapText: boolean;
   onWrapTextChange: (v: boolean) => void;
 }) {
+  const id = useId();
   const [copied, setCopied] = useState(false);
   const { downloadQrCode, isGenerating } = useQrDownload();
 
@@ -108,11 +109,11 @@ export function PasteViewerActions({
       <div className="flex items-center gap-4 text-xs">
         <div className="flex items-center gap-2">
           <Switch
-            id="line-numbers"
+            id={`${id}-line-numbers`}
             checked={showLineNumbers}
             onCheckedChange={onShowLineNumbersChange}
           />
-          <Label htmlFor="line-numbers" className="text-xs flex items-center gap-1 cursor-pointer">
+          <Label htmlFor={`${id}-line-numbers`} className="text-xs flex items-center gap-1 cursor-pointer">
             <Hash className="h-3 w-3" />
             Lines
           </Label>
@@ -120,11 +121,11 @@ export function PasteViewerActions({
 
         <div className="flex items-center gap-2">
           <Switch
-            id="wrap-text"
+            id={`${id}-wrap-text`}
             checked={wrapText}
             onCheckedChange={onWrapTextChange}
           />
-          <Label htmlFor="wrap-text" className="text-xs flex items-center gap-1 cursor-pointer">
+          <Label htmlFor={`${id}-wrap-text`} className="text-xs flex items-center gap-1 cursor-pointer">
             <WrapText className="h-3 w-3" />
             Wrap
           </Label>
@@ -232,8 +233,9 @@ export function PasteViewerCode({
 
   return (
     <Panel>
-      <PanelContent className="p-0">
+      <PanelContent className="p-0 max-h-[70vh] overflow-auto">
         <SyntaxHighlighter
+          key={`${showLineNumbers}-${wrapText}`}
           language={mapLanguage(language)}
           style={theme === "dark" ? oneDark : oneLight}
           showLineNumbers={showLineNumbers}
@@ -245,6 +247,7 @@ export function PasteViewerCode({
             fontSize: "0.875rem",
             lineHeight: "1.5",
             background: "transparent",
+            ...(wrapText ? { whiteSpace: "pre-wrap", wordBreak: "break-word" } : {}),
           }}
           lineNumberStyle={{
             minWidth: "3em",
@@ -263,6 +266,7 @@ export function PasteViewerCode({
 
 // Full standalone PasteViewer (for any context that needs the complete view in one component)
 export function PasteViewer({ content, language, title, slug, qrCodeColor, qrCodeBackground }: PasteViewerProps) {
+  const id = useId();
   const { theme } = useTheme();
   const [copied, setCopied] = useState(false);
   const [showLineNumbers, setShowLineNumbers] = useState(true);
@@ -281,12 +285,24 @@ export function PasteViewer({ content, language, title, slug, qrCodeColor, qrCod
     }
   }
 
+  function getFileExtension(): string {
+    const extMap: Record<string, string> = {
+      javascript: "js", typescript: "ts", python: "py", java: "java",
+      cpp: "cpp", c: "c", csharp: "cs", php: "php", ruby: "rb",
+      go: "go", rust: "rs", swift: "swift", kotlin: "kt",
+      html: "html", css: "css", scss: "scss", json: "json",
+      xml: "xml", yaml: "yml", markdown: "md", sql: "sql",
+      bash: "sh", powershell: "ps1", dockerfile: "dockerfile",
+    };
+    return extMap[language] || "txt";
+  }
+
   function downloadPaste() {
     const blob = new Blob([content], { type: "text/plain" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `${title || slug}.txt`;
+    a.download = `${title || slug}.${getFileExtension()}`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -321,14 +337,14 @@ export function PasteViewer({ content, language, title, slug, qrCodeColor, qrCod
         <div className="p-3 border-b flex items-center justify-center gap-3 flex-wrap">
           <div className="flex items-center gap-4 text-xs">
             <div className="flex items-center gap-2">
-              <Switch id="ln-full" checked={showLineNumbers} onCheckedChange={setShowLineNumbers} />
-              <Label htmlFor="ln-full" className="text-xs flex items-center gap-1 cursor-pointer">
+              <Switch id={`${id}-line-numbers`} checked={showLineNumbers} onCheckedChange={setShowLineNumbers} />
+              <Label htmlFor={`${id}-line-numbers`} className="text-xs flex items-center gap-1 cursor-pointer">
                 <Hash className="h-3 w-3" /> Lines
               </Label>
             </div>
             <div className="flex items-center gap-2">
-              <Switch id="wrap-full" checked={wrapText} onCheckedChange={setWrapText} />
-              <Label htmlFor="wrap-full" className="text-xs flex items-center gap-1 cursor-pointer">
+              <Switch id={`${id}-wrap-text`} checked={wrapText} onCheckedChange={setWrapText} />
+              <Label htmlFor={`${id}-wrap-text`} className="text-xs flex items-center gap-1 cursor-pointer">
                 <WrapText className="h-3 w-3" /> Wrap
               </Label>
             </div>
@@ -354,6 +370,7 @@ export function PasteViewer({ content, language, title, slug, qrCodeColor, qrCod
         </div>
 
         <SyntaxHighlighter
+          key={`${showLineNumbers}-${wrapText}`}
           language={mapLanguage(language)}
           style={theme === "dark" ? oneDark : oneLight}
           showLineNumbers={showLineNumbers}
